@@ -1,13 +1,16 @@
-pub mod embedding;
-pub mod graph;
-
-use extendr_api::prelude::*;
+use burn::data::dataloader::DataLoaderBuilder;
+use burn::module::AutodiffModule;
+use burn::optim::{AdamConfig, GradientsParams, Optimizer};
+use burn::tensor::backend::AutodiffBackend;
+use extendr_api::List;
+use node2vec_rs::batch::SkipGramBatcher;
+use node2vec_rs::dataset::WalkDataset;
+use node2vec_rs::model::SkipGramConfig;
 use node2vec_rs::train::TrainingConfig;
 use std::ops::Deref;
 
 ////////////
 // Params //
-////////////
 
 pub struct GeneWalkConfig(TrainingConfig);
 
@@ -114,9 +117,28 @@ impl Deref for GeneWalkConfig {
     }
 }
 
-// Macro to generate exports.
-// This ensures exported functions are registered with R.
-// See corresponding C code in `entrypoint.c`.
-extendr_module! {
-    mod genewalkR;
+pub fn train_node2vec<B: AutodiffBackend>(
+    model_config: SkipGramConfig,
+    genewalk_config: GeneWalkConfig,
+    random_walks: Vec<Vec<u32>>,
+    device: B::Device,
+) {
+    let mut model = model_config.init::<B>(&device);
+    let mut optim = AdamConfig::new().init();
+    let batcher = SkipGramBatcher::new(genewalk_config.window_size);
+
+    let data_loader = DataLoaderBuilder::new(batcher.clone())
+        .batch_size(genewalk_config.batch_size)
+        .shuffle(genewalk_config.seed)
+        .num_workers(genewalk_config.num_workers)
+        .build(WalkDataset::new(random_walks));
+
+    for epoch in 1..=genewalk_config.num_epochs {
+        let mut total_loss = 0.0;
+        let mut num_batches = 0;
+
+        for batch in data_loader.iter() {
+            let batch_size = batch.contexts.dims()[0];
+        }
+    }
 }
