@@ -6,12 +6,19 @@ edition = '2021'
 rust-version = '1.65'
 
 [lib]
-crate-type = [ 'staticlib' ]
+crate-type = ['staticlib']
 name = 'genewalkR'
 
 [dependencies]
+burn = { version = "0.19.1", features = ["dataset", "train", "tch"] }
 extendr-api = '0.8.1'
+faer = "0.23.2"
+node2vec-rs = "0.1.0"
+rustc-hash = "2.1.1"
 
 [profile.release]
 lto = true
 codegen-units = 1
+
+[lints.rust]
+non_snake_case = "allow"
