@@ -13,7 +13,8 @@ name = 'genewalkR'
 burn = { version = "0.19.1", features = ["dataset", "train", "tch"] }
 extendr-api = '0.8.1'
 faer = "0.23.2"
-node2vec-rs = "0.1.0"
+node2vec-rs = "0.1.1"
+rand = "0.9.2"
 rustc-hash = "2.1.1"
 
 [profile.release]
