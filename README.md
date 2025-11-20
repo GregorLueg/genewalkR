@@ -64,7 +64,11 @@ For R specifically, add to `~/.Renviron`:
 LIBTORCH_PATH=/path/to/your/home/libtorch
 ```
 
-4. **Install rextendr** in R:
+4. **Install rextendr**
+
+Install rextendr that will compile the Rust and link the torch code and expose 
+it to R.
+
 ```r
 install.packages("rextendr")
 ```
