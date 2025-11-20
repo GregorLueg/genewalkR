@@ -58,7 +58,8 @@ rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed
 #' @param seed Integer. For reproducibility of the algorithm.
 #' @param verbose Boolean. Controls verbosity of the algorithm.
 #'
-#' @returns A list with permuted Cosine similarities between the edges.
+#' @returns A list with the null distribution of the cosine similarities per
+#' given permutation.
 #'
 #' @export
 rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose)
