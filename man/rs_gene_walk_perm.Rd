@@ -41,7 +41,8 @@ edges will be added.}
 \item{verbose}{Boolean. Controls verbosity of the algorithm.}
 }
 \value{
-A list with permuted Cosine similarities between the edges.
+A list with the null distribution of the cosine similarities per
+given permutation.
 }
 \description{
 Wrapper function to generate permuted embeddings and subsequently the

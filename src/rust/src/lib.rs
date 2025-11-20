@@ -160,7 +160,8 @@ fn rs_gene_walk(
 /// @param seed Integer. For reproducibility of the algorithm.
 /// @param verbose Boolean. Controls verbosity of the algorithm.
 ///
-/// @returns A list with permuted Cosine similarities between the edges.
+/// @returns A list with the null distribution of the cosine similarities per
+/// given permutation.
 ///
 /// @export
 #[extendr]
@@ -175,7 +176,7 @@ fn rs_gene_walk_perm(
     directed: bool,
     seed: usize,
     verbose: bool,
-) -> extendr_api::Result<Vec<f64>> {
+) -> extendr_api::Result<List> {
     let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
 
     let device = LibTorchDevice::Cpu;
@@ -197,7 +198,7 @@ fn rs_gene_walk_perm(
         println!("Processed the edges in {:.2}s", end_edge_prep.as_secs_f64());
     }
 
-    let mut null_similarities = Vec::new();
+    let mut null_similarities: Vec<Vec<f64>> = Vec::with_capacity(n_perm);
 
     for perm in 0..n_perm {
         let start_perm = Instant::now();
@@ -268,7 +269,7 @@ fn rs_gene_walk_perm(
             })
             .collect::<Vec<f64>>();
 
-        null_similarities.extend_from_slice(&null_vals_i);
+        null_similarities.push(null_vals_i);
 
         if verbose {
             println!(
@@ -278,7 +279,14 @@ fn rs_gene_walk_perm(
         }
     }
 
-    Ok(null_similarities)
+    let mut res_ls = List::new(n_perm);
+
+    #[allow(clippy::needless_range_loop)]
+    for i in 0..n_perm {
+        res_ls.set_elt(i, Robj::from(&null_similarities[i]))?;
+    }
+
+    Ok(res_ls)
 }
 
 /// Calculate the test statistics
