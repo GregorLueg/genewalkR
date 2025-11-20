@@ -176,10 +176,10 @@ pub fn train_node2vec<B: AutodiffBackend>(
             total_loss += loss_scalar;
             num_batches += 1;
 
-            if verbose && num_batches % 20 == 0 {
+            if verbose && num_batches % 100 == 0 {
                 println!(
-                    "   Processed {} batches out of {} in epoch {}",
-                    num_batches, total_batches, epoch
+                    "   Processed {} batches out of {} for epoch {} out of {}.",
+                    num_batches, total_batches, epoch, genewalk_config.num_epochs
                 );
             }
 

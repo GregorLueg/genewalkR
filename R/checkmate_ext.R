@@ -1,0 +1,113 @@
+# checkmate extensions ---------------------------------------------------------
+
+## checks ----------------------------------------------------------------------
+
+#' Check node2vec parameters
+#'
+#' @description Checkmate extension for checking the node2vec parameters.
+#'
+#' @param x The list to check/assert
+#'
+#' @return \code{TRUE} if the check was successful, otherwise an error message.
+checkNode2Vec <- function(x) {
+  res <- checkmate::checkList(x)
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  res <- checkmate::checkNames(
+    names(x),
+    must.include = c(
+      "p",
+      "q",
+      "walks_per_node",
+      "walk_length",
+      "num_workers",
+      "batch_size",
+      "num_epochs",
+      "num_negatives",
+      "window_size",
+      "lr"
+    )
+  )
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  integer_rules <- list(
+    "walks_per_node" = "I1",
+    "walk_length" = "I1",
+    "num_workers" = "I1",
+    "batch_size" = "I1",
+    "num_epochs" = "I1",
+    "num_negatives" = "I1",
+    "window_size" = "I1"
+  )
+
+  res <- purrr::imap_lgl(x, \(x, name) {
+    if (name %in% names(integer_rules)) {
+      checkmate::qtest(x, integer_rules[[name]])
+    } else {
+      TRUE
+    }
+  })
+
+  if (!isTRUE(all(res))) {
+    broken_elem <- names(res)[which(!res)][1]
+    return(
+      sprintf(
+        paste(
+          "The following element `%s` in node2vec parameters is incorrect:",
+          "walks_per_node, walk_length, num_workers, batch_size, num_epochs,",
+          "num_negatives, and window_size need to be integers."
+        ),
+        broken_elem
+      )
+    )
+  }
+
+  numeric_rules <- list(
+    "p" = "N1",
+    "q" = "N1",
+    "lr" = "N1"
+  )
+
+  res <- purrr::imap_lgl(x, \(x, name) {
+    if (name %in% names(numeric_rules)) {
+      checkmate::qtest(x, numeric_rules[[name]])
+    } else {
+      TRUE
+    }
+  })
+
+  if (!isTRUE(all(res))) {
+    broken_elem <- names(res)[which(!res)][1]
+    return(
+      sprintf(
+        paste(
+          "The following element `%s` in node2vec parameters is incorrect:",
+          "p, q, and lr need to be numeric."
+        ),
+        broken_elem
+      )
+    )
+  }
+
+  return(TRUE)
+}
+
+## asserts ---------------------------------------------------------------------
+
+#' Assert node2vec parameters
+#'
+#' @description Checkmate extension for asserting the node2vec parameters.
+#'
+#' @inheritParams checkNode2Vec
+#'
+#' @param .var.name Name of the checked object to print in assertions. Defaults
+#' to the heuristic implemented in checkmate.
+#' @param add Collection to store assertion messages. See
+#' [checkmate::makeAssertCollection()].
+#'
+#' @return Invisibly returns the checked object if the assertion is successful.
+assertNode2Vec <- checkmate::makeAssertionFunction(checkNode2Vec)
