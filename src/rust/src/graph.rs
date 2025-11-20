@@ -15,6 +15,10 @@ use rustc_hash::{FxBuildHasher, FxHashMap};
 /// * `to` - Vector indicating the node indices from where to the edge goes
 /// * `weight` - Optional weight vector for the edge. If not supplied, will
 ///   default to `1.0`.
+///
+/// ### Returns
+///
+/// Prepared edges `Vec<(from, to, weight)>`
 pub fn prepare_edges(
     from: Vec<u32>,
     to: Vec<u32>,

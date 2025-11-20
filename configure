@@ -1,3 +1,19 @@
-#!/usr/bin/env sh
-: "${R_HOME=`R RHOME`}"
-"${R_HOME}/bin/Rscript" tools/config.R 
+#!/bin/sh
+
+# Get LibTorch path from environment or use default
+LIBTORCH_PATH="${LIBTORCH_PATH:-${HOME}/libtorch}"
+
+# Check if LibTorch exists
+if [ ! -d "${LIBTORCH_PATH}" ]; then
+    echo "Warning: LibTorch not found at ${LIBTORCH_PATH}"
+    echo "Set LIBTORCH_PATH environment variable or install LibTorch to ~/libtorch"
+fi
+
+# Substitute all placeholders
+sed -e "s|@LIBTORCH_PATH@|${LIBTORCH_PATH}|g" \
+    -e "s|@LIBDIR@|release|g" \
+    -e "s|@PROFILE@|--release|g" \
+    -e "s|@CLEAN_TARGET@|rust/target|g" \
+    src/Makevars.in > src/Makevars
+
+echo "Makevars configured with LibTorch at ${LIBTORCH_PATH}"

@@ -8,17 +8,21 @@ use burn::backend::{
 };
 use burn::prelude::Backend;
 use extendr_api::prelude::*;
+use faer::Mat;
 use node2vec_rs::model::SkipGramConfig;
+use rayon::prelude::*;
 use std::time::Instant;
 
 use crate::embedding::*;
 use crate::graph::*;
+use crate::utils::*;
 
 // export the function to R
 extendr_module! {
     mod genewalkR;
     fn rs_gene_walk;
     fn rs_gene_walk_perm;
+    fn rs_gene_walk_test;
 }
 
 /// Function that generates the GeneWalk embedding
@@ -82,6 +86,13 @@ fn rs_gene_walk(
 
     let node2vec_graph = create_graph(&edges, gene_walk_config.p, gene_walk_config.q, directed);
 
+    let vocab_size = edges
+        .iter()
+        .flat_map(|(from, to, _)| [*from, *to])
+        .max()
+        .map(|max_id| max_id as usize + 1)
+        .unwrap_or(0);
+
     let random_walks = node2vec_graph.generate_walks(
         gene_walk_config.walks_per_node,
         gene_walk_config.walk_length,
@@ -98,11 +109,13 @@ fn rs_gene_walk(
         );
     }
 
+    let start_training = Instant::now();
+
     let device = LibTorchDevice::Cpu;
     LibTorch::<f32>::seed(&device, gene_walk_config.seed);
 
     let skipgram_config = SkipGramConfig {
-        vocab_size: random_walks.len(),
+        vocab_size,
         embedding_dim: embd_dim,
     };
 
@@ -113,6 +126,12 @@ fn rs_gene_walk(
         device,
         verbose,
     );
+
+    let end_training = start_training.elapsed();
+
+    if verbose {
+        println!("Training completed in {:.2}s.", end_training.as_secs_f64());
+    }
 
     let nrows = embedding.len();
     let ncols = embedding[0].len();
@@ -140,7 +159,7 @@ fn rs_gene_walk(
 /// @param seed Integer. For reproducibility of the algorithm.
 /// @param verbose Boolean. Controls verbosity of the algorithm.
 ///
-/// @returns A list of matrices of permuted embeddings.
+/// @returns A list with permuted Cosine similarities between the edges.
 ///
 /// @export
 #[extendr]
@@ -155,7 +174,7 @@ fn rs_gene_walk_perm(
     directed: bool,
     seed: usize,
     verbose: bool,
-) -> extendr_api::Result<List> {
+) -> extendr_api::Result<Vec<f64>> {
     let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
 
     let device = LibTorchDevice::Cpu;
@@ -177,7 +196,7 @@ fn rs_gene_walk_perm(
         println!("Processed the edges in {:.2}s", end_edge_prep.as_secs_f64());
     }
 
-    let mut perm_res: Vec<Vec<Vec<f32>>> = Vec::with_capacity(n_perm);
+    let mut null_similarities = Vec::new();
 
     for perm in 0..n_perm {
         let start_perm = Instant::now();
@@ -200,6 +219,13 @@ fn rs_gene_walk_perm(
             directed,
         );
 
+        let vocab_size = edges
+            .iter()
+            .flat_map(|(from, to, _)| [*from, *to])
+            .max()
+            .map(|max_id| max_id as usize + 1)
+            .unwrap_or(0);
+
         let random_walks_perm = node2vec_graph.generate_walks(
             gene_walk_config_i.walks_per_node,
             gene_walk_config_i.walk_length,
@@ -220,7 +246,7 @@ fn rs_gene_walk_perm(
         }
 
         let skipgram_config = SkipGramConfig {
-            vocab_size: random_walks_perm.len(),
+            vocab_size,
             embedding_dim: embd_dim,
         };
 
@@ -232,9 +258,16 @@ fn rs_gene_walk_perm(
             verbose,
         );
 
-        perm_res.push(embd_i);
-
         let end_perm = start_perm.elapsed();
+
+        let null_vals_i = perm_edges
+            .par_iter()
+            .map(|(node_i, node_j, _)| {
+                cosine_similarity(&embd_i[*node_i as usize], &embd_i[*node_j as usize]) as f64
+            })
+            .collect::<Vec<f64>>();
+
+        null_similarities.extend_from_slice(&null_vals_i);
 
         if verbose {
             println!(
@@ -243,16 +276,80 @@ fn rs_gene_walk_perm(
             );
         }
     }
-    let nrows = perm_res[0].len();
-    let ncols = perm_res[0][0].len();
 
-    let mut res_ls = List::new(n_perm);
+    Ok(null_similarities)
+}
 
-    #[allow(clippy::needless_range_loop)]
-    for i in 0..n_perm {
-        let r_mat_i = RMatrix::new_matrix(nrows, ncols, |r, c| perm_res[i][r][c] as f64);
-        res_ls.set_elt(i, Robj::from(r_mat_i))?;
+/// Calculate the test statistics
+///
+/// @description Calculates the test statistic for the gene / pathway pairs.
+///
+/// @param gene_embds Matrix of n_genes x their graph embeddings
+/// @param pathway_embds Matrix of n_pathways x their graph embeddings
+/// @param null_distribution Numeric vector representing the null distributions
+/// in terms of Cosine distances.
+/// @param return_similarities Boolean. Shall the Cosine similarity matrix
+/// between genes x pathways be returned
+/// @param verbose Controls verbosity of the function.
+///
+/// @returns A list with
+/// \itemize{
+///   \item pvals - The calculated p-values for the genes x pathways based
+///   on the permuted data.
+///   \item sim - NULL if return_similarities=FALSE or the cosine similarities
+///   in the embedding space.
+/// }
+///
+/// @export
+#[extendr]
+fn rs_gene_walk_test(
+    gene_embds: RMatrix<f64>,
+    pathway_embds: RMatrix<f64>,
+    null_distribution: Vec<f64>,
+    return_similarities: bool,
+    verbose: bool,
+) -> List {
+    let gene_embds = r_matrix_to_vec(gene_embds);
+    let pathway_embds = r_matrix_to_vec(pathway_embds);
+
+    if verbose {
+        println!("Calculating Cosine similarities")
     }
 
-    Ok(res_ls)
+    let start_cosine = Instant::now();
+
+    let cosine_sim: Mat<f64> = compute_cross_cosine(&gene_embds, &pathway_embds);
+
+    let end_cosine = start_cosine.elapsed();
+
+    if verbose {
+        println!(
+            "Finished Cosine calculations {:.2}s",
+            end_cosine.as_secs_f64()
+        );
+        println!("Starting p-value calculations.")
+    }
+
+    let start_pval = Instant::now();
+
+    let pvals: Mat<f64> = calculate_p_vals(&cosine_sim.as_ref(), null_distribution);
+
+    let pval_r_mat = faer_to_r_matrix(&pvals.as_ref());
+
+    let end_pval = start_pval.elapsed();
+
+    if verbose {
+        println!(
+            "Finished p-value calculations {:.2}s",
+            end_pval.as_secs_f64()
+        );
+    }
+
+    let sim_r_mat: Option<RMatrix<f64>> = if return_similarities {
+        Some(faer_to_r_matrix(&cosine_sim.as_ref()))
+    } else {
+        None
+    };
+
+    list![pvals = pval_r_mat, sim = sim_r_mat]
 }
