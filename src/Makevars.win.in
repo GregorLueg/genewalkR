@@ -6,6 +6,9 @@ LIBTORCH = @LIBTORCH_PATH@
 LIBTORCH_LIB = $(LIBTORCH)/lib
 PKG_LIBS = -L$(LIBDIR) -lgenewalkR -L$(LIBTORCH_LIB) -ltorch_cpu -ltorch -lc10 -lws2_32 -ladvapi32 -luserenv -lbcrypt -lntdll
 
+# updated here to add libtorch to the path to be able to link what R
+# does to the Rust part...
+
 .PHONY: $(STATLIB)
 
 $(SHLIB): $(STATLIB)
