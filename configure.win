@@ -1,9 +1,0 @@
-#!/bin/sh
-
-LIBTORCH_PATH="${LIBTORCH_PATH:-${HOME}/libtorch}"
-
-sed -e "s|@LIBTORCH_PATH@|${LIBTORCH_PATH}|g" \
-    -e "s|@LIBDIR@|release|g" \
-    -e "s|@PROFILE@|--release|g" \
-    -e "s|@CLEAN_TARGET@|rust/target|g" \
-    src/Makevars.win.in > src/Makevars.win

@@ -14,6 +14,11 @@ generation of the embeddings.
 
 ## Installation
 
+This package will **NOT** work on Windows and is **NOT** supported for Windows.
+The linkage of the libtorch C++ and R compilation part proves too much of a 
+headache to be worth it. Please feel free to fork this repo and generate a 
+version that works on Windows.
+
 ### Prerequisites
 
 1. **Rust**: Install from [rust-lang.org](https://www.rust-lang.org/tools/install)
@@ -43,15 +48,6 @@ cd ~
 curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-2.9.0.zip -o libtorch.zip
 unzip libtorch.zip
 rm libtorch.zip
-```
-
-   **Windows (PowerShell):**
-```powershell
-
-cd ~
-Invoke-WebRequest -Uri "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.9.0%2Bcpu.zip" -OutFile "libtorch.zip"
-Expand-Archive -Path libtorch.zip -DestinationPath .
-Remove-Item libtorch.zip
 ```
 
 3. **Set environment variable**: 
