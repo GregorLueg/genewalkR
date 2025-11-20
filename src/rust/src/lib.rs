@@ -142,7 +142,8 @@ fn rs_gene_walk(
 /// Function to generate permuted embeddings
 ///
 /// @description
-/// Wrapper function to generate permuted embeddings.
+/// Wrapper function to generate permuted embeddings and subsequently the
+/// null distribution of cosine similarities for statistical testing.
 ///
 /// @param from Integer vector. The node indices indicating where the edge
 /// originates from.

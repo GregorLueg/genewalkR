@@ -44,5 +44,6 @@ edges will be added.}
 A list with permuted Cosine similarities between the edges.
 }
 \description{
-Wrapper function to generate permuted embeddings.
+Wrapper function to generate permuted embeddings and subsequently the
+null distribution of cosine similarities for statistical testing.
 }
