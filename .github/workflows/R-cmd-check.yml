@@ -50,6 +50,12 @@ jobs:
         with:
           toolchain: ${{ runner.os == 'Windows' && 'stable-x86_64-pc-windows-gnu' || 'stable' }}
 
+      # God, why do people use Windows...
+      - name: Set Cargo Target (Windows)
+        if: runner.os == 'Windows'
+        run: echo "CARGO_BUILD_TARGET=x86_64-pc-windows-gnu" >> $GITHUB_ENV
+        shell: bash
+
       - name: Cache LibTorch (Unix)
         if: runner.os != 'Windows'
         id: cache-libtorch-unix
