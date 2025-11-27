@@ -4,7 +4,7 @@
 \alias{calculate_genewalk_stats}
 \title{Calculate the pathway and gene statistics}
 \usage{
-calculate_genewalk_stats(object, gene_nodes, param_nodes, .verbose = TRUE)
+calculate_genewalk_stats(object, gene_nodes, pathway_nodes, .verbose = TRUE)
 }
 \arguments{
 \item{object}{The \code{genewalkR_class} object containing actual and permuted
@@ -13,11 +13,11 @@ embeddings. See \code{\link[=genewalkR_class]{genewalkR_class()}}.}
 \item{gene_nodes}{Character vector. Names of the gene nodes included in
 the analysis. Must correspond to row names in the embedding matrix.}
 
-\item{.verbose}{Logical. If \code{TRUE}, prints progress messages during
-calculation. Default is \code{TRUE}.}
-
 \item{pathway_nodes}{Character vector. Names of the pathway nodes included
 in the analysis. Must correspond to row names in the embedding matrix.}
+
+\item{.verbose}{Logical. If \code{TRUE}, prints progress messages during
+calculation. Default is \code{TRUE}.}
 }
 \value{
 The input object with an added \code{stats} property containing a
