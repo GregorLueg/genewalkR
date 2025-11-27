@@ -16,13 +16,16 @@
 #'   the graph.}
 #'   \item{permuted_embd}{A list containing the permuted versions of the graph
 #'   data for subsequent statistical testing.}
-#'   \item{global_stats}{A data.table containing the global statistics with the
-#'   FDR correction applied across all gene-pathway pairs.}
-#'   \item{gene_stats}{A data.table containing the gene-based statistics with
-#'   the FDR correction applied within a given gene.}
+#'   \item{stats}{A data.table containing the information on the statistical
+#'   testing across the permutations}
 #'   \item{params}{A (nested) list that will store all the parameters of the
 #'   applied function.}
 #' }
+#'
+#' @param graph_dt A data.table with the graph information. Needs to have
+#' the columns `"from"` and `"to"`, and optionally a weight.
+#' @param graph_gene_params A list with information in terms of the generation
+#' of the graph.
 #'
 #' @return Returns the initialised genewalkR_class object for subsequent
 #' analysis.
@@ -48,6 +51,8 @@ genewalkR_class <- S7::new_class(
     checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
     checkmate::assertList(graph_gene_params)
 
+    # future proofing this so people know how they generated the underlying
+    # gene walk network (GWN)
     params <- list("graph_gene" = graph_gene_params)
     empty_emb <- matrix()
     storage.mode(empty_emb) <- "numeric"
@@ -66,4 +71,39 @@ genewalkR_class <- S7::new_class(
 
 ## getters ---------------------------------------------------------------------
 
-# TODO
+#' Get the statistical results
+#'
+#' @param object The `genewalkR_class` class, please see
+#' [genewalkR::genewalkR_class()].
+#'
+#' @returns If found, the GeneWalk statistics results
+get_stats <- S7::new_generic(
+  name = "get_stats",
+  dispatch_args = "object",
+  fun = function(
+    object
+  ) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_stats genewalkR_class
+#'
+#' @export
+S7::method(get_stats, genewalkR_class) <- function(
+  object
+) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
+
+  stats <- S7::prop(object, "stats")
+
+  if (nrow(stats) == 0) {
+    warning(paste(
+      "It does not like the calculate_genewalk_stats() was run.",
+      "Returning empty data.table"
+    ))
+  }
+
+  return(stats)
+}

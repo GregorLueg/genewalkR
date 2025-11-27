@@ -260,7 +260,7 @@ calculate_genewalk_stats <- S7::new_generic(
   fun = function(
     object,
     gene_nodes,
-    param_nodes,
+    pathway_nodes,
     .verbose = TRUE
   ) {
     S7::S7_dispatch()
@@ -270,16 +270,19 @@ calculate_genewalk_stats <- S7::new_generic(
 #' @method calculate_genewalk_stats genewalkR_class
 #'
 #' @export
+#'
+#' @importFrom magrittr `%>%`
+#' @import data.table
 S7::method(calculate_genewalk_stats, genewalkR_class) <- function(
   object,
   gene_nodes,
-  param_nodes,
+  pathway_nodes,
   .verbose = TRUE
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
   checkmate::qassert(gene_nodes, "S+")
-  checkmate::qassert(param_nodes, "S+")
+  checkmate::qassert(pathway_nodes, "S+")
   checkmate::qassert(.verbose, "B1")
 
   # early return
@@ -302,10 +305,11 @@ S7::method(calculate_genewalk_stats, genewalkR_class) <- function(
     verbose = .verbose
   )
 
-  stats <- data.table::setDT(stats)[, `:=`(
-    gene = gene_nodes[gene],
-    pathway = pathway_nodes[pathway]
-  )]
+  stats <- data.table::as.data.table(stats) %>%
+    .[, `:=`(
+      gene = gene_nodes[gene],
+      pathway = pathway_nodes[pathway]
+    )]
 
   S7::prop(object, "stats") <- stats
 

@@ -6,6 +6,13 @@
 \usage{
 genewalkR_class(graph_dt, graph_gene_params)
 }
+\arguments{
+\item{graph_dt}{A data.table with the graph information. Needs to have
+the columns \code{"from"} and \code{"to"}, and optionally a weight.}
+
+\item{graph_gene_params}{A list with information in terms of the generation
+of the graph.}
+}
 \value{
 Returns the initialised genewalkR_class object for subsequent
 analysis.
@@ -23,10 +30,8 @@ apply the Gene Walk algorithm.
 the graph.}
 \item{permuted_embd}{A list containing the permuted versions of the graph
 data for subsequent statistical testing.}
-\item{global_stats}{A data.table containing the global statistics with the
-FDR correction applied across all gene-pathway pairs.}
-\item{gene_stats}{A data.table containing the gene-based statistics with
-the FDR correction applied within a given gene.}
+\item{stats}{A data.table containing the information on the statistical
+testing across the permutations}
 \item{params}{A (nested) list that will store all the parameters of the
 applied function.}
 }

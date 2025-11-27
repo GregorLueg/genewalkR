@@ -22,6 +22,7 @@ Imports:
     data.table,
     purrr,
     igraph,
+    magrittr,
     rextendr,
     S7
 Depends: 
