@@ -70,22 +70,21 @@ rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_
 #'
 #' @param gene_embds Matrix of n_genes x their graph embeddings
 #' @param pathway_embds Matrix of n_pathways x their graph embeddings
-#' @param null_distribution Numeric vector representing the null distributions
-#' in terms of Cosine distances.
-#' @param return_similarities Boolean. Shall the Cosine similarity matrix
-#' between genes x pathways be returned
+#' @param null_distributions List of null distribution vectors (one per
+#' permutation).
 #' @param verbose Controls verbosity of the function.
 #'
-#' @returns A list with
+#' @returns A list with vectors:
 #' \itemize{
-#'   \item pvals - The calculated p-values for the genes x pathways based
-#'   on the permuted data.
-#'   \item sim - NULL if return_similarities=FALSE or the cosine similarities
-#'   in the embedding space.
+#'   \item gene - Gene indices (1-based for R)
+#'   \item pathway - Pathway indices (1-based for R)
+#'   \item pval - P-values for each gene-pathway pair
+#'   \item global_fdr - FDR corrected across all pairs
+#'   \item gene_fdr - FDR corrected within each gene
 #' }
 #'
 #' @export
-rs_gene_walk_test <- function(gene_embds, pathway_embds, null_distribution, return_similarities, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, null_distribution, return_similarities, verbose)
+rs_gene_walk_test <- function(gene_embds, pathway_embds, null_distributions, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, null_distributions, verbose)
 
 
 # nolint end
