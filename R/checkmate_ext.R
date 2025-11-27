@@ -9,7 +9,7 @@
 #' @param x The list to check/assert
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
-checkNode2Vec <- function(x) {
+checkNode2VecParams <- function(x) {
   res <- checkmate::checkList(x)
   if (!isTRUE(res)) {
     return(res)
@@ -102,7 +102,7 @@ checkNode2Vec <- function(x) {
 #'
 #' @description Checkmate extension for asserting the node2vec parameters.
 #'
-#' @inheritParams checkNode2Vec
+#' @inheritParams checkNode2VecParams
 #'
 #' @param .var.name Name of the checked object to print in assertions. Defaults
 #' to the heuristic implemented in checkmate.
@@ -110,4 +110,4 @@ checkNode2Vec <- function(x) {
 #' [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
-assertNode2Vec <- checkmate::makeAssertionFunction(checkNode2Vec)
+assertNode2VecParam <- checkmate::makeAssertionFunction(checkNode2VecParams)

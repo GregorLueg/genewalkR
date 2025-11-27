@@ -4,34 +4,26 @@
 \alias{rs_gene_walk_test}
 \title{Calculate the test statistics}
 \usage{
-rs_gene_walk_test(
-  gene_embds,
-  pathway_embds,
-  null_distribution,
-  return_similarities,
-  verbose
-)
+rs_gene_walk_test(gene_embds, pathway_embds, null_distributions, verbose)
 }
 \arguments{
 \item{gene_embds}{Matrix of n_genes x their graph embeddings}
 
 \item{pathway_embds}{Matrix of n_pathways x their graph embeddings}
 
-\item{null_distribution}{Numeric vector representing the null distributions
-in terms of Cosine distances.}
-
-\item{return_similarities}{Boolean. Shall the Cosine similarity matrix
-between genes x pathways be returned}
+\item{null_distributions}{List of null distribution vectors (one per
+permutation).}
 
 \item{verbose}{Controls verbosity of the function.}
 }
 \value{
-A list with
+A list with vectors:
 \itemize{
-\item pvals - The calculated p-values for the genes x pathways based
-on the permuted data.
-\item sim - NULL if return_similarities=FALSE or the cosine similarities
-in the embedding space.
+\item gene - Gene indices (1-based for R)
+\item pathway - Pathway indices (1-based for R)
+\item pval - P-values for each gene-pathway pair
+\item global_fdr - FDR corrected across all pairs
+\item gene_fdr - FDR corrected within each gene
 }
 }
 \description{

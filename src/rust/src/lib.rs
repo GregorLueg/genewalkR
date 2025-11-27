@@ -9,6 +9,7 @@ use burn::backend::{
 use burn::prelude::Backend;
 use extendr_api::prelude::*;
 use faer::Mat;
+use itertools::Itertools;
 use node2vec_rs::model::SkipGramConfig;
 use rayon::prelude::*;
 use std::time::Instant;
@@ -295,18 +296,17 @@ fn rs_gene_walk_perm(
 ///
 /// @param gene_embds Matrix of n_genes x their graph embeddings
 /// @param pathway_embds Matrix of n_pathways x their graph embeddings
-/// @param null_distribution Numeric vector representing the null distributions
-/// in terms of Cosine distances.
-/// @param return_similarities Boolean. Shall the Cosine similarity matrix
-/// between genes x pathways be returned
+/// @param null_distributions List of null distribution vectors (one per
+/// permutation).
 /// @param verbose Controls verbosity of the function.
 ///
-/// @returns A list with
+/// @returns A list with vectors:
 /// \itemize{
-///   \item pvals - The calculated p-values for the genes x pathways based
-///   on the permuted data.
-///   \item sim - NULL if return_similarities=FALSE or the cosine similarities
-///   in the embedding space.
+///   \item gene - Gene indices (1-based for R)
+///   \item pathway - Pathway indices (1-based for R)
+///   \item pval - P-values for each gene-pathway pair
+///   \item global_fdr - FDR corrected across all pairs
+///   \item gene_fdr - FDR corrected within each gene
 /// }
 ///
 /// @export
@@ -314,51 +314,139 @@ fn rs_gene_walk_perm(
 fn rs_gene_walk_test(
     gene_embds: RMatrix<f64>,
     pathway_embds: RMatrix<f64>,
-    null_distribution: Vec<f64>,
-    return_similarities: bool,
+    null_distributions: List,
     verbose: bool,
 ) -> List {
     let gene_embds = r_matrix_to_vec(gene_embds);
     let pathway_embds = r_matrix_to_vec(pathway_embds);
 
     if verbose {
-        println!("Calculating Cosine similarities")
+        println!("Calculating Cosine similarities");
     }
-
-    let start_cosine = Instant::now();
-
     let cosine_sim: Mat<f64> = compute_cross_cosine(&gene_embds, &pathway_embds);
 
-    let end_cosine = start_cosine.elapsed();
+    let n_genes = cosine_sim.nrows();
+    let n_pathways = cosine_sim.ncols();
+    let total_size = n_genes * n_pathways;
+    let n_perms = null_distributions.len();
 
     if verbose {
-        println!(
-            "Finished Cosine calculations {:.2}s",
-            end_cosine.as_secs_f64()
-        );
-        println!("Starting p-value calculations.")
+        println!("Processing {} permutations", n_perms);
     }
 
-    let start_pval = Instant::now();
+    // Store results from all permutations
+    let mut all_pvals = Vec::with_capacity(n_perms);
+    let mut all_global_fdr = Vec::with_capacity(n_perms);
+    let mut all_gene_fdr = Vec::with_capacity(n_perms);
 
-    let pvals: Mat<f64> = calculate_p_vals(&cosine_sim.as_ref(), null_distribution);
+    for (perm_idx, null_dist) in null_distributions.iter().enumerate() {
+        if verbose {
+            println!("Processing permutation {}/{}", perm_idx + 1, n_perms);
+        }
 
-    let pval_r_mat = faer_to_r_matrix(&pvals.as_ref());
+        let null_vec: Vec<f64> = null_dist.1.as_real_vector().unwrap();
+        let pvals: Mat<f64> = calculate_p_vals(&cosine_sim.as_ref(), null_vec);
 
-    let end_pval = start_pval.elapsed();
+        // Flatten to vector
+        let mut pval_vec = Vec::with_capacity(total_size);
+        for i in 0..n_genes {
+            for j in 0..n_pathways {
+                pval_vec.push(pvals[(i, j)]);
+            }
+        }
+
+        // Calculate FDRs
+        let global_fdr = calc_fdr(&pval_vec);
+        let gene_fdr: Vec<f64> = (0..n_genes)
+            .into_par_iter()
+            .flat_map(|gene_idx| {
+                let start_idx = gene_idx * n_pathways;
+                let end_idx = start_idx + n_pathways;
+                calc_fdr(&pval_vec[start_idx..end_idx])
+            })
+            .collect();
+
+        all_pvals.push(pval_vec);
+        all_global_fdr.push(global_fdr);
+        all_gene_fdr.push(gene_fdr);
+    }
 
     if verbose {
-        println!(
-            "Finished p-value calculations {:.2}s",
-            end_pval.as_secs_f64()
-        );
+        println!("Aggregating results across permutations");
     }
 
-    let sim_r_mat: Option<RMatrix<f64>> = if return_similarities {
-        Some(faer_to_r_matrix(&cosine_sim.as_ref()))
-    } else {
-        None
-    };
+    let results: Vec<_> = (0..total_size)
+        .into_par_iter()
+        .map(|idx| {
+            let gene_idx = idx / n_pathways;
+            let pathway_idx = idx % n_pathways;
 
-    list![pvals = pval_r_mat, sim = sim_r_mat]
+            // Collect values across permutations
+            let mut pvals_for_pair: Vec<f64> = all_pvals.iter().map(|v| v[idx]).collect();
+            let mut global_fdr_for_pair: Vec<f64> = all_global_fdr.iter().map(|v| v[idx]).collect();
+            let mut gene_fdr_for_pair: Vec<f64> = all_gene_fdr.iter().map(|v| v[idx]).collect();
+
+            // Unstable sort (faster, order of equal elements doesn't matter)
+            pvals_for_pair.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+            global_fdr_for_pair.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+            gene_fdr_for_pair.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+
+            let n_perms_f64 = n_perms as f64;
+
+            (
+                (gene_idx + 1) as i32,
+                (pathway_idx + 1) as i32,
+                pvals_for_pair.iter().sum::<f64>() / n_perms_f64,
+                quantile(&pvals_for_pair, 0.025),
+                quantile(&pvals_for_pair, 0.975),
+                global_fdr_for_pair.iter().sum::<f64>() / n_perms_f64,
+                quantile(&global_fdr_for_pair, 0.025),
+                quantile(&global_fdr_for_pair, 0.975),
+                gene_fdr_for_pair.iter().sum::<f64>() / n_perms_f64,
+                quantile(&gene_fdr_for_pair, 0.025),
+                quantile(&gene_fdr_for_pair, 0.975),
+            )
+        })
+        .collect();
+
+    // Unpack parallel results
+    let (
+        gene_indices,
+        pathway_indices,
+        avg_pval,
+        pval_ci_lower,
+        pval_ci_upper,
+        avg_global_fdr,
+        global_fdr_ci_lower,
+        global_fdr_ci_upper,
+        avg_gene_fdr,
+        gene_fdr_ci_lower,
+        gene_fdr_ci_upper,
+    ): (
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+        Vec<_>,
+    ) = results.into_iter().multiunzip();
+
+    list![
+        gene = gene_indices,
+        pathway = pathway_indices,
+        avg_pval = avg_pval,
+        pval_ci_lower = pval_ci_lower,
+        pval_ci_upper = pval_ci_upper,
+        avg_global_fdr = avg_global_fdr,
+        global_fdr_ci_lower = global_fdr_ci_lower,
+        global_fdr_ci_upper = global_fdr_ci_upper,
+        avg_gene_fdr = avg_gene_fdr,
+        gene_fdr_ci_lower = gene_fdr_ci_lower,
+        gene_fdr_ci_upper = gene_fdr_ci_upper
+    ]
 }
