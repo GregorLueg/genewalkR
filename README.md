@@ -35,9 +35,9 @@ Download the CPU version for your platform:
 ```bash
 
 cd ~
-wget https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.9.1%2Bcpu.zip
-unzip libtorch-cxx11-abi-shared-with-deps-2.9.0+cpu.zip
-rm libtorch-cxx11-abi-shared-with-deps-2.9.0+cpu.zip
+wget https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.9.0%2Bcpu.zip -o libtorch.zip
+unzip libtorch.zip
+rm libtorch.zip
 ```
 
 **macOS:**

@@ -1,19 +1,23 @@
+# Makevars.in
 TARGET_DIR = ./rust/target
 LIBDIR = $(TARGET_DIR)/@LIBDIR@
 STATLIB = $(LIBDIR)/libgenewalkR.a
-LIBTORCH = @LIBTORCH_PATH@
-LIBTORCH_LIB = $(LIBTORCH)/lib
-PKG_LIBS = -L$(LIBDIR) -lgenewalkR -L$(LIBTORCH_LIB) -ltorch_cpu -ltorch -lc10 -Wl,-rpath,$(LIBTORCH_LIB)
 
-# updated here to add libtorch to the path to be able to link what R
-# does to the Rust part...
+# This matches the substitutions from the configure script
+LIBTORCH = @LIBTORCH_PATH@
+# This is for R's linker
+LIBTORCH_LIB = $(LIBTORCH)/lib
+
+# R linker flags
+PKG_LIBS = -L$(LIBDIR) -lgenewalkR -L$(LIBTORCH_LIB) -ltorch_cpu -ltorch -lc10 -Wl,-rpath,$(LIBTORCH_LIB)
 
 .PHONY: $(STATLIB)
 
 $(SHLIB): $(STATLIB)
 
 $(STATLIB):
-	cargo build --lib @PROFILE@ --manifest-path=./rust/Cargo.toml --target-dir=$(TARGET_DIR)
+	# EXPLICITLY pass LIBTORCH to the cargo process here
+	LIBTORCH=$(LIBTORCH) cargo build --lib @PROFILE@ --manifest-path=./rust/Cargo.toml --target-dir=$(TARGET_DIR)
 
 clean:
 	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) @CLEAN_TARGET@
