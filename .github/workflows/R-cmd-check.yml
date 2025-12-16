@@ -28,7 +28,10 @@ jobs:
 
       - name: Clear R package cache (Unix)
         if: runner.os != 'Windows'
-        run: rm -rf ~/.cache/R/pak
+        run: |
+          rm -rf ~/.cache/R
+          rm -rf ~/.local/share/renv
+          rm -rf ~/Library/Caches/org.R-project.R
 
       - uses: r-lib/actions/setup-pandoc@v2
 
