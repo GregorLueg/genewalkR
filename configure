@@ -1,19 +1,26 @@
 #!/bin/sh
 
-# Get LibTorch path from environment or use default
-LIBTORCH_PATH="${LIBTORCH_PATH:-${HOME}/libtorch}"
+# 1. Prioritise LIBTORCH_PATH if set, otherwise use LIBTORCH, otherwise default
+LIBTORCH_ROOT="${LIBTORCH_PATH:-${LIBTORCH:-${HOME}/libtorch}}"
 
-# Check if LibTorch exists
-if [ ! -d "${LIBTORCH_PATH}" ]; then
-    echo "Warning: LibTorch not found at ${LIBTORCH_PATH}"
-    echo "Set LIBTORCH_PATH environment variable or install LibTorch to ~/libtorch"
+# 2. Sanity check: If the path ends in /lib, strip it to get the root
+#    This handles the case where users point to the lib dir by mistake.
+case "$LIBTORCH_ROOT" in
+  */lib) LIBTORCH_ROOT="${LIBTORCH_ROOT%/lib}" ;;
+  */lib/) LIBTORCH_ROOT="${LIBTORCH_ROOT%/lib/}" ;;
+esac
+
+# Check if LibTorch exists at the computed root
+if [ ! -d "${LIBTORCH_ROOT}/include" ]; then
+    echo "Warning: LibTorch headers not found at ${LIBTORCH_ROOT}/include"
+    echo "Current calculated root: ${LIBTORCH_ROOT}"
 fi
 
 # Substitute all placeholders
-sed -e "s|@LIBTORCH_PATH@|${LIBTORCH_PATH}|g" \
+sed -e "s|@LIBTORCH_PATH@|${LIBTORCH_ROOT}|g" \
     -e "s|@LIBDIR@|release|g" \
     -e "s|@PROFILE@|--release|g" \
     -e "s|@CLEAN_TARGET@|rust/target|g" \
     src/Makevars.in > src/Makevars
 
-echo "Makevars configured with LibTorch at ${LIBTORCH_PATH}"
+echo "Makevars configured with LibTorch at ${LIBTORCH_ROOT}"
