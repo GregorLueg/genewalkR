@@ -80,9 +80,9 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
   graph_dt <- S7::prop(object, "graph_dt")
 
   # function body
-  nodes <- unique(c(graph$from, graph$to))
-  from_idx <- match(graph$from, nodes)
-  to_idx <- match(graph$to, nodes)
+  nodes <- unique(c(graph_dt$from, graph_dt$to))
+  from_idx <- match(graph_dt$from, nodes)
+  to_idx <- match(graph_dt$to, nodes)
 
   weights <- if ("weights" %in% names(graph_dt)) {
     graph_dt$weights
@@ -185,9 +185,9 @@ S7::method(generate_permuted_emb, genewalkR_class) <- function(
   graph_dt <- S7::prop(object, "graph_dt")
 
   # function body
-  nodes <- unique(c(graph$from, graph$to))
-  from_idx <- match(graph$from, nodes)
-  to_idx <- match(graph$to, nodes)
+  nodes <- unique(c(graph_dt$from, graph_dt$to))
+  from_idx <- match(graph_dt$from, nodes)
+  to_idx <- match(graph_dt$to, nodes)
 
   weights <- if ("weights" %in% names(graph_dt)) {
     graph_dt$weights
