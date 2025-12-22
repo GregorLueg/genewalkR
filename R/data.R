@@ -7,7 +7,7 @@
 #' @format A list with two elements:
 #' \describe{
 #'   \item{graph}{A `data.table` with columns: `from`, `to`, `from_intact`, `from_string`, `from_signor`, `from_reactome`, `edge_type`, `source`}
-#'   \item{node_id}{A `data.table` with columns: `id` (ENSEMBL gene ID), `name` (gene name)}
+#'   \item{node_id}{A `data.table` with columns: `id` (ENSEMBL gene ID), `name` (gene name), `node_type` (character "gene")}
 #' }
 #' @source OpenTargets
 "g2g_interactions"
@@ -19,7 +19,7 @@
 #' @format A list with two elements:
 #' \describe{
 #'   \item{graph}{A `data.table` of pathway relationships: `from`, `to`, `edge_type`, `source`}
-#'   \item{node_id}{A `data.table` with columns: `id` (Reactome pathway ID), `name` (pathway name)}
+#'   \item{node_id}{A `data.table` with columns: `id` (Reactome pathway ID), `name` (pathway name), `node_type` (character "pathway")}
 #' }
 #' @source OpenTargets
 "reactome"
@@ -31,7 +31,7 @@
 #' @format A list with two elements:
 #' \describe{
 #'   \item{graph}{A `data.table` of GO term relationships: `from`, `to`, `edge_type`, `source`}
-#'   \item{node_id}{A `data.table` of GO term metadata: `id` (GO term ID), `name` (GO term name), `namespace` (biological_process, molecular_function, or cellular_component)}
+#'   \item{node_id}{A `data.table` of GO term metadata: `id` (GO term ID), `name` (GO term name), `namespace` (biological_process, molecular_function, or cellular_component), `node_type` (character "go_term")}
 #' }
 #' @source OpenTargets
 "gene_ontology"

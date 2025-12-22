@@ -41,7 +41,7 @@ get_g2g_interactions_nw = function(ducklake_con) {
   ))
   node_ids = gene_annotation[
     gene_id %in% c(graph$from, graph$to),
-    .(id = gene_id, name = gene_name)
+    .(id = gene_id, name = gene_name, node_type = 'gene')
   ][,
     unique(.SD)
   ]
@@ -70,7 +70,7 @@ get_reactome_nw = function(ducklake_con) {
   ))
 
   reactome_main = reactome_main[,
-    .(id = pathway_id, name = pathway_name)
+    .(id = pathway_id, name = pathway_name, node_type = 'pathway')
   ]
 
   list(graph = graph, node_id = reactome_main)
@@ -108,7 +108,7 @@ get_gene_ontology_nw = function(
   ))
 
   go_main = go_main[,
-    .(id = go_id, name = go_name, namespace = namespace)
+    .(id = go_id, name = go_name, namespace = namespace, node_type = 'go_term')
   ]
 
   list(graph = graph, node_id = go_main)

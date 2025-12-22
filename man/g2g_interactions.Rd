@@ -8,7 +8,7 @@
 A list with two elements:
 \describe{
 \item{graph}{A \code{data.table} with columns: \code{from}, \code{to}, \code{from_intact}, \code{from_string}, \code{from_signor}, \code{from_reactome}, \code{edge_type}, \code{source}}
-\item{node_id}{A \code{data.table} with columns: \code{id} (ENSEMBL gene ID), \code{name} (gene name)}
+\item{node_id}{A \code{data.table} with columns: \code{id} (ENSEMBL gene ID), \code{name} (gene name), \code{node_type} (character "gene")}
 }
 }
 \source{
