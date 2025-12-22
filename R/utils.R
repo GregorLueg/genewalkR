@@ -10,6 +10,8 @@
 #'   \item{graph_dt}{A `data.table` suitable for `genewalkR_class`}
 #'   \item{graph_gene_params}{Metadata describing how the graph was generated}
 #' }
+#' @seealso [g2g_interactions], [reactome], [gene_ontology] for dataset details.
+#'
 #' @export
 get_default_graph_dt <- function(
   resources = c("g2g_interactions", "reactome", "gene_ontology"),
@@ -95,5 +97,70 @@ get_default_graph_dt <- function(
   list(
     graph_dt = combined_graph,
     graph_gene_params = graph_gene_params
+  )
+}
+
+#' Trim a heterogeneous graph by gene set
+#'
+#' @param graph_dt data.table with at least `from` and `to`
+#' @param node_id data.table with columns `id` and `type`
+#' @param genes_to_keep character vector of gene IDs
+#' @param gene_type value in `node_id$node_type` identifying genes
+#'
+#' @return list with trimmed `graph_dt` and `node_id`
+#' @export
+trim_graph <- function(
+  graph_dt,
+  node_id,
+  genes_to_keep,
+  gene_type = "gene"
+) {
+  checkmate::assertDataTable(graph_dt)
+  checkmate::assertDataTable(node_id)
+  checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
+  checkmate::assertNames(names(node_id), must.include = c("id", "node_type"))
+  checkmate::qassert(genes_to_keep, 'S+')
+
+  # annotate node types onto edges
+  graph_annotated <- merge(
+    graph_dt,
+    node_id[, .(from = id, from_type = node_type)],
+    by = "from",
+    all.x = TRUE
+  )
+
+  graph_annotated <- merge(
+    graph_annotated,
+    node_id[, .(to = id, to_type = node_type)],
+    by = "to",
+    all.x = TRUE
+  )
+
+  # Trim edges
+  graph_trimmed <- graph_annotated[
+    # gene–gene edges
+    (from_type == gene_type &
+      to_type == gene_type &
+      from %in% genes_to_keep &
+      to %in% genes_to_keep) |
+
+      # gene–non-gene edges
+      (from_type == gene_type &
+        to_type != gene_type &
+        from %in% genes_to_keep) |
+      (to_type == gene_type & from_type != gene_type & to %in% genes_to_keep) |
+
+      # non-gene–non-gene edges (ontology/pathway structure)
+      (from_type != gene_type & to_type != gene_type)
+  ][, c("from_type", "to_type") := NULL]
+
+  # trim node table
+  node_id_trimmed <- node_id[
+    id %in% unique(c(graph_trimmed$from, graph_trimmed$to))
+  ]
+
+  list(
+    graph_dt = graph_trimmed,
+    node_id = node_id_trimmed
   )
 }

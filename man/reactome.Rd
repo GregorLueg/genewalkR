@@ -8,7 +8,7 @@
 A list with two elements:
 \describe{
 \item{graph}{A \code{data.table} of pathway relationships: \code{from}, \code{to}, \code{edge_type}, \code{source}}
-\item{node_id}{A \code{data.table} with columns: \code{id} (Reactome pathway ID), \code{name} (pathway name)}
+\item{node_id}{A \code{data.table} with columns: \code{id} (Reactome pathway ID), \code{name} (pathway name), \code{node_type} (character "pathway")}
 }
 }
 \source{

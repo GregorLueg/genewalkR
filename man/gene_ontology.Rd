@@ -8,7 +8,7 @@
 A list with two elements:
 \describe{
 \item{graph}{A \code{data.table} of GO term relationships: \code{from}, \code{to}, \code{edge_type}, \code{source}}
-\item{node_id}{A \code{data.table} of GO term metadata: \code{id} (GO term ID), \code{name} (GO term name), \code{namespace} (biological_process, molecular_function, or cellular_component)}
+\item{node_id}{A \code{data.table} of GO term metadata: \code{id} (GO term ID), \code{name} (GO term name), \code{namespace} (biological_process, molecular_function, or cellular_component), \code{node_type} (character "go_term")}
 }
 }
 \source{
