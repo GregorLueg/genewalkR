@@ -14,6 +14,7 @@ fetch_tables_from_ducklake = function(ducklake_con, table_names) {
 }
 
 get_g2g_interactions_nw = function(ducklake_con) {
+  `%<-%` <- zeallot::`%<-%`
   c(interactions, gene_annotation) %<-%
     fetch_tables_from_ducklake(
       ducklake_con,
@@ -50,6 +51,7 @@ get_g2g_interactions_nw = function(ducklake_con) {
 }
 
 get_reactome_nw = function(ducklake_con) {
+  `%<-%` <- zeallot::`%<-%`
   c(
     reactome_relationships,
     reactome_to_genes,
@@ -79,6 +81,7 @@ get_reactome_nw = function(ducklake_con) {
 get_gene_ontology_nw = function(
   ducklake_con
 ) {
+  `%<-%` <- zeallot::`%<-%`
   c(
     go_relationships,
     go_to_genes,

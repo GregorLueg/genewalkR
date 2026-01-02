@@ -95,7 +95,7 @@ get_default_graph_dt <- function(
   }
 
   list(
-    graph_dt = combined_graph,
+    graph_dt = graph_dt,
     graph_gene_params = graph_gene_params
   )
 }
