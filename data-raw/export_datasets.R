@@ -32,6 +32,12 @@ get_g2g_interactions_nw = function(ducklake_con) {
   ]
 
   # Not all ensembl ids in the interactions are in the gene annotation
+  message(sprintf(
+    '%d/%d genes do NOT have annotation',
+    sum(!unique(c(graph$from, graph$to)) %in% gene_annotation$gene_id),
+    length(unique(c(graph$from, graph$to)))
+  ))
+
   gene_annotation = gene_annotation[
     .(gene_id = unique(c(graph$from, graph$to))),
     on = 'gene_id',
@@ -69,6 +75,22 @@ get_reactome_nw = function(ducklake_con) {
     reactome_to_genes[,
       .(from, to, edge_type = relationship, source = 'reactome_to_genes')
     ]
+  ))
+
+  message(sprintf(
+    '%d/%d Reactome pathways do NOT have annotation',
+    sum(
+      grepl(
+        'R-HSA',
+        unique(c(graph$to, graph$from))
+      ) &
+        !unique(c(graph$to, graph$from)) %in%
+          reactome_main$pathway_id
+    ),
+    sum(grepl(
+      'R-HSA',
+      unique(c(graph$to, graph$from))
+    ))
   ))
 
   reactome_main = reactome_main[,
@@ -110,6 +132,24 @@ get_gene_ontology_nw = function(
     ]
   ))
 
+  message(sprintf(
+    '%d/%d GO terms do NOT have annotation',
+    sum(
+      !grepl(
+        'ENSG',
+        unique(c(graph$to, graph$from))
+      ) &
+        !unique(c(graph$to, graph$from)) %in%
+          go_main$go_id
+    ),
+    sum(
+      !grepl(
+        'ENSG',
+        unique(c(graph$to, graph$from))
+      )
+    )
+  ))
+
   go_main = go_main[,
     .(id = go_id, name = go_name, namespace = namespace, node_type = 'go_term')
   ]
@@ -118,6 +158,15 @@ get_gene_ontology_nw = function(
 }
 
 # Main function to generate exported dataset -----------------------------------
+# NOTES:
+# - g2g_interactions: 1442/17993 genes do NOT have annotation
+# - reactome: 564/2803 Reactome pathways do NOT have annotation
+# - reactome: 569/11416 genes in Reactome network do NOT have annotation and
+#             678 genes are missing in g2g_interactions network
+# - gene_ontology: 0/39354 GO terms do NOT have annotation
+# - gene_ontology: 961/20998 genes in GO network do NOT have annotation and
+#                  3915 genes are missing in g2g_interactions network
+
 generate_exported_networks = function(
   resources = c(
     'g2g_interactions',
@@ -142,6 +191,58 @@ generate_exported_networks = function(
   if ('gene_ontology' %in% resources) {
     gene_ontology = get_gene_ontology_nw(ducklake_con)
     usethis::use_data(gene_ontology, overwrite = TRUE)
+  }
+
+  if (all(c('g2g_interactions', 'reactome') %in% resources)) {
+    reactome_genes = unique(c(
+      reactome$graph$from,
+      reactome$graph$to
+    ))[
+      grepl(
+        'ENSG',
+        unique(c(
+          reactome$graph$from,
+          reactome$graph$to
+        ))
+      )
+    ]
+
+    message(sprintf(
+      '%d/%d genes in Reactome network do NOT have annotation and 
+    %d genes are missing in g2g_interactions network',
+      sum(
+        reactome_genes %in%
+          g2g_interactions$node_id$id[is.na(g2g_interactions$node_id$name)]
+      ),
+      length(reactome_genes),
+      sum(!reactome_genes %in% g2g_interactions$node_id$id)
+    ))
+  }
+
+  if (all(c('g2g_interactions', 'gene_ontology') %in% resources)) {
+    go_genes = unique(c(
+      gene_ontology$graph$from,
+      gene_ontology$graph$to
+    ))[
+      grepl(
+        'ENSG',
+        unique(c(
+          gene_ontology$graph$from,
+          gene_ontology$graph$to
+        ))
+      )
+    ]
+
+    message(sprintf(
+      '%d/%d genes in GO network do NOT have annotation and \
+      %d genes are missing in g2g_interactions network',
+      sum(
+        go_genes %in%
+          g2g_interactions$node_id$id[is.na(g2g_interactions$node_id$name)]
+      ),
+      length(go_genes),
+      sum(!go_genes %in% g2g_interactions$node_id$id)
+    ))
   }
 
   message("Exported datasets generated successfully.")
