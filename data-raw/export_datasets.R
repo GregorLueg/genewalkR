@@ -160,7 +160,7 @@ get_gene_ontology_nw = function(
 # Main function to generate exported dataset -----------------------------------
 # NOTES:
 # - g2g_interactions: 1442/17993 genes do NOT have annotation
-# - reactome: 564/2803 Reactome pathways do NOT have annotation
+# - reactome: 0/2803 Reactome pathways do NOT have annotation
 # - reactome: 569/11416 genes in Reactome network do NOT have annotation and
 #             678 genes are missing in g2g_interactions network
 # - gene_ontology: 0/39354 GO terms do NOT have annotation

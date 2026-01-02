@@ -136,21 +136,31 @@ trim_graph <- function(
     all.x = TRUE
   )
 
-  # Trim edges
-  graph_trimmed <- graph_annotated[
-    # gene–gene edges
+  # Gene nodes to keep: only keep gene::gene edges where both genes are in genes_to_keep
+  gene_nodes_to_keep <- graph_annotated[
     (from_type == gene_type &
       to_type == gene_type &
       from %in% genes_to_keep &
-      to %in% genes_to_keep) |
+      to %in% genes_to_keep)
+  ][, unique(c(from, to))]
 
-      # gene–non-gene edges
+  # Trim edges
+  graph_trimmed <- graph_annotated[
+    # gene::gene edges
+    (from_type == gene_type &
+      to_type == gene_type &
+      from %in% gene_nodes_to_keep &
+      to %in% gene_nodes_to_keep) |
+
+      # gene::non-gene edges
       (from_type == gene_type &
         to_type != gene_type &
-        from %in% genes_to_keep) |
-      (to_type == gene_type & from_type != gene_type & to %in% genes_to_keep) |
+        from %in% gene_nodes_to_keep) |
+      (to_type == gene_type &
+        from_type != gene_type &
+        to %in% gene_nodes_to_keep) |
 
-      # non-gene–non-gene edges (ontology/pathway structure)
+      # non-gene::non-gene edges (ontology/pathway structure)
       (from_type != gene_type & to_type != gene_type)
   ][, c("from_type", "to_type") := NULL]
 
