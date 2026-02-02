@@ -86,5 +86,18 @@ rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_
 #' @export
 rs_gene_walk_test <- function(gene_embds, pathway_embds, null_distributions, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, null_distributions, verbose)
 
+#' Cosine similarity between two vectors
+#'
+#' @description
+#' Rust function to quickly calculate Cosine distances.
+#'
+#' @param a Numeric vector. Vector a for which to calculate the similarity.
+#' @param b Numeric vector. Vector b for which to calculate the similarity.
+#'
+#' @returns Cosine similarity between the two vectors
+#'
+#' @export
+rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
+
 
 # nolint end

@@ -1,6 +1,8 @@
 use extendr_api::RMatrix;
 use faer::{Mat, MatRef};
+use num_traits::Float;
 use rayon::prelude::*;
+use std::ops::AddAssign;
 
 /////////////////////////
 // Similarity measures //
@@ -20,12 +22,12 @@ use rayon::prelude::*;
 ///
 /// Cosine similarity between the two
 #[inline(always)]
-pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
+pub fn cosine_similarity<T: Float + AddAssign>(a: &[T], b: &[T]) -> T {
     debug_assert_eq!(a.len(), b.len());
 
-    let mut dot = 0.0_f32;
-    let mut norm_a = 0.0_f32;
-    let mut norm_b = 0.0_f32;
+    let mut dot = T::zero();
+    let mut norm_a = T::zero();
+    let mut norm_b = T::zero();
 
     let len = a.len();
     let chunks = len / 4;
