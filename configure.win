@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# For Windows, we always build in release mode
+LIBDIR="release"
+PROFILE="--release"
+CRAN_FLAGS=""
+CLEAN_TARGET="rust/target"
+
+# Substitute values in Makevars.win.in
+sed \
+  -e "s|@LIBDIR@|${LIBDIR}|g" \
+  -e "s|@PROFILE@|${PROFILE}|g" \
+  -e "s|@CRAN_FLAGS@|${CRAN_FLAGS}|g" \
+  -e "s|@CLEAN_TARGET@|${CLEAN_TARGET}|g" \
+  src/Makevars.win.in > src/Makevars.win
+
+echo "Configured Makevars.win for Windows build"

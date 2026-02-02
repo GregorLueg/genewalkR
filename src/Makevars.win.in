@@ -21,11 +21,9 @@ $(STATLIB):
 		mkdir -p $(CARGOTMP) && \
 		cp rust/vendor-config.toml $(CARGOTMP)/config.toml; \
 	fi
-	# Build the project using Cargo with additional flags
 	export CARGO_HOME=$(CARGOTMP) && \
 	export LIBRARY_PATH="$(LIBRARY_PATH);$(CURDIR)/$(TARGET_DIR)/libgcc_mock" && \
-	RUSTFLAGS="$(RUSTFLAGS) --print=native-static-libs -C target-cpu=native" cargo build @CRAN_FLAGS@ --target=$(TARGET) --lib --release --manifest-path=rust/Cargo.toml --target-dir=$(TARGET_DIR)
-	# Always clean up CARGOTMP
+	cargo build @CRAN_FLAGS@ --target=$(TARGET) --lib @PROFILE@ --manifest-path=rust/Cargo.toml --target-dir=$(TARGET_DIR)
 	rm -Rf $(CARGOTMP);
 
 rust_clean: $(SHLIB)
