@@ -7,14 +7,14 @@
 params_node2vec(
   p = 1,
   q = 1,
-  walks_per_node = 20L,
-  walk_length = 20L,
+  walks_per_node = 40L,
+  walk_length = 40L,
   num_workers = 4L,
   batch_size = 256L,
-  num_epochs = 5L,
-  num_negatives = 5L,
+  n_epochs = 15L,
+  n_negatives = 5L,
   window_size = 2L,
-  lr = 0.001
+  lr = 0.01
 )
 }
 \arguments{
@@ -25,21 +25,21 @@ params_node2vec(
 \code{1.0}.}
 
 \item{walks_per_node}{Integer. Number of random walks per node. Defaults to
-\code{20L}.}
+\code{40L}.}
 
-\item{walk_length}{Integer. Length of each random walk. Defaults to \code{20L}.}
+\item{walk_length}{Integer. Length of each random walk. Defaults to \code{40L}.}
 
 \item{num_workers}{Integer. Number of worker threads. Defaults to \code{4L}.}
 
 \item{batch_size}{Integer. Batch size for training. Defaults to \code{256L}.}
 
-\item{num_epochs}{Integer. Number of training epochs. Defaults to \code{5L}.}
+\item{n_epochs}{Integer. Number of training epochs. Defaults to \code{15L}.}
 
-\item{num_negatives}{Integer. Number of negative samples. Defaults to \code{5L}.}
+\item{n_negatives}{Integer. Number of negative samples. Defaults to \code{5L}.}
 
 \item{window_size}{Integer. Context window size. Defaults to \code{2L}.}
 
-\item{lr}{Numeric. Learning rate. Defaults to \code{1e-3}.}
+\item{lr}{Numeric. Learning rate. Defaults to \code{1e-2}.}
 }
 \value{
 A list with the node2vec parameters.

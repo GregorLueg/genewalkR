@@ -33,6 +33,7 @@ extendr_module! {
     fn rs_gene_walk;
     fn rs_gene_walk_perm;
     fn rs_gene_walk_test;
+    fn rs_cosine_sim;
 }
 
 /////////////////////////
@@ -84,8 +85,8 @@ fn rs_gene_walk(
     }
     let start_edge_prep = Instant::now();
 
-    let from = from.iter().map(|x| *x as u32).collect::<Vec<u32>>();
-    let to = to.iter().map(|x| *x as u32).collect::<Vec<u32>>();
+    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
+    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
 
     let edges = prepare_edges(from, to, weights);
 
@@ -735,4 +736,24 @@ fn rs_gene_walk_test(
         gene_fdr_ci_lower = gene_fdr_ci_lower,
         gene_fdr_ci_upper = gene_fdr_ci_upper
     ]
+}
+
+///////////
+// Utils //
+///////////
+
+/// Cosine similarity between two vectors
+///
+/// @description
+/// Rust function to quickly calculate Cosine distances.
+///
+/// @param a Numeric vector. Vector a for which to calculate the similarity.
+/// @param b Numeric vector. Vector b for which to calculate the similarity.
+///
+/// @returns Cosine similarity between the two vectors
+///
+/// @export
+#[extendr]
+fn rs_cosine_sim(a: &[f64], b: &[f64]) -> f64 {
+    cosine_similarity(a, b)
 }

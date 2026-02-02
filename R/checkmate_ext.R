@@ -24,8 +24,8 @@ checkNode2VecParams <- function(x) {
       "walk_length",
       "num_workers",
       "batch_size",
-      "num_epochs",
-      "num_negatives",
+      "n_epochs",
+      "n_negatives",
       "window_size",
       "lr"
     )
@@ -39,8 +39,8 @@ checkNode2VecParams <- function(x) {
     "walk_length" = "I1",
     "num_workers" = "I1",
     "batch_size" = "I1",
-    "num_epochs" = "I1",
-    "num_negatives" = "I1",
+    "n_epochs" = "I1",
+    "n_negatives" = "I1",
     "window_size" = "I1"
   )
 
@@ -58,8 +58,8 @@ checkNode2VecParams <- function(x) {
       sprintf(
         paste(
           "The following element `%s` in node2vec parameters is incorrect:",
-          "walks_per_node, walk_length, num_workers, batch_size, num_epochs,",
-          "num_negatives, and window_size need to be integers."
+          "walks_per_node, walk_length, num_workers, batch_size, n_epochs,",
+          "n_negatives, and window_size need to be integers."
         ),
         broken_elem
       )

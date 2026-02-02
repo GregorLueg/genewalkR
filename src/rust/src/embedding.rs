@@ -3,10 +3,7 @@ use burn::optim::{AdamConfig, GradientsParams, Optimizer};
 use burn::prelude::ElementConversion;
 use burn::tensor::backend::AutodiffBackend;
 use extendr_api::List;
-use node2vec_rs::batch::SkipGramBatcher;
-use node2vec_rs::dataset::WalkDataset;
-use node2vec_rs::model::SkipGramConfig;
-use node2vec_rs::train::{sample_negatives, TrainingConfig};
+use node2vec_rs::prelude::*;
 use std::ops::Deref;
 use std::time::Instant;
 
@@ -39,12 +36,12 @@ impl GeneWalkConfig {
         let walks_per_node = param_list
             .get("walks_per_node")
             .and_then(|v| v.as_integer())
-            .unwrap_or(20) as usize;
+            .unwrap_or(10) as usize;
 
         let walk_length = param_list
             .get("walk_length")
             .and_then(|v| v.as_integer())
-            .unwrap_or(20) as usize;
+            .unwrap_or(80) as usize;
 
         // training params
         let num_workers = param_list
@@ -57,8 +54,8 @@ impl GeneWalkConfig {
             .and_then(|v| v.as_integer())
             .unwrap_or(256) as usize;
 
-        let num_epochs = param_list
-            .get("num_epochs")
+        let n_epochs = param_list
+            .get("n_epochs")
             .and_then(|v| v.as_integer())
             .unwrap_or(5) as usize;
 
@@ -83,7 +80,7 @@ impl GeneWalkConfig {
             window_size,
             batch_size,
             num_workers,
-            num_epochs,
+            num_epochs: n_epochs,
             num_negatives,
             p,
             q,
@@ -169,7 +166,7 @@ pub fn train_node2vec<B: AutodiffBackend>(
             );
 
             let loss = model
-                .forward(batch.contexts, batch.targets, negatives)
+                .forward(batch.centers, batch.contexts, negatives)
                 .mean();
 
             let loss_scalar: f64 = loss.clone().into_scalar().elem();
@@ -201,5 +198,5 @@ pub fn train_node2vec<B: AutodiffBackend>(
         }
     }
 
-    model.embeddings_to_vec()
+    model.combined_embeddings_to_vec()
 }

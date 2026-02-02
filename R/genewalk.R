@@ -24,16 +24,16 @@
 #'  \item q - Numeric. In-out parameter for biased random walks. Defaults to
 #'  `1.0.`.
 #'  \item walks_per_node - Integer. Number of random walks per node. Defaults to
-#'  ` 20L.`.
-#'  \item walk_length - Integer. Length of each random walk. Defaults to `20L`.
+#'  ` 40L.`.
+#'  \item walk_length - Integer. Length of each random walk. Defaults to `40L`.
 #'  \item num_workers - Number of worker threads during batching. Defaults to
 #'  `4L`. To note: during graph generation, Rust will use via the Rayon backend
 #'  all available threads.
 #'  \item batch_size - Integer. Batch size for training. Defaults to `256L`.
-#'  \item num_epochs - Integer. Number of training epochs. Defaults to `5L`.
-#'  \item num_negatives - Integer. Number of negative samples. Defaults to `5L`.
+#'  \item n_epochs - Integer. Number of training epochs. Defaults to `15L`.
+#'  \item n_negatives - Integer. Number of negative samples. Defaults to `5L`.
 #'  \item window_size - Integer.  Context window size. Defaults to `2L`.
-#'  \item lr - Numeric. Learning rate. Defaults to `1e-3`.
+#'  \item lr - Numeric. Learning rate. Defaults to `1e-2`.
 #' }
 #' @param directed Boolean. Indicates if this is a directed or undirected
 #' network. Defaults to `FALSE`.
