@@ -240,7 +240,7 @@ fn rs_gene_walk(
     let start_training = Instant::now();
 
     let device = NdArrayDevice::Cpu;
-    NdArray::<f32>::seed(gene_walk_config.seed as u64);
+    NdArray::<f32>::seed(&device, gene_walk_config.seed as u64);
 
     let skipgram_config = SkipGramConfig {
         vocab_size,
@@ -464,7 +464,7 @@ fn rs_gene_walk_perm(
     let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
 
     let device = NdArrayDevice::Cpu;
-    NdArray::<f32>::seed(gene_walk_config.seed as u64);
+    NdArray::<f32>::seed(&device, gene_walk_config.seed as u64);
 
     if verbose {
         println!("Preparing the network edges.")
