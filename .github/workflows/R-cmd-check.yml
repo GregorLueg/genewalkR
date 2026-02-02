@@ -1,52 +1,47 @@
 name: R-CMD-check
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
-
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
-
     strategy:
       fail-fast: true
       matrix:
         config:
           - {os: macOS-latest,   r: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
-
+          - {os: windows-latest, r: 'release'}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Clear R package cache (Unix)
         if: runner.os != 'Windows'
         run: |
           rm -rf ~/.cache/R
           rm -rf ~/.local/share/renv
           rm -rf ~/Library/Caches/org.R-project.R
-
+      
       - uses: r-lib/actions/setup-pandoc@v2
-
+      
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: false
           extra-repositories: 'https://cloud.r-project.org'
-
+      
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ runner.os == 'Windows' && 'stable-x86_64-pc-windows-gnu' || 'stable' }}
-
+      
       - name: Cache LibTorch (Unix)
         if: runner.os != 'Windows'
         id: cache-libtorch-unix
@@ -61,18 +56,19 @@ jobs:
           curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-2.9.0.zip -o libtorch.zip
           unzip libtorch.zip -d ~
           rm libtorch.zip
-
+      
       - name: Install LibTorch (Linux)
         if: runner.os == 'Linux' && steps.cache-libtorch-unix.outputs.cache-hit != 'true'
         run: |
           curl -L https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.9.0%2Bcpu.zip -o libtorch.zip
           unzip libtorch.zip -d ~
           rm libtorch.zip
-
-      - name: Set LibTorch path
+      
+      - name: Set LibTorch path (Unix)
+        if: runner.os != 'Windows'
         run: echo "LIBTORCH_PATH=$HOME/libtorch" >> $GITHUB_ENV
         shell: bash
-
+      
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           pak-version: devel
@@ -83,13 +79,13 @@ jobs:
             any::knitr
             any::rextendr
           needs: check
-
+      
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
-
+      
       - uses: r-lib/actions/check-r-package@v2
         with:
           build_args: 'c("--no-manual","--no-build-vignettes")'
