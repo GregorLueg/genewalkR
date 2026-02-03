@@ -8,6 +8,7 @@ generate_initial_emb(
   object,
   embd_dim = 8L,
   node2vec_params = params_node2vec(),
+  backend = c("ndarray", "tch-cpu"),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
@@ -39,6 +40,9 @@ all available threads.
 \item window_size - Integer.  Context window size. Defaults to \code{2L}.
 \item lr - Numeric. Learning rate. Defaults to \code{1e-2}.
 }}
+
+\item{backend}{String. One of \code{c("ndarray", "tch-cpu")}. \code{"tch-cpu"} is
+usually much faster and supported only on Unix-based systems.}
 
 \item{directed}{Boolean. Indicates if this is a directed or undirected
 network. Defaults to \code{FALSE}.}

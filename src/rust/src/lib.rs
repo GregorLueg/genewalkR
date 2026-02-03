@@ -11,7 +11,7 @@ use node2vec_rs::model::SkipGramConfig;
 use rayon::prelude::*;
 use std::time::Instant;
 
-// Torch is only support on NoneWindows
+// torch is only support on NoneWindows
 #[cfg(not(target_os = "windows"))]
 use burn::backend::libtorch::{LibTorch, LibTorchDevice};
 
@@ -670,9 +670,16 @@ fn rs_gene_walk_perm(
 /// \itemize{
 ///   \item gene - Gene indices (1-based for R)
 ///   \item pathway - Pathway indices (1-based for R)
-///   \item pval - P-values for each gene-pathway pair
-///   \item global_fdr - FDR corrected across all pairs
-///   \item gene_fdr - FDR corrected within each gene
+///   \item similarity - Cosine similarity between gene and pathway
+///   \item avg_pval - Mean p-value across permutations
+///   \item pval_ci_lower - Lower 95% CI for p-value
+///   \item pval_ci_upper - Upper 95% CI for p-value
+///   \item avg_global_fdr - Mean global FDR across permutations
+///   \item global_fdr_ci_lower - Lower 95% CI for global FDR
+///   \item global_fdr_ci_upper - Upper 95% CI for global FDR
+///   \item avg_gene_fdr - Mean gene-specific FDR across permutations
+///   \item gene_fdr_ci_lower - Lower 95% CI for gene FDR
+///   \item gene_fdr_ci_upper - Upper 95% CI for gene FDR
 /// }
 ///
 /// @export
@@ -747,6 +754,9 @@ fn rs_gene_walk_test(
             let gene_idx = idx / n_pathways;
             let pathway_idx = idx % n_pathways;
 
+            // Get the actual cosine similarity
+            let similarity = cosine_sim[(gene_idx, pathway_idx)];
+
             // Collect values across permutations
             let mut pvals_for_pair: Vec<f64> = all_pvals.iter().map(|v| v[idx]).collect();
             let mut global_fdr_for_pair: Vec<f64> = all_global_fdr.iter().map(|v| v[idx]).collect();
@@ -762,6 +772,7 @@ fn rs_gene_walk_test(
             (
                 (gene_idx + 1) as i32,
                 (pathway_idx + 1) as i32,
+                similarity,
                 pvals_for_pair.iter().sum::<f64>() / n_perms_f64,
                 quantile(&pvals_for_pair, 0.025),
                 quantile(&pvals_for_pair, 0.975),
@@ -776,9 +787,11 @@ fn rs_gene_walk_test(
         .collect();
 
     // Unpack parallel results
+    #[allow(clippy::complexity)]
     let (
         gene_indices,
         pathway_indices,
+        similarities,
         avg_pval,
         pval_ci_lower,
         pval_ci_upper,
@@ -800,11 +813,13 @@ fn rs_gene_walk_test(
         Vec<_>,
         Vec<_>,
         Vec<_>,
+        Vec<_>,
     ) = results.into_iter().multiunzip();
 
     list![
         gene = gene_indices,
         pathway = pathway_indices,
+        similarity = similarities,
         avg_pval = avg_pval,
         pval_ci_lower = pval_ci_lower,
         pval_ci_upper = pval_ci_upper,
@@ -839,8 +854,9 @@ fn rs_cosine_sim(a: &[f64], b: &[f64]) -> f64 {
 
 /// Generate synthetic data for node2vec
 ///
-/// @param String. One of `c("barbell", "caveman", "stochastic_block")`. Weird
-/// strings will default to "barbell" data.
+/// @param test_data String. One of
+/// `c("barbell", "caveman", "stochastic_block")`. Weird strings will default to
+/// "barbell" data.
 /// @param n_nodes_per_cluster Integer. Number of nodes in the test graph.
 /// @param n_clusters Integer. Number of nodes per cluster.
 /// @param p_within Numeric. Probability of edges within cluster (0-1).

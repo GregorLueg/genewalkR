@@ -14,6 +14,10 @@ rs_node2vec_synthetic_data(
 )
 }
 \arguments{
+\item{test_data}{String. One of
+\code{c("barbell", "caveman", "stochastic_block")}. Weird strings will default to
+"barbell" data.}
+
 \item{n_nodes_per_cluster}{Integer. Number of nodes in the test graph.}
 
 \item{n_clusters}{Integer. Number of nodes per cluster.}
@@ -23,9 +27,6 @@ rs_node2vec_synthetic_data(
 \item{p_between}{Numeric. Probability of edges between clusters (0-1).}
 
 \item{seed}{Integer. Random seed.}
-
-\item{String.}{One of \code{c("barbell", "caveman", "stochastic_block")}. Weird
-strings will default to "barbell" data.}
 }
 \value{
 A list with the following elements:

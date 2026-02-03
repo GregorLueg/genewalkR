@@ -4,7 +4,11 @@
 \alias{get_expected_associations}
 \title{Get Expected Gene-Pathway Associations}
 \usage{
-get_expected_associations(synthetic_data, return_negatives = FALSE)
+get_expected_associations(
+  synthetic_data,
+  return_negatives = FALSE,
+  exclude_hubs = TRUE
+)
 }
 \arguments{
 \item{synthetic_data}{List. Output from
@@ -12,10 +16,13 @@ get_expected_associations(synthetic_data, return_negatives = FALSE)
 
 \item{return_negatives}{Logical. If TRUE, also returns gene-pathway pairs
 from different communities/subtrees as negative controls.}
+
+\item{exclude_hubs}{Logical. If TRUE, excludes hub pathways (depth <= 1)
+from evaluation as they have high similarity to everything.}
 }
 \value{
 data.table with columns: gene, pathway, expected_signal (TRUE for
-same community/subtree, FALSE for different)
+same community focal pathways, FALSE for different)
 }
 \description{
 Returns gene-pathway pairs that should show high cosine similarity based on

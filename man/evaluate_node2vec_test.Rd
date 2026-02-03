@@ -10,8 +10,6 @@ evaluate_node2vec_test(embeddings, node_labels)
 \item{embeddings}{Matrix of node embeddings (nodes x dimensions).}
 
 \item{node_labels}{data.table with columns: node, cluster.}
-
-\item{verbose}{Boolean. Print diagnostic information.}
 }
 \value{
 A list with:
