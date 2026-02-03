@@ -48,120 +48,20 @@ node2vec_test_data <- function(
   checkmate::qassert(p_between, "N1[0, 1]")
   checkmate::qassert(seed, "I1")
 
-  if (test_type == "barbell") {
-    n_total <- n_nodes_per_cluster * 2
-    node_ids <- sprintf("node_%03d", 1:n_total)
-
-    edges_list <- list()
-
-    for (i in 1:(n_nodes_per_cluster - 1)) {
-      for (j in (i + 1):n_nodes_per_cluster) {
-        edges_list[[length(edges_list) + 1]] <- c(node_ids[i], node_ids[j])
-      }
-    }
-
-    offset <- n_nodes_per_cluster
-    for (i in 1:(n_nodes_per_cluster - 1)) {
-      for (j in (i + 1):n_nodes_per_cluster) {
-        edges_list[[length(edges_list) + 1]] <- c(
-          node_ids[offset + i],
-          node_ids[offset + j]
-        )
-      }
-    }
-
-    edges_list[[length(edges_list) + 1]] <- c(
-      node_ids[n_nodes_per_cluster],
-      node_ids[n_nodes_per_cluster + 1]
+  zeallot::`%<-%`(
+    c(edges_list, nodes_list),
+    rs_node2vec_synthetic_data(
+      test_data = test_type,
+      n_nodes_per_cluster = n_nodes_per_cluster,
+      n_clusters = n_clusters,
+      p_within = p_within,
+      p_between = p_between,
+      seed = seed
     )
+  )
 
-    edges_dt <- data.table(
-      from = sapply(edges_list, `[`, 1),
-      to = sapply(edges_list, `[`, 2),
-      edge_type = "connects"
-    )
-
-    node_labels <- data.table(
-      node = node_ids,
-      cluster = c(rep(1, n_nodes_per_cluster), rep(2, n_nodes_per_cluster))
-    )
-  } else if (test_type == "caveman") {
-    n_total <- n_nodes_per_cluster * n_clusters
-    node_ids <- sprintf("node_%03d", 1:n_total)
-
-    edges_list <- list()
-
-    for (cluster in 1:n_clusters) {
-      offset <- (cluster - 1) * n_nodes_per_cluster
-      for (i in 1:(n_nodes_per_cluster - 1)) {
-        for (j in (i + 1):n_nodes_per_cluster) {
-          edges_list[[length(edges_list) + 1]] <- c(
-            node_ids[offset + i],
-            node_ids[offset + j]
-          )
-        }
-      }
-    }
-
-    for (cluster1 in 1:(n_clusters - 1)) {
-      for (cluster2 in (cluster1 + 1):n_clusters) {
-        if (runif(1) < 0.3) {
-          node1 <- sample(
-            (cluster1 - 1) * n_nodes_per_cluster + (1:n_nodes_per_cluster),
-            1
-          )
-          node2 <- sample(
-            (cluster2 - 1) * n_nodes_per_cluster + (1:n_nodes_per_cluster),
-            1
-          )
-          edges_list[[length(edges_list) + 1]] <- c(
-            node_ids[node1],
-            node_ids[node2]
-          )
-        }
-      }
-    }
-
-    edges_dt <- data.table(
-      from = sapply(edges_list, `[`, 1),
-      to = sapply(edges_list, `[`, 2),
-      edge_type = "connects"
-    )
-
-    node_labels <- data.table(
-      node = node_ids,
-      cluster = rep(1:n_clusters, each = n_nodes_per_cluster)
-    )
-  } else if (test_type == "stochastic_block") {
-    n_total <- n_nodes_per_cluster * n_clusters
-    node_ids <- sprintf("node_%03d", 1:n_total)
-
-    edges_list <- list()
-
-    for (i in 1:(n_total - 1)) {
-      for (j in (i + 1):n_total) {
-        cluster_i <- ceiling(i / n_nodes_per_cluster)
-        cluster_j <- ceiling(j / n_nodes_per_cluster)
-
-        prob <- if (cluster_i == cluster_j) p_within else p_between
-
-        if (runif(1) < prob) {
-          edges_list[[length(edges_list) + 1]] <- c(node_ids[i], node_ids[j])
-        }
-      }
-    }
-
-    edges_dt <- data.table(
-      from = sapply(edges_list, `[`, 1),
-      to = sapply(edges_list, `[`, 2),
-      edge_type = "connects"
-    )
-
-    node_labels <- data.table(
-      node = node_ids,
-      cluster = rep(1:n_clusters, each = n_nodes_per_cluster)
-    )
-  }
+  edges_dt <- data.table::setDT(edges_list)
+  node_labels <- data.table::setDT(nodes_list)
 
   list(
     edges = edges_dt,

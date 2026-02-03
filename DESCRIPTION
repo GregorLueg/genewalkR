@@ -23,7 +23,8 @@ Imports:
     igraph,
     magrittr,
     rextendr,
-    S7
+    S7,
+    zeallot
 Depends: 
     R (>= 4.2)
 LazyData: true

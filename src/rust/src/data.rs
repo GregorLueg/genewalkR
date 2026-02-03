@@ -19,7 +19,33 @@ pub enum Node2VecDataType {
     Stochastic,
 }
 
+/// Parse the wanted data
+///
+/// ### Params
+///
+/// * `s` - String to parse
+///
+/// ### Returns
+///
+/// Option of the `Node2VecDataType`
+pub fn parse_node2vec_data(s: &str) -> Option<Node2VecDataType> {
+    match s.to_lowercase().as_str() {
+        "barbell" => Some(Node2VecDataType::Barbell),
+        "cavemen" => Some(Node2VecDataType::Cavemen),
+        "stochastic" => Some(Node2VecDataType::Stochastic),
+        _ => None,
+    }
+}
+
 /// Structure to store Node2VecData
+///
+/// ### Fields
+///
+/// * `from` - Name of the from nodes
+/// * `to` - Name of the to nodes
+/// * `edge_type` - The edge type
+/// * `nodes` - The names of the nodes in the graph generally
+/// * `cluster` - Which cluster does a node belong to
 pub struct Node2VecData {
     from: Vec<String>,
     to: Vec<String>,
@@ -107,7 +133,7 @@ pub fn node2vec_barbell(n_nodes_per_cluster: usize) -> Node2VecData {
 
     let edge_type = vec!["connects".to_string(); from.len()];
     let cluster: Vec<usize> = (0..n_total)
-        .map(|i| if i < n_total { 1 } else { 2 })
+        .map(|i| if i < n_nodes_per_cluster { 1 } else { 2 })
         .collect();
 
     Node2VecData::new(from, to, edge_type, node_ids, cluster)
@@ -134,7 +160,7 @@ pub fn node2vec_caveman(
 
     let mut rng = StdRng::seed_from_u64(seed as u64);
 
-    let node_ids: Vec<String> = (1..=n_total).map(|i| format!("node_{:03}", i)).collect();
+    let node_ids: Vec<String> = (1..=n_total).map(|i| format!("node_{:04}", i)).collect();
 
     let mut from = Vec::with_capacity(n_total);
     let mut to = Vec::with_capacity(n_total);
@@ -195,7 +221,7 @@ pub fn node2vec_stochastic_block(
 
     let mut rng = StdRng::seed_from_u64(seed as u64);
 
-    let node_ids: Vec<String> = (1..=n_total).map(|i| format!("node_{:03}", i)).collect();
+    let node_ids: Vec<String> = (1..=n_total).map(|i| format!("node_{:04}", i)).collect();
 
     let mut from = Vec::with_capacity(n_total);
     let mut to = Vec::with_capacity(n_total);

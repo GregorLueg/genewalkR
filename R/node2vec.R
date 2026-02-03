@@ -38,10 +38,13 @@ node2vec <- function(
   graph_dt,
   embd_dim = 8L,
   node2vec_params = params_node2vec(),
+  backend = c("ndarray", "tch-cpu"),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
 ) {
+  backend <- match.arg(backend)
+
   # checks
   checkmate::assertDataTable(graph_dt)
   checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
@@ -50,6 +53,7 @@ node2vec <- function(
   checkmate::qassert(directed, "B1")
   checkmate::qassert(seed, "I1")
   checkmate::qassert(.verbose, "B1")
+  checkmate::assertChoice(backend, c("ndarray", "tch-cpu"))
 
   # funtion body
   weights <- if ("weight" %in% names(graph_dt)) {
@@ -67,6 +71,7 @@ node2vec <- function(
     to = to_idx,
     weights = weights,
     gene_walk_params = node2vec_params,
+    backend = backend,
     embd_dim = embd_dim,
     directed = directed,
     seed = seed,

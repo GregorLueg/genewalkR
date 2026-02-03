@@ -7,6 +7,37 @@ use node2vec_rs::prelude::*;
 use std::ops::Deref;
 use std::time::Instant;
 
+/////////////
+// Helpers //
+/////////////
+
+/// Backend Enum
+#[derive(Clone, Debug, Default)]
+pub enum Node2VecBackEnd {
+    /// Torch - CPU
+    #[default]
+    TorchCpu,
+    /// Ndarray
+    Ndarray,
+}
+
+/// Parse the backend to use for Burn
+///
+/// ### Params
+///
+/// * `s` - String to parse
+///
+/// ### Returns
+///
+/// Option of the `Node2VecBackEnd`
+pub fn parse_backend(s: &str) -> Option<Node2VecBackEnd> {
+    match s.to_lowercase().as_str() {
+        "tch-cpu" => Some(Node2VecBackEnd::TorchCpu),
+        "ndarray" => Some(Node2VecBackEnd::Ndarray),
+        _ => None,
+    }
+}
+
 ////////////
 // Params //
 ////////////
