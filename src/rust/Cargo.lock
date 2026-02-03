@@ -4175,7 +4175,8 @@ checksum = "df270209a7f04d62459240d890ecb792714d5db12c92937823574a09930276b4"
 [[package]]
 name = "node2vec-rs"
 version = "0.1.3"
-source = "git+https://github.com/GregorLueg/node2vec-rs?branch=fix-tensors#22629f0b3bd9998c19e63ca58f2cb92f2c214f7b"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd98f940b824aa8a59f1b256b8d7a46401705682f01ca97224d76ab3fb83e740"
 dependencies = [
  "burn",
  "clap",

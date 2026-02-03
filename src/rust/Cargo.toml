@@ -14,8 +14,8 @@ opt-level = 3
 debug = false
 
 [profile.release]
-lto = true
-codegen-units = 1
+lto = "thin"
+codegen-units = 4
 
 [dependencies]
 extendr-api = '0.8.1'
@@ -28,13 +28,13 @@ rustc-hash = "2.1.1"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 burn = { version = "0.20.1", features = ["dataset", "train", "tch"] }
-node2vec-rs = { git = "https://github.com/GregorLueg/node2vec-rs", branch = "fix-tensors", default-features = false, features = [
+node2vec-rs = { version = "0.1.3", default-features = false, features = [
     "tch-cpu",
 ] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 burn = { version = "0.20.1", features = ["dataset", "train", "ndarray"] }
-node2vec-rs = { git = "https://github.com/GregorLueg/node2vec-rs", branch = "fix-tensors", default-features = false, features = [
+node2vec-rs = { version = "0.1.3", default-features = false, features = [
     "ndarray",
 ] }
 
