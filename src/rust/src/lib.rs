@@ -498,6 +498,8 @@ fn rs_gene_walk_perm(
 /// as edge weight.
 /// @param gene_walk_params Named list. Contains the parameters for running
 /// gene walk.
+/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
+/// supported on Windows and will panic.
 /// @param n_perm Integer.
 /// @param embd_dim Integer. Embedding dimension.
 /// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
@@ -517,6 +519,7 @@ fn rs_gene_walk_perm(
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
+    backend: String,
     n_perm: usize,
     embd_dim: usize,
     directed: bool,
