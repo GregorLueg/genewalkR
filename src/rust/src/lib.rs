@@ -87,6 +87,7 @@ fn rs_gene_walk(
     }
     let start_edge_prep = Instant::now();
 
+    // go from R i32 to u32 and deal with indexing
     let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
     let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
 
@@ -226,6 +227,7 @@ fn rs_gene_walk(
     }
     let start_edge_prep = Instant::now();
 
+    // go from R i32 to u32 and deal with indexing
     let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
     let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
 
@@ -356,9 +358,9 @@ fn rs_gene_walk_perm(
     }
     let start_edge_prep = Instant::now();
 
-    // go from R i32 to u32
-    let from = from.iter().map(|x| *x as u32).collect::<Vec<u32>>();
-    let to = to.iter().map(|x| *x as u32).collect::<Vec<u32>>();
+    // go from R i32 to u32 and deal with indexing
+    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
+    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
 
     let edges = prepare_edges(from, to, weights);
 
@@ -533,9 +535,9 @@ fn rs_gene_walk_perm(
     }
     let start_edge_prep = Instant::now();
 
-    // go from R i32 to u32
-    let from = from.iter().map(|x| *x as u32).collect::<Vec<u32>>();
-    let to = to.iter().map(|x| *x as u32).collect::<Vec<u32>>();
+    // go from R i32 to u32 and deal with indexing
+    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
+    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
 
     let edges = prepare_edges(from, to, weights);
 

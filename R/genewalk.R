@@ -206,9 +206,9 @@ S7::method(generate_permuted_emb, genewalkR_class) <- function(
 
   # generate random embeddings
   rnd_embd <- rs_gene_walk_perm(
-    from = from_idx - 1L,
-    to = to_idx - 1L,
-    weights = NULL,
+    from = from_idx,
+    to = to_idx,
+    weights = weights,
     gene_walk_params = S7::prop(object, "params")[["node2vec"]],
     n_perm = n_perm,
     embd_dim = S7::prop(object, "params")[["node2vec"]][["embd_size"]],

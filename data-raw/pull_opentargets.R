@@ -7,6 +7,11 @@ library(magrittr)
 
 # functions --------------------------------------------------------------------
 
+## parameters ------------------------------------------------------------------
+
+download_all_data <- FALSE
+dir_data <- "~/Desktop/genewalk_data/"
+
 ## constants -------------------------------------------------------------------
 
 relationship_translation <- setNames(
@@ -136,13 +141,12 @@ obo_parser <- function(file_path, verbose = TRUE) {
     )
   }
   synonyms <- raw[key == "synonym"][,
-    `:=`(
-      synonym = stringr::str_extract(value, '"(.*?)"') %>%
-        gsub('[]', "", .),
-      type = stringr::str_replace(value, '.*"', "") %>%
+    c("synonym", "type") := list(
+      stringr::str_extract(value, '"(.*?)"') %>% gsub('"', "", .),
+      stringr::str_replace(value, '.*"', "") %>%
         trimws() %>%
         stringr::str_split(., " ", n = 2) %>%
-        purrr::map_chr(first)
+        purrr::map_chr(1)
     )
   ] %>%
     .[, .(term, synonym, type)] %>%
@@ -332,7 +336,7 @@ get_reactome_ontology <- function(dir_data) {
   reactome_data <- dbGetQuery(
     conn = con,
     statement = sprintf(
-      "SELECT id AS from, UNNEST(value) AS from, variable AS relationship
+      "SELECT id AS from, UNNEST(value) AS to, variable AS relationship
       FROM (
         SELECT id, variable, value
         FROM read_parquet('%s')
@@ -378,8 +382,10 @@ get_string_interactions <- function(dir_data, threshold = 0.85) {
   checkmate::assertDirectoryExists(dir_data)
   checkmate::qassert(threshold, "N1[0, 1]")
 
+  con <- dbConnect(duckdb(), dbdir = ":memory:")
+
   # get the string stuff
-  string_data <- dbGetQuery(
+  string_data <- DBI::dbGetQuery(
     conn = con,
     statement = sprintf(
       "SELECT DISTINCT
@@ -398,7 +404,7 @@ get_string_interactions <- function(dir_data, threshold = 0.85) {
       WHERE sourceDatabase = 'string'
         AND targetA IS NOT NULL
         AND targetB IS NOT NULL",
-      high_quality_threshold,
+      threshold,
       file.path(dir_data, "interactions/*.parquet")
     )
   ) %>%
@@ -421,6 +427,8 @@ get_string_interactions <- function(dir_data, threshold = 0.85) {
 get_reactome_interactions <- function(dir_data) {
   # checks
   checkmate::assertDirectoryExists(dir_data)
+
+  con <- dbConnect(duckdb(), dbdir = ":memory:")
 
   reactome_interactions_data <- dbGetQuery(
     conn = con,
@@ -463,6 +471,8 @@ get_signor_interactions <- function(dir_data) {
   # checks
   checkmate::assertDirectoryExists(dir_data)
 
+  con <- dbConnect(duckdb(), dbdir = ":memory:")
+
   signor_interactions_data <- dbGetQuery(
     conn = con,
     statement = sprintf(
@@ -503,6 +513,8 @@ get_signor_interactions <- function(dir_data) {
 get_intact_interaction <- function(dir_data) {
   # checks
   checkmate::assertDirectoryExists(dir_data)
+
+  con <- dbConnect(duckdb(), dbdir = ":memory:")
 
   intact_interactions <- dbGetQuery(
     conn = con,
@@ -589,9 +601,10 @@ generate_combined_network <- function(
 
 ## download the data -----------------------------------------------------------
 
-dir_data <- "~/Desktop/genewalk_data/"
+if (download_all_data) {
+  download_data(target_path = dir_data)
+}
 
-download_data(target_path = dir_data)
 
 ## individual tables -----------------------------------------------------------
 
@@ -625,3 +638,44 @@ interactions_combined <- generate_combined_network(
   interactions_reactome = interactions_reactome,
   interactions_intact = interactions_intact
 )
+
+# generate the internal db -----------------------------------------------------
+
+## provide a path and clean up the db ------------------------------------------
+
+db_path <- file.path(here::here(), "inst/extdata/genewalk.duckdb")
+
+if (checkmate::testFileExists(db_path)) {
+  unlink(db_path, force = TRUE)
+}
+
+## populate the db -------------------------------------------------------------
+
+table_list <- list(
+  # main tables
+  gene_main = gene_main,
+  reactome_main = reactome_main,
+  gene_ontology_main = go_main,
+  # pathways to genes
+  reactome_genes = reactome_genes,
+  gene_ontology_genes = go_genes,
+  # ontology
+  reactome_ontology = reactome_ontology,
+  gene_ontology_dag = go_ontology,
+  # interactions
+  interactions_string = interactions_string,
+  interactions_signor = interactions_signor,
+  interactions_reactome = interactions_reactome,
+  interactions_intact = interactions_intact,
+  interactions_combined = interactions_combined
+)
+
+con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
+
+for (i in seq_along(table_list)) {
+  table_name <- names(table_list)[i]
+  message(sprintf("Ingesting table %s into the internal DB.", table_name))
+  DBI::dbCreateTable(conn = con, name = table_name, table_list[[i]])
+}
+
+DBI::dbDisconnect(con, shutdown = TRUE)
