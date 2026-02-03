@@ -26,6 +26,8 @@ NULL
 #' as edge weight.
 #' @param gene_walk_params Named list. Contains the parameters for running
 #' gene walk.
+#' @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
+#' supported on Windows and will panic.
 #' @param embd_dim Integer. Embedding dimension.
 #' @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
 #' edges will be added.
@@ -35,7 +37,7 @@ NULL
 #' @return A numerical matrix of number nodes x desired embedding dimensios.
 #'
 #' @export
-rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk, from, to, weights, gene_walk_params, embd_dim, directed, seed, verbose)
+rs_gene_walk <- function(from, to, weights, gene_walk_params, backend, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk, from, to, weights, gene_walk_params, backend, embd_dim, directed, seed, verbose)
 
 #' Function to generate permuted embeddings
 #'
@@ -51,6 +53,8 @@ rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed
 #' as edge weight.
 #' @param gene_walk_params Named list. Contains the parameters for running
 #' gene walk.
+#' @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
+#' supported on Windows and will panic.
 #' @param n_perm Integer.
 #' @param embd_dim Integer. Embedding dimension.
 #' @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
@@ -62,7 +66,7 @@ rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed
 #' given permutation.
 #'
 #' @export
-rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose)
+rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, backend, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, backend, n_perm, embd_dim, directed, seed, verbose)
 
 #' Calculate the test statistics
 #'
@@ -98,6 +102,23 @@ rs_gene_walk_test <- function(gene_embds, pathway_embds, null_distributions, ver
 #'
 #' @export
 rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
+
+#' Generate synthetic data for node2vec
+#'
+#' @param String. One of `c("barbell", "caveman", "stochastic_block")`. Weird
+#' strings will default to "barbell" data.
+#' @param n_nodes_per_cluster Integer. Number of nodes in the test graph.
+#' @param n_clusters Integer. Number of nodes per cluster.
+#' @param p_within Numeric. Probability of edges within cluster (0-1).
+#' @param p_between Numeric. Probability of edges between clusters (0-1).
+#' @param seed Integer. Random seed.
+#'
+#' @returns A list with the following elements:
+#' \itemize{
+#'  \item edges - List with the edge data.
+#'  \item nodes - List with the node information.
+#' }
+rs_node2vec_synthetic_data <- function(test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed) .Call(wrap__rs_node2vec_synthetic_data, test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed)
 
 
 # nolint end

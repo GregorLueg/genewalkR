@@ -11,19 +11,16 @@ use node2vec_rs::model::SkipGramConfig;
 use rayon::prelude::*;
 use std::time::Instant;
 
+// Torch is only support on NoneWindows
 #[cfg(not(target_os = "windows"))]
-use burn::backend::{
-    libtorch::{LibTorch, LibTorchDevice},
-    Autodiff,
-};
+use burn::backend::libtorch::{LibTorch, LibTorchDevice};
 
-// Windows is supported via Ndarray
-#[cfg(target_os = "windows")]
 use burn::backend::{
     ndarray::{NdArray, NdArrayDevice},
     Autodiff,
 };
 
+use crate::data::*;
 use crate::embedding::*;
 use crate::graph::*;
 use crate::utils::*;
@@ -35,6 +32,7 @@ extendr_module! {
     fn rs_gene_walk_perm;
     fn rs_gene_walk_test;
     fn rs_cosine_sim;
+    fn rs_node2vec_synthetic_data;
 }
 
 /////////////////////////
@@ -57,6 +55,8 @@ extendr_module! {
 /// as edge weight.
 /// @param gene_walk_params Named list. Contains the parameters for running
 /// gene walk.
+/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
+/// supported on Windows and will panic.
 /// @param embd_dim Integer. Embedding dimension.
 /// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
 /// edges will be added.
@@ -74,6 +74,7 @@ fn rs_gene_walk(
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
+    backend: String,
     embd_dim: usize,
     directed: bool,
     seed: usize,
@@ -125,23 +126,45 @@ fn rs_gene_walk(
         );
     }
 
+    let backend = parse_backend(&backend).unwrap_or_default();
     let start_training = Instant::now();
 
-    let device = LibTorchDevice::Cpu;
-    LibTorch::<f32>::seed(&device, gene_walk_config.seed);
+    let embedding: Vec<Vec<f32>> = match backend {
+        Node2VecBackEnd::TorchCpu => {
+            let device = LibTorchDevice::Cpu;
+            LibTorch::<f32>::seed(&device, gene_walk_config.seed);
 
-    let skipgram_config = SkipGramConfig {
-        vocab_size,
-        embedding_dim: embd_dim,
+            let skipgram_config = SkipGramConfig {
+                vocab_size,
+                embedding_dim: embd_dim,
+            };
+
+            train_node2vec::<Autodiff<LibTorch>>(
+                skipgram_config,
+                gene_walk_config,
+                random_walks,
+                device,
+                verbose,
+            )
+        }
+        Node2VecBackEnd::Ndarray => {
+            let device = NdArrayDevice::Cpu;
+            NdArray::<f32>::seed(&device, gene_walk_config.seed);
+
+            let skipgram_config = SkipGramConfig {
+                vocab_size,
+                embedding_dim: embd_dim,
+            };
+
+            train_node2vec::<Autodiff<NdArray>>(
+                skipgram_config,
+                gene_walk_config,
+                random_walks,
+                device,
+                verbose,
+            )
+        }
     };
-
-    let embedding: Vec<Vec<f32>> = train_node2vec::<Autodiff<LibTorch>>(
-        skipgram_config,
-        gene_walk_config,
-        random_walks,
-        device,
-        verbose,
-    );
 
     let end_training = start_training.elapsed();
 
@@ -171,6 +194,8 @@ fn rs_gene_walk(
 /// as edge weight.
 /// @param gene_walk_params Named list. Contains the parameters for running
 /// gene walk.
+/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
+/// supported on Windows and will panic.
 /// @param embd_dim Integer. Embedding dimension.
 /// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
 /// edges will be added.
@@ -188,6 +213,7 @@ fn rs_gene_walk(
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
+    backend: String,
     embd_dim: usize,
     directed: bool,
     seed: usize,
@@ -239,23 +265,31 @@ fn rs_gene_walk(
         );
     }
 
+    let backend = parse_backend(&backend).unwrap_or_default();
     let start_training = Instant::now();
 
-    let device = NdArrayDevice::Cpu;
-    NdArray::<f32>::seed(&device, gene_walk_config.seed as u64);
+    let embedding: Vec<Vec<f32>> = match backend {
+        Node2VecBackEnd::TorchCpu => {
+            panic!("Torch is not supported on Windows!")
+        }
+        Node2VecBackEnd::Ndarray => {
+            let device = NdArrayDevice::Cpu;
+            NdArray::<f32>::seed(&device, gene_walk_config.seed);
 
-    let skipgram_config = SkipGramConfig {
-        vocab_size,
-        embedding_dim: embd_dim,
+            let skipgram_config = SkipGramConfig {
+                vocab_size,
+                embedding_dim: embd_dim,
+            };
+
+            train_node2vec::<Autodiff<NdArray>>(
+                skipgram_config,
+                gene_walk_config,
+                random_walks,
+                device,
+                verbose,
+            )
+        }
     };
-
-    let embedding: Vec<Vec<f32>> = train_node2vec::<Autodiff<NdArray>>(
-        skipgram_config,
-        gene_walk_config,
-        random_walks,
-        device,
-        verbose,
-    );
 
     let end_training = start_training.elapsed();
 
@@ -287,6 +321,8 @@ fn rs_gene_walk(
 /// as edge weight.
 /// @param gene_walk_params Named list. Contains the parameters for running
 /// gene walk.
+/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
+/// supported on Windows and will panic.
 /// @param n_perm Integer.
 /// @param embd_dim Integer. Embedding dimension.
 /// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
@@ -306,6 +342,7 @@ fn rs_gene_walk_perm(
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
+    backend: String,
     n_perm: usize,
     embd_dim: usize,
     directed: bool,
@@ -313,9 +350,6 @@ fn rs_gene_walk_perm(
     verbose: bool,
 ) -> extendr_api::Result<List> {
     let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
-
-    let device = LibTorchDevice::Cpu;
-    LibTorch::<f32>::seed(&device, gene_walk_config.seed);
 
     if verbose {
         println!("Preparing the network edges.")
@@ -334,6 +368,8 @@ fn rs_gene_walk_perm(
     }
 
     let mut null_similarities: Vec<Vec<f64>> = Vec::with_capacity(n_perm);
+
+    let backend = parse_backend(&backend).unwrap_or_default();
 
     for perm in 0..n_perm {
         let start_perm = Instant::now();
@@ -387,13 +423,37 @@ fn rs_gene_walk_perm(
             embedding_dim: embd_dim,
         };
 
-        let embd_i: Vec<Vec<f32>> = train_node2vec::<Autodiff<LibTorch>>(
-            skipgram_config,
-            gene_walk_config_i,
-            random_walks_perm,
-            device,
-            verbose,
-        );
+        let embd_i: Vec<Vec<f32>> = match backend {
+            Node2VecBackEnd::TorchCpu => {
+                let device = LibTorchDevice::Cpu;
+                LibTorch::<f32>::seed(&device, gene_walk_config.seed);
+
+                train_node2vec::<Autodiff<LibTorch>>(
+                    skipgram_config,
+                    gene_walk_config_i,
+                    random_walks_perm,
+                    device,
+                    verbose,
+                )
+            }
+            Node2VecBackEnd::Ndarray => {
+                let device = NdArrayDevice::Cpu;
+                NdArray::<f32>::seed(&device, gene_walk_config.seed);
+
+                let skipgram_config = SkipGramConfig {
+                    vocab_size,
+                    embedding_dim: embd_dim,
+                };
+
+                train_node2vec::<Autodiff<NdArray>>(
+                    skipgram_config,
+                    gene_walk_config_i,
+                    random_walks_perm,
+                    device,
+                    verbose,
+                )
+            }
+        };
 
         let end_perm = start_perm.elapsed();
 
@@ -465,14 +525,12 @@ fn rs_gene_walk_perm(
 ) -> extendr_api::Result<List> {
     let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
 
-    let device = NdArrayDevice::Cpu;
-    NdArray::<f32>::seed(&device, gene_walk_config.seed as u64);
-
     if verbose {
         println!("Preparing the network edges.")
     }
     let start_edge_prep = Instant::now();
 
+    // go from R i32 to u32
     let from = from.iter().map(|x| *x as u32).collect::<Vec<u32>>();
     let to = to.iter().map(|x| *x as u32).collect::<Vec<u32>>();
 
@@ -484,6 +542,8 @@ fn rs_gene_walk_perm(
     }
 
     let mut null_similarities: Vec<Vec<f64>> = Vec::with_capacity(n_perm);
+
+    let backend = parse_backend(&backend).unwrap_or_default();
 
     for perm in 0..n_perm {
         let start_perm = Instant::now();
@@ -537,13 +597,28 @@ fn rs_gene_walk_perm(
             embedding_dim: embd_dim,
         };
 
-        let embd_i: Vec<Vec<f32>> = train_node2vec::<Autodiff<NdArray>>(
-            skipgram_config,
-            gene_walk_config_i,
-            random_walks_perm,
-            device,
-            verbose,
-        );
+        let embd_i: Vec<Vec<f32>> = match backend {
+            Node2VecBackEnd::TorchCpu => {
+                panic!("Windows does not support Torch CPU!")
+            }
+            Node2VecBackEnd::Ndarray => {
+                let device = NdArrayDevice::Cpu;
+                NdArray::<f32>::seed(&device, gene_walk_config.seed);
+
+                let skipgram_config = SkipGramConfig {
+                    vocab_size,
+                    embedding_dim: embd_dim,
+                };
+
+                train_node2vec::<Autodiff<NdArray>>(
+                    skipgram_config,
+                    gene_walk_config_i,
+                    random_walks_perm,
+                    device,
+                    verbose,
+                )
+            }
+        };
 
         let end_perm = start_perm.elapsed();
 
@@ -757,4 +832,43 @@ fn rs_gene_walk_test(
 #[extendr]
 fn rs_cosine_sim(a: &[f64], b: &[f64]) -> f64 {
     cosine_similarity(a, b)
+}
+
+/// Generate synthetic data for node2vec
+///
+/// @param String. One of `c("barbell", "caveman", "stochastic_block")`. Weird
+/// strings will default to "barbell" data.
+/// @param n_nodes_per_cluster Integer. Number of nodes in the test graph.
+/// @param n_clusters Integer. Number of nodes per cluster.
+/// @param p_within Numeric. Probability of edges within cluster (0-1).
+/// @param p_between Numeric. Probability of edges between clusters (0-1).
+/// @param seed Integer. Random seed.
+///
+/// @returns A list with the following elements:
+/// \itemize{
+///  \item edges - List with the edge data.
+///  \item nodes - List with the node information.
+/// }
+#[extendr]
+fn rs_node2vec_synthetic_data(
+    test_data: String,
+    n_nodes_per_cluster: usize,
+    n_clusters: usize,
+    p_within: f64,
+    p_between: f64,
+    seed: usize,
+) -> List {
+    let data_type = parse_node2vec_data(&test_data).unwrap_or_default();
+
+    let synthetic_data = match data_type {
+        Node2VecDataType::Barbell => node2vec_barbell(n_nodes_per_cluster),
+        Node2VecDataType::Cavemen => node2vec_caveman(n_nodes_per_cluster, n_clusters, seed),
+        Node2VecDataType::Stochastic => {
+            node2vec_stochastic_block(n_nodes_per_cluster, n_clusters, p_within, p_between, seed)
+        }
+    };
+
+    let (edge_data, node_data) = synthetic_data.generate_lists();
+
+    list!(edges = edge_data, nodes = node_data)
 }

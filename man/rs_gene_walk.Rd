@@ -9,6 +9,7 @@ rs_gene_walk(
   to,
   weights,
   gene_walk_params,
+  backend,
   embd_dim,
   directed,
   seed,
@@ -27,6 +28,9 @@ as edge weight.}
 
 \item{gene_walk_params}{Named list. Contains the parameters for running
 gene walk.}
+
+\item{backend}{String. One of \code{c("tch-cpu", "ndarray")}. Torch is not
+supported on Windows and will panic.}
 
 \item{embd_dim}{Integer. Embedding dimension.}
 

@@ -15,7 +15,7 @@ debug = false
 
 [profile.release]
 lto = "thin"
-codegen-units = 4
+codegen-units = 1
 
 [dependencies]
 extendr-api = '0.8.1'
@@ -27,7 +27,7 @@ rayon = "1.11.0"
 rustc-hash = "2.1.1"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
-burn = { version = "0.20.1", features = ["dataset", "train", "tch"] }
+burn = { version = "0.20.1", features = ["dataset", "train", "tch", "ndarray"] }
 node2vec-rs = { version = "0.1.3", default-features = false, features = [
     "tch-cpu",
 ] }

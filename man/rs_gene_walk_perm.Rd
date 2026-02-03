@@ -9,6 +9,7 @@ rs_gene_walk_perm(
   to,
   weights,
   gene_walk_params,
+  backend,
   n_perm,
   embd_dim,
   directed,
@@ -28,6 +29,9 @@ as edge weight.}
 
 \item{gene_walk_params}{Named list. Contains the parameters for running
 gene walk.}
+
+\item{backend}{String. One of \code{c("tch-cpu", "ndarray")}. Torch is not
+supported on Windows and will panic.}
 
 \item{n_perm}{Integer.}
 
