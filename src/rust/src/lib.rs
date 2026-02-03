@@ -226,8 +226,8 @@ fn rs_gene_walk(
     }
     let start_edge_prep = Instant::now();
 
-    let from = from.iter().map(|x| *x as u32).collect::<Vec<u32>>();
-    let to = to.iter().map(|x| *x as u32).collect::<Vec<u32>>();
+    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
+    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
 
     let edges = prepare_edges(from, to, weights);
 
