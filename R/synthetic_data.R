@@ -75,7 +75,6 @@ node2vec_test_data <- function(
 #'
 #' @param embeddings Matrix of node embeddings (nodes x dimensions).
 #' @param node_labels data.table with columns: node, cluster.
-#' @param verbose Boolean. Print diagnostic information.
 #'
 #' @return A list with:
 #' \itemize{
@@ -133,28 +132,32 @@ evaluate_node2vec_test <- function(embeddings, node_labels) {
 #' Generate Synthetic GeneWalk Data
 #'
 #' Creates a synthetic dataset combining a scale-free PPI network with a
-#' hierarchical pathway DAG, where gene communities are preferentially
-#' associated with specific pathway subtrees to enable signal recovery testing.
+#' hierarchical pathway DAG. Genes within communities share specific focal
+#' pathways to enable signal recovery testing.
 #'
 #' @param n_genes Integer. Number of genes to generate.
 #' @param n_pathways Integer. Number of pathways to generate.
-#' @param n_communities Integer. Target number of gene communities in PPI
-#' network.
+#' @param n_communities Integer. Number of gene communities in PPI network.
 #' @param signal_strength Numeric. Probability (0-1) that genes connect to
-#' their associated pathway subtree.
-#' @param noise_level Numeric. Baseline probability (0-1) for random
-#' gene-pathway associations.
+#' their community's focal pathways vs random pathways.
 #' @param seed Integer. Random seed for reproducibility.
 #' @param ppi_m Integer. Number of edges attached per new node in
 #' Barabási-Albert model.
 #' @param pathway_depth Integer. Depth of pathway hierarchy.
 #' @param pathway_branching Integer. Average number of children per parent
 #' pathway.
+#' @param n_focal_pathways Integer. Number of focal pathways assigned to each
+#' community.
+#' @param connections_per_gene Integer. Number of pathway connections per gene.
+#' @param min_community_size Integer. Minimum genes per community.
 #'
 #' @return List containing:
 #'   \item{edges}{data.table with columns: from, to, edge_type}
 #'   \item{ground_truth}{data.table mapping genes to communities}
-#'   \item{pathway_groups}{data.table mapping pathways to subtrees}
+#'   \item{pathway_metadata}{data.table with pathway properties (depth, subtree,
+#'     is_hub)}
+#'   \item{community_focal_pathways}{List mapping community IDs to focal
+#'     pathway sets}
 #'   \item{comm_to_subtree}{Named vector mapping community IDs to subtree IDs}
 #'
 #' @export
@@ -165,25 +168,41 @@ synthetic_genewalk_data <- function(
   n_pathways = 250L,
   n_communities = 3L,
   signal_strength = 0.8,
-  noise_level = 0.05,
   seed = 42L,
   ppi_m = 3L,
   pathway_depth = 4L,
-  pathway_branching = 3L
+  pathway_branching = 3L,
+  n_focal_pathways = 15L,
+  connections_per_gene = 3L,
+  min_community_size = 20L
 ) {
   checkmate::qassert(n_genes, "I1")
   checkmate::qassert(n_pathways, "I1")
   checkmate::qassert(n_communities, "I1")
   checkmate::qassert(signal_strength, "N1[0, 1]")
-  checkmate::qassert(noise_level, "N1[0, 1]")
   checkmate::qassert(seed, "I1")
   checkmate::qassert(ppi_m, "I1")
   checkmate::qassert(pathway_depth, "I1")
   checkmate::qassert(pathway_branching, "I1")
+  checkmate::qassert(n_focal_pathways, "I1")
+  checkmate::qassert(connections_per_gene, "I1")
+  checkmate::qassert(min_community_size, "I1")
+
+  if (n_communities * min_community_size > n_genes) {
+    stop(
+      "Cannot create ",
+      n_communities,
+      " communities with minimum ",
+      min_community_size,
+      " genes each from ",
+      n_genes,
+      " total genes"
+    )
+  }
 
   set.seed(seed)
 
-  # Generate PPI network
+  # generate PPI network with controlled communities
   gene_ids <- sprintf("gene_%04d", seq_len(n_genes))
   ppi_graph <- igraph::sample_pa(
     n_genes,
@@ -193,6 +212,7 @@ synthetic_genewalk_data <- function(
   )
   igraph::V(ppi_graph)$name <- gene_ids
 
+  # detect communities and consolidate to target number
   communities <- igraph::cluster_louvain(ppi_graph)
   gene_communities <- igraph::membership(communities)
 
@@ -202,7 +222,37 @@ synthetic_genewalk_data <- function(
     keep_comms <- names(sort(comm_sizes, decreasing = TRUE)[seq_len(
       n_communities
     )])
-    gene_communities[!gene_communities %in% keep_comms] <- keep_comms[1]
+
+    # reassign small communities to largest community
+    reassign_to <- as.integer(keep_comms[1])
+    gene_communities[!gene_communities %in% as.integer(keep_comms)] <-
+      reassign_to
+  }
+
+  # ensure minimum community sizes by reassigning if necessary
+  comm_sizes <- table(gene_communities)
+  while (any(comm_sizes < min_community_size)) {
+    small_comms <- as.integer(names(comm_sizes[
+      comm_sizes < min_community_size
+    ]))
+    large_comm <- as.integer(names(which.max(comm_sizes)))
+
+    for (small_comm in small_comms) {
+      gene_communities[gene_communities == small_comm] <- large_comm
+    }
+
+    comm_sizes <- table(gene_communities)
+    unique_comms <- unique(gene_communities)
+
+    if (length(unique_comms) < n_communities) {
+      stop(
+        "Cannot maintain ",
+        n_communities,
+        " communities with minimum size ",
+        min_community_size,
+        ". Reduce n_communities or min_community_size."
+      )
+    }
   }
 
   ppi_edges <- igraph::as_edgelist(ppi_graph)
@@ -212,11 +262,12 @@ synthetic_genewalk_data <- function(
     edge_type = "interacts"
   )
 
-  # Generate pathway DAG - build dynamically to avoid orphans
+  # generate pathway DAG with depth tracking
   pathway_edges <- list()
-  pathway_subtree <- integer(0)
+  pathway_depth_map <- integer()
+  pathway_subtree <- integer()
   pathway_ancestors <- list()
-  pathway_ids_built <- character(0)
+  pathway_ids_built <- character()
 
   n_roots <- max(2L, n_communities)
   current_id <- 1L
@@ -230,6 +281,7 @@ synthetic_genewalk_data <- function(
     root_name <- sprintf("pathway_%04d", current_id)
     pathway_ids_built <- c(pathway_ids_built, root_name)
     pathway_subtree <- c(pathway_subtree, subtree_id)
+    pathway_depth_map <- c(pathway_depth_map, 0L)
     pathway_ancestors[[root_name]] <- character(0)
 
     current_level <- root_name
@@ -239,7 +291,7 @@ synthetic_genewalk_data <- function(
       if (current_id > n_pathways) {
         break
       }
-      next_level <- character(0)
+      next_level <- character()
 
       for (parent in current_level) {
         n_children <- sample(
@@ -255,6 +307,7 @@ synthetic_genewalk_data <- function(
           child_name <- sprintf("pathway_%04d", current_id)
           pathway_ids_built <- c(pathway_ids_built, child_name)
           pathway_subtree <- c(pathway_subtree, subtree_id)
+          pathway_depth_map <- c(pathway_depth_map, depth)
 
           pathway_edges[[length(pathway_edges) + 1L]] <- c(parent, child_name)
           pathway_ancestors[[child_name]] <- c(
@@ -265,7 +318,7 @@ synthetic_genewalk_data <- function(
           next_level <- c(next_level, child_name)
           current_id <- current_id + 1L
 
-          # Add second parent occasionally (DAG structure)
+          # occasional second parent for DAG structure
           eligible_alt_parents <- setdiff(current_level, parent)
           if (runif(1) < 0.2 && length(eligible_alt_parents) > 0) {
             alt_parent <- sample(eligible_alt_parents, 1L)
@@ -287,7 +340,6 @@ synthetic_genewalk_data <- function(
     subtree_id <- subtree_id + 1L
   }
 
-  # Use only the pathways we actually built
   pathway_ids <- pathway_ids_built
   n_pathways_actual <- length(pathway_ids)
 
@@ -297,11 +349,19 @@ synthetic_genewalk_data <- function(
     edge_type = "parent_of"
   )
 
-  # Gene-pathway associations with GO propagation
-  gene_pathway_edges <- list()
+  # build pathway metadata
+  pathway_metadata <- data.table(
+    pathway = pathway_ids,
+    subtree = pathway_subtree,
+    depth = pathway_depth_map
+  )
 
+  # mark hub pathways (roots and first level)
+  pathway_metadata[, is_hub := depth <= 1L]
+
+  # assign focal pathways to each community
+  actual_communities <- sort(unique(gene_communities))
   actual_subtrees <- unique(pathway_subtree)
-  actual_communities <- unique(gene_communities)
   n_mappable <- min(length(actual_communities), length(actual_subtrees))
 
   comm_to_subtree <- setNames(
@@ -309,46 +369,57 @@ synthetic_genewalk_data <- function(
     as.character(actual_communities[seq_len(n_mappable)])
   )
 
+  community_focal_pathways <- list()
+
+  for (comm_id in names(comm_to_subtree)) {
+    target_subtree <- comm_to_subtree[comm_id]
+    target_pathways <- pathway_metadata[subtree == target_subtree]
+
+    # prefer mid-to-deep level pathways (not roots, not necessarily leaves)
+    candidate_pathways <- target_pathways[depth >= 2L, pathway]
+
+    if (length(candidate_pathways) == 0) {
+      candidate_pathways <- target_pathways[depth >= 1L, pathway]
+    }
+
+    if (length(candidate_pathways) == 0) {
+      candidate_pathways <- target_pathways$pathway
+    }
+
+    n_to_pick <- min(n_focal_pathways, length(candidate_pathways))
+    community_focal_pathways[[comm_id]] <- sample(candidate_pathways, n_to_pick)
+  }
+
+  # gene-pathway associations with GO propagation
+  gene_pathway_edges <- list()
+
   for (gene_idx in seq_len(n_genes)) {
     gene <- gene_ids[gene_idx]
     gene_comm <- as.character(gene_communities[gene_idx])
-    target_subtree <- comm_to_subtree[gene_comm]
+    focal_pathways <- community_focal_pathways[[gene_comm]]
 
-    n_connections <- rpois(1L, lambda = 3) + 1L
-    connected_pathways <- character(0)
-
-    for (i in seq_len(n_connections)) {
-      use_signal <- runif(1) < signal_strength &&
-        !is.na(target_subtree) &&
-        length(target_subtree) > 0
-
-      if (use_signal) {
-        target_pathways <- pathway_ids[pathway_subtree == target_subtree]
-        if (length(target_pathways) > 0) {
-          connected_pathways <- c(
-            connected_pathways,
-            sample(target_pathways, 1L)
-          )
-        }
-      } else if (runif(1) < noise_level) {
-        connected_pathways <- c(connected_pathways, sample(pathway_ids, 1L))
-      }
+    # fallback if community has no focal pathways
+    if (is.null(focal_pathways) || length(focal_pathways) == 0) {
+      focal_pathways <- sample(
+        pathway_ids,
+        min(n_focal_pathways, n_pathways_actual)
+      )
     }
 
-    # Ensure every gene connects to at least one pathway
-    if (length(connected_pathways) == 0) {
-      if (!is.na(target_subtree) && length(target_subtree) > 0) {
-        target_pathways <- pathway_ids[pathway_subtree == target_subtree]
-        if (length(target_pathways) > 0) {
-          connected_pathways <- sample(target_pathways, 1L)
-        }
+    connected_pathways <- character()
+
+    for (i in seq_len(connections_per_gene)) {
+      if (runif(1) < signal_strength) {
+        pathway <- sample(focal_pathways, 1L)
+      } else {
+        pathway <- sample(pathway_ids, 1L)
       }
-      if (length(connected_pathways) == 0) {
-        connected_pathways <- sample(pathway_ids, 1L)
-      }
+      connected_pathways <- c(connected_pathways, pathway)
     }
 
-    # For each connected pathway, also connect to ALL ancestors (GO propagation)
+    connected_pathways <- unique(connected_pathways)
+
+    # add connections with GO propagation to all ancestors
     for (pathway in connected_pathways) {
       gene_pathway_edges[[length(gene_pathway_edges) + 1L]] <- c(gene, pathway)
 
@@ -377,15 +448,11 @@ synthetic_genewalk_data <- function(
     community = gene_communities
   )
 
-  pathway_groups <- data.table(
-    pathway = pathway_ids,
-    subtree = pathway_subtree
-  )
-
   list(
     edges = all_edges,
     ground_truth = ground_truth,
-    pathway_groups = pathway_groups,
+    pathway_metadata = pathway_metadata,
+    community_focal_pathways = community_focal_pathways,
     comm_to_subtree = comm_to_subtree,
     pathway_hierarchy = pathway_ancestors
   )
@@ -401,66 +468,107 @@ synthetic_genewalk_data <- function(
 #' [genewalkR::synthetic_genewalk_data()].
 #' @param return_negatives Logical. If TRUE, also returns gene-pathway pairs
 #' from different communities/subtrees as negative controls.
+#' @param exclude_hubs Logical. If TRUE, excludes hub pathways (depth <= 1)
+#' from evaluation as they have high similarity to everything.
 #'
-#' @return data.table with columns: gene, pathway, expected_signal (TRUE for
-#' same community/subtree, FALSE for different)
+#' @return data.table with columns: gene, pathway, expected_signal
 #'
 #' @export
 #'
 #' @import data.table
 get_expected_associations <- function(
   synthetic_data,
-  return_negatives = FALSE
+  return_negatives = FALSE,
+  exclude_hubs = TRUE
 ) {
   checkmate::assertList(synthetic_data)
   checkmate::assertNames(
     names(synthetic_data),
-    must.include = c("ground_truth", "pathway_groups", "comm_to_subtree")
+    must.include = c(
+      "ground_truth",
+      "pathway_metadata",
+      "community_focal_pathways",
+      "comm_to_subtree"
+    )
   )
 
   ground_truth <- copy(synthetic_data$ground_truth)
-  pathway_groups <- copy(synthetic_data$pathway_groups)
+  pathway_metadata <- copy(synthetic_data$pathway_metadata)
+  community_focal_pathways <- synthetic_data$community_focal_pathways
   comm_to_subtree <- synthetic_data$comm_to_subtree
 
-  # Map genes to their target subtree
-  ground_truth[, target_subtree := comm_to_subtree[as.character(community)]]
+  # filter out hub pathways if requested
+  if (exclude_hubs) {
+    pathway_metadata <- pathway_metadata[is_hub == FALSE]
+  }
 
-  # Positive pairs: inner join to only keep pathways with mapped genes
-  positive_pairs <- pathway_groups[
-    ground_truth,
-    on = .(subtree = target_subtree),
-    allow.cartesian = TRUE,
-    nomatch = NULL
-  ][, .(gene, pathway, expected_signal = TRUE)]
+  positive_pairs_list <- list()
+
+  for (comm_id in names(community_focal_pathways)) {
+    focal_pathways <- community_focal_pathways[[comm_id]]
+
+    if (exclude_hubs) {
+      focal_pathways <- intersect(
+        focal_pathways,
+        pathway_metadata$pathway
+      )
+    }
+
+    if (length(focal_pathways) == 0) {
+      next
+    }
+
+    genes_in_comm <- ground_truth[community == as.integer(comm_id), gene]
+
+    positive_pairs_list[[comm_id]] <- CJ(
+      gene = genes_in_comm,
+      pathway = focal_pathways
+    )
+  }
+
+  positive_pairs <- rbindlist(positive_pairs_list)
+  positive_pairs[, expected_signal := TRUE]
 
   if (!return_negatives) {
     return(positive_pairs)
   }
 
-  # Negative pairs: cross join then filter out matches
-  all_pairs <- CJ(
-    gene = ground_truth$gene,
-    pathway = pathway_groups$pathway
-  )
+  negative_pairs_list <- list()
 
-  # Add subtree info
-  all_pairs[ground_truth, target_subtree := i.target_subtree, on = .(gene)]
-  all_pairs[pathway_groups, pathway_subtree := i.subtree, on = .(pathway)]
+  for (comm_id in names(comm_to_subtree)) {
+    genes_in_comm <- ground_truth[community == as.integer(comm_id), gene]
+    target_subtree <- comm_to_subtree[comm_id]
 
-  # Keep only mismatches where both have valid subtrees
-  negative_pairs <- all_pairs[
-    !is.na(target_subtree) &
-      !is.na(pathway_subtree) &
-      target_subtree != pathway_subtree
-  ]
+    other_pathways <- pathway_metadata[
+      subtree != target_subtree,
+      pathway
+    ]
 
-  # Sample if too many
-  n_negatives <- nrow(positive_pairs)
-  if (nrow(negative_pairs) > n_negatives) {
-    negative_pairs <- negative_pairs[sample(.N, n_negatives)]
+    if (length(other_pathways) == 0) {
+      next
+    }
+
+    n_negatives_per_gene <- ceiling(
+      nrow(positive_pairs) / length(genes_in_comm)
+    )
+
+    for (gene in genes_in_comm) {
+      n_sample <- min(n_negatives_per_gene, length(other_pathways))
+      sampled_pathways <- sample(other_pathways, n_sample)
+
+      negative_pairs_list[[paste0(comm_id, "_", gene)]] <- data.table(
+        gene = gene,
+        pathway = sampled_pathways
+      )
+    }
   }
 
-  negative_pairs <- negative_pairs[, .(gene, pathway, expected_signal = FALSE)]
+  negative_pairs <- rbindlist(negative_pairs_list)
+  negative_pairs[, expected_signal := FALSE]
+
+  if (nrow(negative_pairs) > nrow(positive_pairs)) {
+    negative_pairs <- negative_pairs[sample(.N, nrow(positive_pairs))]
+  }
 
   rbindlist(list(positive_pairs, negative_pairs))
 }

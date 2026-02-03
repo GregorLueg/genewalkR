@@ -35,6 +35,8 @@
 #'  \item window_size - Integer.  Context window size. Defaults to `2L`.
 #'  \item lr - Numeric. Learning rate. Defaults to `1e-2`.
 #' }
+#' @param backend String. One of `c("ndarray", "tch-cpu")`. `"tch-cpu"` is
+#' usually much faster and supported only on Unix-based systems.
 #' @param directed Boolean. Indicates if this is a directed or undirected
 #' network. Defaults to `FALSE`.
 #' @param seed Integer. Seed for reproducibility.
@@ -52,6 +54,7 @@ generate_initial_emb <- S7::new_generic(
     object,
     embd_dim = 8L,
     node2vec_params = params_node2vec(),
+    backend = c("ndarray", "tch-cpu"),
     directed = FALSE,
     seed = 42L,
     .verbose = TRUE
@@ -67,13 +70,17 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
   object,
   embd_dim = 8L,
   node2vec_params = params_node2vec(),
+  backend = c("ndarray", "tch-cpu"),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
 ) {
   # checks
+  backend <- match.arg(backend)
+
   checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
   assertNode2VecParam(node2vec_params)
+  checkmate::assertChoice(backend, c("ndarray", "tch-cpu"))
   checkmate::qassert(directed, "B1")
   checkmate::qassert(.verbose, "B1")
 
@@ -92,11 +99,12 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
 
   # generate the embedding
   rnd_embd <- embd <- rs_gene_walk(
-    from = from_idx, 
-    to = to_idx, 
+    from = from_idx,
+    to = to_idx,
     weights = weights,
     gene_walk_params = node2vec_params,
     embd_dim = embd_dim,
+    backend = backend,
     directed = directed,
     seed = seed,
     verbose = .verbose
@@ -108,6 +116,7 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
   full_params <- node2vec_params
   full_params[["embd_size"]] <- embd_dim
   full_params[["directed"]] <- directed
+  full_params[["backend"]] <- backend
 
   S7::prop(object, "embd") <- embd
   S7::prop(object, "params")[["node2vec"]] <- full_params
@@ -204,6 +213,7 @@ S7::method(generate_permuted_emb, genewalkR_class) <- function(
     n_perm = n_perm,
     embd_dim = S7::prop(object, "params")[["node2vec"]][["embd_size"]],
     directed = S7::prop(object, "params")[["node2vec"]][["directed"]],
+    backend = S7::prop(object, "params")[["node2vec"]][["backend"]],
     seed = seed,
     verbose = .verbose
   )

@@ -9,11 +9,13 @@ synthetic_genewalk_data(
   n_pathways = 250L,
   n_communities = 3L,
   signal_strength = 0.8,
-  noise_level = 0.05,
   seed = 42L,
   ppi_m = 3L,
   pathway_depth = 4L,
-  pathway_branching = 3L
+  pathway_branching = 3L,
+  n_focal_pathways = 15L,
+  connections_per_gene = 3L,
+  min_community_size = 20L
 )
 }
 \arguments{
@@ -21,14 +23,10 @@ synthetic_genewalk_data(
 
 \item{n_pathways}{Integer. Number of pathways to generate.}
 
-\item{n_communities}{Integer. Target number of gene communities in PPI
-network.}
+\item{n_communities}{Integer. Number of gene communities in PPI network.}
 
 \item{signal_strength}{Numeric. Probability (0-1) that genes connect to
-their associated pathway subtree.}
-
-\item{noise_level}{Numeric. Baseline probability (0-1) for random
-gene-pathway associations.}
+their community's focal pathways vs random pathways.}
 
 \item{seed}{Integer. Random seed for reproducibility.}
 
@@ -39,16 +37,26 @@ Barabási-Albert model.}
 
 \item{pathway_branching}{Integer. Average number of children per parent
 pathway.}
+
+\item{n_focal_pathways}{Integer. Number of focal pathways assigned to each
+community.}
+
+\item{connections_per_gene}{Integer. Number of pathway connections per gene.}
+
+\item{min_community_size}{Integer. Minimum genes per community.}
 }
 \value{
 List containing:
 \item{edges}{data.table with columns: from, to, edge_type}
 \item{ground_truth}{data.table mapping genes to communities}
-\item{pathway_groups}{data.table mapping pathways to subtrees}
+\item{pathway_metadata}{data.table with pathway properties (depth, subtree,
+is_hub)}
+\item{community_focal_pathways}{List mapping community IDs to focal
+pathway sets}
 \item{comm_to_subtree}{Named vector mapping community IDs to subtree IDs}
 }
 \description{
 Creates a synthetic dataset combining a scale-free PPI network with a
-hierarchical pathway DAG, where gene communities are preferentially
-associated with specific pathway subtrees to enable signal recovery testing.
+hierarchical pathway DAG. Genes within communities share specific focal
+pathways to enable signal recovery testing.
 }

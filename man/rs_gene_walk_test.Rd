@@ -21,9 +21,16 @@ A list with vectors:
 \itemize{
 \item gene - Gene indices (1-based for R)
 \item pathway - Pathway indices (1-based for R)
-\item pval - P-values for each gene-pathway pair
-\item global_fdr - FDR corrected across all pairs
-\item gene_fdr - FDR corrected within each gene
+\item similarity - Cosine similarity between gene and pathway
+\item avg_pval - Mean p-value across permutations
+\item pval_ci_lower - Lower 95\% CI for p-value
+\item pval_ci_upper - Upper 95\% CI for p-value
+\item avg_global_fdr - Mean global FDR across permutations
+\item global_fdr_ci_lower - Lower 95\% CI for global FDR
+\item global_fdr_ci_upper - Upper 95\% CI for global FDR
+\item avg_gene_fdr - Mean gene-specific FDR across permutations
+\item gene_fdr_ci_lower - Lower 95\% CI for gene FDR
+\item gene_fdr_ci_upper - Upper 95\% CI for gene FDR
 }
 }
 \description{

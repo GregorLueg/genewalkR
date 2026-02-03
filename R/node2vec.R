@@ -28,6 +28,8 @@
 #'  \item window_size - Integer.  Context window size. Defaults to `2L`.
 #'  \item lr - Numeric. Learning rate. Defaults to `1e-2`.
 #' }
+#' @param backend String. One of `c("ndarray", "tch-cpu")`. `"tch-cpu"` is
+#' usually much faster and supported only on Unix-based systems.
 #' @param directed Boolean. Indicates if this is a directed or undirected
 #' network. Defaults to `FALSE`.
 #' @param seed Integer. Seed for reproducibility.

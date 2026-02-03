@@ -82,9 +82,16 @@ rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, backend, n_pe
 #' \itemize{
 #'   \item gene - Gene indices (1-based for R)
 #'   \item pathway - Pathway indices (1-based for R)
-#'   \item pval - P-values for each gene-pathway pair
-#'   \item global_fdr - FDR corrected across all pairs
-#'   \item gene_fdr - FDR corrected within each gene
+#'   \item similarity - Cosine similarity between gene and pathway
+#'   \item avg_pval - Mean p-value across permutations
+#'   \item pval_ci_lower - Lower 95% CI for p-value
+#'   \item pval_ci_upper - Upper 95% CI for p-value
+#'   \item avg_global_fdr - Mean global FDR across permutations
+#'   \item global_fdr_ci_lower - Lower 95% CI for global FDR
+#'   \item global_fdr_ci_upper - Upper 95% CI for global FDR
+#'   \item avg_gene_fdr - Mean gene-specific FDR across permutations
+#'   \item gene_fdr_ci_lower - Lower 95% CI for gene FDR
+#'   \item gene_fdr_ci_upper - Upper 95% CI for gene FDR
 #' }
 #'
 #' @export
@@ -105,8 +112,9 @@ rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
 
 #' Generate synthetic data for node2vec
 #'
-#' @param String. One of `c("barbell", "caveman", "stochastic_block")`. Weird
-#' strings will default to "barbell" data.
+#' @param test_data String. One of
+#' `c("barbell", "caveman", "stochastic_block")`. Weird strings will default to
+#' "barbell" data.
 #' @param n_nodes_per_cluster Integer. Number of nodes in the test graph.
 #' @param n_clusters Integer. Number of nodes per cluster.
 #' @param p_within Numeric. Probability of edges within cluster (0-1).
