@@ -92,8 +92,8 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
 
   # generate the embedding
   rnd_embd <- embd <- rs_gene_walk(
-    from = from_idx - 1L, # 0-index
-    to = to_idx - 1L, # 0-index
+    from = from_idx, 
+    to = to_idx, 
     weights = weights,
     gene_walk_params = node2vec_params,
     embd_dim = embd_dim,
