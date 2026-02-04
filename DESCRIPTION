@@ -30,5 +30,4 @@ Imports:
     zeallot
 Depends: 
     R (>= 4.2)
-LazyData: true
 Suggests: tinytest
