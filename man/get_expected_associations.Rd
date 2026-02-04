@@ -21,8 +21,7 @@ from different communities/subtrees as negative controls.}
 from evaluation as they have high similarity to everything.}
 }
 \value{
-data.table with columns: gene, pathway, expected_signal (TRUE for
-same community focal pathways, FALSE for different)
+data.table with columns: gene, pathway, expected_signal
 }
 \description{
 Returns gene-pathway pairs that should show high cosine similarity based on

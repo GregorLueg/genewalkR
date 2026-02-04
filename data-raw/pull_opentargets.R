@@ -522,7 +522,7 @@ get_intact_interaction <- function(dir_data) {
       "SELECT
         targetA AS from,
         targetB AS to,
-        interactionScore,
+        interactionScore AS intact_score,
         CONTAINS(STRING_AGG(DISTINCT interactionTypeShortName, '; '), 'physical association') AS physical_association
       FROM (
         SELECT 
@@ -672,10 +672,36 @@ table_list <- list(
 
 con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
 
+# should reduce file size
+DBI::dbExecute(con, "SET default_null_order='nulls_first'")
+
 for (i in seq_along(table_list)) {
   table_name <- names(table_list)[i]
   message(sprintf("Ingesting table %s into the internal DB.", table_name))
-  DBI::dbCreateTable(conn = con, name = table_name, table_list[[i]])
+  DBI::dbWriteTable(conn = con, name = table_name, table_list[[i]])
+  no_rows_written <- DBI::dbGetQuery(
+    conn = con,
+    statement = sprintf("SELECT COUNT(*) AS nrow FROM %s", table_name)
+  )
+  message(sprintf(
+    " Wrote %s rows.",
+    format(no_rows_written$nrow, big.mark = "_")
+  ))
 }
+
+# vacuum helps with file size
+DBI::dbExecute(con, "CHECKPOINT")
+DBI::dbExecute(con, "VACUUM")
+
+DBI::dbGetQuery(
+  con,
+  "
+  SELECT 
+    table_name,
+    column_name, 
+    compression
+  FROM duckdb_columns()
+"
+)
 
 DBI::dbDisconnect(con, shutdown = TRUE)

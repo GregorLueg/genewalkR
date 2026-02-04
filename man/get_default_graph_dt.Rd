@@ -28,6 +28,3 @@ A list with:
 \description{
 Generate default graph_dt from the network datasets provided by the package
 }
-\seealso{
-\link{g2g_interactions}, \link{reactome}, \link{gene_ontology} for dataset details.
-}

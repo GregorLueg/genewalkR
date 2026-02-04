@@ -107,3 +107,319 @@ S7::method(get_stats, genewalkR_class) <- function(
 
   return(stats)
 }
+
+## gene walk generator ---------------------------------------------------------
+
+#' Gene Walk Network Generator
+#'
+#' @description
+#' R6 class to build Gene Walk networks from internal database sources.
+#' Supports building a master network once and subsetting to multiple gene sets.
+#'
+#' @export
+GeneWalkGenerator <- R6::R6Class(
+  # name
+  classname = "GeneWalkGenerator",
+  # public methods/fields
+  public = list(
+    #' @field pathway_sources Character vector of pathway sources
+    pathway_sources = NULL,
+    #' @field pathway_namespaces List of namespace filters per pathway source
+    pathway_namespaces = NULL,
+    #' @field ppi_sources Character vector of PPI sources
+    ppi_sources = NULL,
+    #' @field ppi_params List of PPI filtering parameters
+    ppi_params = NULL,
+    #' @field network_dt data.table containing the full network
+    network_dt = NULL,
+
+    #' @description Initialise the generator
+    initialize = function() {
+      self$pathway_sources <- character(0)
+      self$pathway_namespaces <- list()
+      self$ppi_sources <- character(0)
+      self$ppi_params <- list()
+    },
+
+    #' @description Add pathway sources to the network
+    #'
+    #' @param source Character vector of sources: "go", "reactome"
+    #' @param go_namespace Character vector. Specifically for GO. Choices
+    #' are `c("biological_process", "molecular_function", "cellular_component")`
+    add_pathways = function(
+      source = c("go", "reactome"),
+      go_namespace = c(
+        "biological_process",
+        "molecular_function",
+        "cellular_component"
+      )
+    ) {
+      # checks
+      checkmate::checkTRUE(all(source %in% c("go", "reactome")))
+      checkmate::checkTRUE(all(
+        source %in%
+          c(
+            "biological_process",
+            "molecular_function",
+            "cellular_component"
+          )
+      ))
+
+      # multi match
+      source <- match.arg(source, several.ok = TRUE)
+      self$pathway_sources <- union(self$pathway_sources, source)
+
+      if ("go" %in% source) {
+        go_namespace <- match.arg(go_namespace, several.ok = TRUE)
+        self$pathway_namespaces$go <- union(
+          self$pathway_namespaces$go,
+          go_namespace
+        )
+      }
+      invisible(self)
+    },
+
+    #' @description Add PPI sources to the network
+    #'
+    #' @param source Character vector of sources
+    #' @param string_threshold Numeric threshold for STRING scores
+    #' @param intact_threshold Numeric threshold for Intact scores
+    #' @param intact_physical_only Logical, only physical interactions from Intact
+    add_ppi = function(
+      source = c("combined", "string", "signor", "reactome", "intact"),
+      string_threshold = NULL,
+      intact_threshold = NULL,
+      intact_physical_only = FALSE
+    ) {
+      source <- match.arg(source)
+
+      checkmate::assertChoice(
+        source,
+        c("combined", "string", "signor", "reactome", "intact")
+      )
+      checkmate::qassert(string_threshold, c("0", "N1[0, 1]"))
+      checkmate::qassert(intact_threshold, c("0", "N1[0, 1]"))
+      checkmate::qassert(intact_physical_only, "B1")
+
+      self$ppi_sources <- union(self$ppi_sources, source)
+      self$ppi_params$string_threshold <- string_threshold
+      self$ppi_params$intact_threshold <- intact_threshold
+      self$ppi_params$intact_physical_only <- intact_physical_only
+      invisible(self)
+    },
+
+    #' @description Build the full network from selected sources
+    build = function() {
+      if (length(self$pathway_sources) == 0 && length(self$ppi_sources) == 0) {
+        stop("Must add at least one pathway or PPI source")
+      }
+
+      self$network_dt <- data.table::rbindlist(
+        list(
+          private$get_pathway_edges(),
+          private$get_ppi_edges(),
+          private$get_hierarchy_edges()
+        ),
+        fill = TRUE
+      )
+
+      message(sprintf(
+        "Built network with %d edges and %d nodes",
+        nrow(self$network_dt),
+        length(unique(c(self$network_dt$from, self$network_dt$to)))
+      ))
+
+      invisible(self)
+    },
+
+    #' @description Create a gene-specific genewalkR_class object
+    #'
+    #' @param genes Character vector of gene symbols
+    create_for_genes = function(genes) {
+      checkmate::qassert(genes, "S+")
+
+      if (is.null(self$network_dt)) {
+        stop("Must call $build() before creating gene-specific networks")
+      }
+
+      checkmate::assert_character(genes, min.len = 1)
+      genes <- unique(genes)
+
+      # get edges involving these genes
+      gene_edges <- self$network_dt[from %in% genes | to %in% genes]
+
+      # find pathways connected to these genes
+      relevant_pathways <- unique(c(
+        gene_edges[!from %in% genes]$from,
+        gene_edges[!to %in% genes]$to
+      ))
+      relevant_pathways <- relevant_pathways[!relevant_pathways %in% genes]
+
+      # get hierarchy edges between those pathways only
+      hierarchy_edges <- self$network_dt[
+        edge_type == "hierarchy" &
+          from %in% relevant_pathways &
+          to %in% relevant_pathways
+      ]
+
+      subset_dt <- data.table::rbindlist(list(gene_edges, hierarchy_edges))
+
+      genewalkR_class(
+        graph_dt = subset_dt,
+        graph_gene_params = list(
+          genes = genes,
+          n_genes = length(genes),
+          pathway_sources = self$pathway_sources,
+          pathway_namespaces = self$pathway_namespaces,
+          ppi_sources = self$ppi_sources,
+          ppi_params = self$ppi_params,
+          n_edges = nrow(subset_dt),
+          n_nodes = length(unique(c(subset_dt$from, subset_dt$to)))
+        )
+      )
+    },
+
+    #' @description Resets the internal choices and erases any stored network.
+    reset_choices = function() {
+      self$pathway_sources <- character(0)
+      self$pathway_namespaces <- list()
+      self$ppi_sources <- character(0)
+      self$ppi_params <- list()
+      self$graph_dt <- NULL
+    },
+
+    #' @description Resets the internal choices and erases any stored network.
+    return_full_network_dt = function() {
+      self$network_dt
+    }
+  ),
+  # private methods/fields
+  private = list(
+    # internal helper to pull out the pathways
+    get_pathway_edges = function() {
+      edges <- list()
+
+      if ("go" %in% self$pathway_sources) {
+        go_edges <- get_gene_to_go()
+
+        if (!is.null(self$pathway_namespaces$go)) {
+          go_info <- get_gene_ontology_info()
+          go_filtered <- go_info[name_space %in% self$pathway_namespaces$go]$id
+          go_edges <- go_edges[to %in% go_filtered]
+        }
+
+        go_edges[, edge_type := "gene_to_pathway"]
+        go_edges[, source := "GO"]
+        edges <- c(edges, list(go_edges))
+      }
+
+      if ("reactome" %in% self$pathway_sources) {
+        r_edges <- get_gene_to_reactome()
+        r_edges[, edge_type := "gene_to_pathway"]
+        r_edges[, source := "Reactome"]
+        edges <- c(edges, list(r_edges))
+      }
+
+      if (length(edges) == 0) {
+        return(data.table::data.table())
+      }
+      res <- data.table::rbindlist(edges, fill = TRUE)
+      res
+    },
+
+    # internal helper to pull out the ppi networks
+    get_ppi_edges = function() {
+      edges <- list()
+
+      if ("string" %in% self$ppi_sources) {
+        string_edges <- get_interactions_string(
+          threshold = self$ppi_params$string_threshold
+        )
+        string_edges[, edge_type := "ppi"]
+        string_edges[, source := "STRING"]
+        edges <- c(edges, list(string_edges))
+      }
+
+      if ("signor" %in% self$ppi_sources) {
+        signor_edges <- get_interactions_signor()
+        signor_edges[, edge_type := "ppi"]
+        signor_edges[, source := "SIGNOR"]
+        edges <- c(edges, list(signor_edges))
+      }
+
+      if ("reactome" %in% self$ppi_sources) {
+        reactome_edges <- get_interactions_reactome()
+        reactome_edges[, edge_type := "ppi"]
+        reactome_edges[, source := "Reactome_PPI"]
+        edges <- c(edges, list(reactome_edges))
+      }
+
+      if ("intact" %in% self$ppi_sources) {
+        intact_edges <- get_interactions_intact(
+          threshold = self$ppi_params$intact_threshold,
+          physical_interactions = self$ppi_params$intact_physical_only
+        )
+        intact_edges[, edge_type := "ppi"]
+        intact_edges[, source := "Intact"]
+        edges <- c(edges, list(intact_edges))
+      }
+
+      if ("combined" %in% self$ppi_sources) {
+        combined_edges <- get_interactions_combined()
+        combined_edges[, edge_type := "ppi"]
+        combined_edges[, source := "Combined"]
+        edges <- c(edges, list(combined_edges))
+      }
+
+      if (length(edges) == 0) {
+        return(data.table::data.table())
+      }
+      res <- data.table::rbindlist(edges, fill = TRUE)[,
+        c("from", "to", "source"),
+        with = FALSE
+      ]
+
+      res
+    },
+
+    # internal helper to pull out the pathway ontology
+    get_hierarchy_edges = function() {
+      edges <- list()
+
+      if ("go" %in% self$pathway_sources) {
+        go_hier <- get_gene_ontology_hierarchy()
+
+        if (!is.null(self$pathway_namespaces$go)) {
+          go_info <- get_gene_ontology_info()
+          go_filtered <- go_info[
+            name_space %in% self$pathway_namespaces$go,
+            go_id
+          ]
+          go_hier <- go_hier[from %in% go_filtered & to %in% go_filtered]
+        }
+
+        go_hier[, edge_type := "hierarchy"]
+        go_hier[, source := "GO"]
+        edges <- c(edges, list(go_hier))
+      }
+
+      if ("reactome" %in% self$pathway_sources) {
+        r_hier <- get_reactome_hierarchy(relationship = "child_of")
+        r_hier[, edge_type := "hierarchy"]
+        r_hier[, source := "Reactome"]
+        edges <- c(edges, list(r_hier))
+      }
+
+      if (length(edges) == 0) {
+        return(data.table::data.table())
+      }
+
+      res <- data.table::rbindlist(edges, fill = TRUE)[,
+        c("from", "to", "edge_type", "source"),
+        with = FALSE
+      ]
+
+      res
+    }
+  )
+)

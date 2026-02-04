@@ -10,7 +10,7 @@
 #'   \item{graph_dt}{A `data.table` suitable for `genewalkR_class`}
 #'   \item{graph_gene_params}{Metadata describing how the graph was generated}
 #' }
-#' @seealso [g2g_interactions], [reactome], [gene_ontology] for dataset details.
+#'
 #'
 #' @export
 get_default_graph_dt <- function(

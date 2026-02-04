@@ -23,6 +23,7 @@ Imports:
     igraph,
     magrittr,
     rextendr,
+    R6,
     S7,
     zeallot
 Depends: 
