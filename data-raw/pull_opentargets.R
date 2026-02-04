@@ -643,6 +643,12 @@ interactions_combined <- generate_combined_network(
 
 ## provide a path and clean up the db ------------------------------------------
 
+dir.create(
+  file.path(here::here(), "inst/extdata/genewalk.duckdb"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
 db_path <- file.path(here::here(), "inst/extdata/genewalk.duckdb")
 
 if (checkmate::testFileExists(db_path)) {
