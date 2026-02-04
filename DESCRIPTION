@@ -18,6 +18,8 @@ Config/rextendr/version: 0.4.2
 SystemRequirements: Cargo (Rust's package manager), rustc
 Imports: 
     checkmate,
+    duckdb,
+    DBI,
     data.table,
     purrr,
     igraph,
