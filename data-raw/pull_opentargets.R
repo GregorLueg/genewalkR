@@ -644,7 +644,7 @@ interactions_combined <- generate_combined_network(
 ## provide a path and clean up the db ------------------------------------------
 
 dir.create(
-  file.path(here::here(), "inst/extdata/genewalk.duckdb"),
+  file.path(here::here(), "inst/extdata/"),
   recursive = TRUE,
   showWarnings = FALSE
 )
@@ -698,16 +698,5 @@ for (i in seq_along(table_list)) {
 # vacuum helps with file size
 DBI::dbExecute(con, "CHECKPOINT")
 DBI::dbExecute(con, "VACUUM")
-
-DBI::dbGetQuery(
-  con,
-  "
-  SELECT 
-    table_name,
-    column_name, 
-    compression
-  FROM duckdb_columns()
-"
-)
 
 DBI::dbDisconnect(con, shutdown = TRUE)
