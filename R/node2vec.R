@@ -28,8 +28,6 @@
 #'  \item window_size - Integer.  Context window size. Defaults to `2L`.
 #'  \item lr - Numeric. Learning rate. Defaults to `1e-2`.
 #' }
-#' @param backend String. One of `c("ndarray", "tch-cpu")`. `"tch-cpu"` is
-#' usually much faster and supported only on Unix-based systems.
 #' @param directed Boolean. Indicates if this is a directed or undirected
 #' network. Defaults to `FALSE`.
 #' @param seed Integer. Seed for reproducibility.
@@ -40,13 +38,10 @@ node2vec <- function(
   graph_dt,
   embd_dim = 8L,
   node2vec_params = params_node2vec(),
-  backend = c("ndarray", "tch-cpu"),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
 ) {
-  backend <- match.arg(backend)
-
   # checks
   checkmate::assertDataTable(graph_dt)
   checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
@@ -55,7 +50,6 @@ node2vec <- function(
   checkmate::qassert(directed, "B1")
   checkmate::qassert(seed, "I1")
   checkmate::qassert(.verbose, "B1")
-  checkmate::assertChoice(backend, c("ndarray", "tch-cpu"))
 
   # funtion body
   weights <- if ("weight" %in% names(graph_dt)) {
@@ -73,7 +67,6 @@ node2vec <- function(
     to = to_idx,
     weights = weights,
     gene_walk_params = node2vec_params,
-    backend = backend,
     embd_dim = embd_dim,
     directed = directed,
     seed = seed,

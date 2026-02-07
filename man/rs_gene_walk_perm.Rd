@@ -2,14 +2,13 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{rs_gene_walk_perm}
 \alias{rs_gene_walk_perm}
-\title{Function to generate permuted embeddings}
+\title{Generate permuted embeddings for null distribution}
 \usage{
 rs_gene_walk_perm(
   from,
   to,
   weights,
   gene_walk_params,
-  backend,
   n_perm,
   embd_dim,
   directed,
@@ -18,37 +17,29 @@ rs_gene_walk_perm(
 )
 }
 \arguments{
-\item{from}{Integer vector. The node indices indicating where the edge
-originates from.}
+\item{from}{Integer vector. Node indices for edge origins.}
 
-\item{to}{Integer vector. The node indices indicating where the edge
-goes to.}
+\item{to}{Integer vector. Node indices for edge destinations.}
 
-\item{weights}{Optional numeric vector. If not supplied, defaults to \code{1.0}
-as edge weight.}
+\item{weights}{Optional numeric vector. Edge weights, defaults to 1.0.}
 
-\item{gene_walk_params}{Named list. Contains the parameters for running
-gene walk.}
+\item{gene_walk_params}{Named list. Training parameters.}
 
-\item{backend}{String. One of \code{c("tch-cpu", "ndarray")}. Torch is not
-supported on Windows and will panic.}
-
-\item{n_perm}{Integer.}
+\item{n_perm}{Integer. Number of permutations.}
 
 \item{embd_dim}{Integer. Embedding dimension.}
 
-\item{directed}{Boolean. Is the graph directed. If set to \code{FALSE} reverse
-edges will be added.}
+\item{directed}{Boolean. Treat graph as directed.}
 
-\item{seed}{Integer. For reproducibility of the algorithm.}
+\item{seed}{Integer. Random seed.}
 
-\item{verbose}{Boolean. Controls verbosity of the algorithm.}
+\item{verbose}{Boolean. Controls verbosity.}
 }
 \value{
-A list with the null distribution of the cosine similarities per
-given permutation.
+A list of numeric vectors containing the null distribution of
+cosine similarities per permutation.
 }
 \description{
-Wrapper function to generate permuted embeddings and subsequently the
-null distribution of cosine similarities for statistical testing.
+Generates permuted network embeddings and computes the null
+distribution of cosine similarities for statistical testing.
 }

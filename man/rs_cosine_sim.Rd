@@ -7,13 +7,13 @@
 rs_cosine_sim(a, b)
 }
 \arguments{
-\item{a}{Numeric vector. Vector a for which to calculate the similarity.}
+\item{a}{Numeric vector.}
 
-\item{b}{Numeric vector. Vector b for which to calculate the similarity.}
+\item{b}{Numeric vector.}
 }
 \value{
-Cosine similarity between the two vectors
+Cosine similarity between the two vectors.
 }
 \description{
-Rust function to quickly calculate Cosine distances.
+Computes cosine similarity between two numeric vectors.
 }

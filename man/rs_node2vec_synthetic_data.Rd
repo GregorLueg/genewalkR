@@ -15,25 +15,20 @@ rs_node2vec_synthetic_data(
 }
 \arguments{
 \item{test_data}{String. One of
-\code{c("barbell", "caveman", "stochastic_block")}. Weird strings will default to
-"barbell" data.}
+c("barbell", "caveman", "stochastic_block").}
 
-\item{n_nodes_per_cluster}{Integer. Number of nodes in the test graph.}
+\item{n_nodes_per_cluster}{Integer. Nodes per cluster.}
 
-\item{n_clusters}{Integer. Number of nodes per cluster.}
+\item{n_clusters}{Integer. Number of clusters.}
 
-\item{p_within}{Numeric. Probability of edges within cluster (0-1).}
+\item{p_within}{Numeric. Within-cluster edge probability (0-1).}
 
-\item{p_between}{Numeric. Probability of edges between clusters (0-1).}
+\item{p_between}{Numeric. Between-cluster edge probability (0-1).}
 
 \item{seed}{Integer. Random seed.}
 }
 \value{
-A list with the following elements:
-\itemize{
-\item edges - List with the edge data.
-\item nodes - List with the node information.
-}
+A list with edges and nodes.
 }
 \description{
 Generate synthetic data for node2vec

@@ -7,14 +7,14 @@
 rs_gene_walk_test(gene_embds, pathway_embds, null_distributions, verbose)
 }
 \arguments{
-\item{gene_embds}{Matrix of n_genes x their graph embeddings}
+\item{gene_embds}{Matrix of n_genes x their graph embeddings.}
 
-\item{pathway_embds}{Matrix of n_pathways x their graph embeddings}
+\item{pathway_embds}{Matrix of n_pathways x their graph embeddings.}
 
 \item{null_distributions}{List of null distribution vectors (one per
 permutation).}
 
-\item{verbose}{Controls verbosity of the function.}
+\item{verbose}{Controls verbosity.}
 }
 \value{
 A list with vectors:
@@ -34,5 +34,5 @@ A list with vectors:
 }
 }
 \description{
-Calculates the test statistic for the gene / pathway pairs.
+Calculates the test statistic for the gene/pathway pairs.
 }
