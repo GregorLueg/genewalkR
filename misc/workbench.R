@@ -24,8 +24,7 @@ test <- generate_initial_emb(
     lr = 1e-2,
     walks_per_node = 25L,
     walk_length = 25L
-  ),
-  backend = "tch-cpu"
+  )
 )
 
 # generate random permutations
