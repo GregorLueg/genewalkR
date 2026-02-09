@@ -174,7 +174,7 @@ pub fn node2vec_barbell(n_nodes_per_cluster: usize) -> Node2VecData {
 ///
 /// ### Returns
 ///
-/// Synthetic data as `Node2VecData` with barbell-like graph with two
+/// Synthetic data as `Node2VecData` with caveman-like graph with sparse connections between communities
 /// communities
 pub fn node2vec_caveman(
     n_nodes_per_cluster: usize,
