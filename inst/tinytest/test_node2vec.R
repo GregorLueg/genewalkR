@@ -36,7 +36,7 @@ expect_true(
 
 expect_true(
   current = barbell_metrics$between_cluster_sim <
-    caveman_metrics$within_cluster_sim,
+    barbell_metrics$within_cluster_sim,
   info = "barbell graph - between cluster similarity"
 )
 
@@ -71,7 +71,6 @@ stochastic_res <- node2vec(
   node2vec_params = params_node2vec(n_epochs = 25L),
   .verbose = FALSE
 )
-
 
 stochastic_metrics <- evaluate_node2vec_test(
   embeddings = stochastic_res,

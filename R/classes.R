@@ -77,6 +77,8 @@ GeneWalk <- S7::new_class(
 #' [genewalkR::GeneWalk()].
 #'
 #' @returns If found, the GeneWalk statistics results
+#'
+#' @export
 get_stats <- S7::new_generic(
   name = "get_stats",
   dispatch_args = "object",
@@ -115,6 +117,8 @@ S7::method(get_stats, GeneWalk) <- function(
 #' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
 #'
 #' @returns If found, returns the embedding
+#'
+#' @export
 get_embedding <- S7::new_generic(
   name = "get_embedding",
   dispatch_args = "object",

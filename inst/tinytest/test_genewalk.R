@@ -39,7 +39,7 @@ genewalk_obj <- generate_initial_emb(
     walks_per_node = 25L,
     walk_length = 25L
   ),
-  .verbose = TRUE
+  .verbose = FALSE
 )
 
 embeddings <- get_embedding(genewalk_obj)
@@ -111,13 +111,13 @@ ground_truth_data <- get_expected_associations(
 
 positive_examples <- merge(
   ground_truth_data[(expected_signal)],
-  stats,
+  gw_stats,
   by = c("gene", "pathway")
 )
 
 negative_examples <- merge(
   ground_truth_data[!(expected_signal)],
-  stats,
+  gw_stats,
   by = c("gene", "pathway")
 )
 

@@ -14,63 +14,30 @@ generation of the embeddings.
 
 ## Installation
 
-This package will **NOT** work on Windows and is **NOT** supported for Windows.
-The linkage of the libtorch C++ and R compilation part proves too much of a 
-headache to be worth it. Please feel free to fork this repo and generate a 
-version that works on Windows.
+You will need Rust on your system to have the package working. An installation
+guide is provided [here](https://www.rust-lang.org/tools/install). There is a
+bunch of further help written [here](https://extendr.github.io/rextendr/index.html)
+by the rextendr guys in terms of Rust set up. (bixverse uses rextendr to interface
+with Rust.)
 
-### Prerequisites
+Steps for installation:
 
-1. **Rust**: Install from [rust-lang.org](https://www.rust-lang.org/tools/install)
-```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+1. In the terminal, install [Rust](https://www.rust-lang.org/tools/install)
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-2. **LibTorch 2.9.0** 
+2. In R, install [rextendr](https://extendr.github.io/rextendr/index.html):
 
-Download the CPU version for your platform:
-
-**Linux:**
-
-```bash
-
-cd ~
-wget https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.9.0%2Bcpu.zip -o libtorch.zip
-unzip libtorch.zip
-rm libtorch.zip
 ```
-
-**macOS:**
-
-```bash
-
-cd ~
-curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-2.9.0.zip -o libtorch.zip
-unzip libtorch.zip
-rm libtorch.zip
-```
-
-3. **Set environment variable**: 
-
-Add to your `.bashrc`, `.zshrc`, or `.Renviron`:
-
-```bash
-
-export LIBTORCH_PATH="$HOME/libtorch"
-```
-   
-For R specifically, add to `~/.Renviron`:
-```
-LIBTORCH_PATH=/path/to/your/home/libtorch
-```
-
-4. **Install rextendr**
-
-Install rextendr that will compile the Rust and link the torch code and expose 
-it to R.
-
-```r
 install.packages("rextendr")
+```
+
+3. Finally install genewalkR:
+
+```
+devtools::install_github("https://github.com/GregorLueg/genewalkR")
 ```
 
 ### Install genewalkR
