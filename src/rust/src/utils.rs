@@ -177,21 +177,6 @@ pub fn calc_fdr(pvals: &[f64]) -> Vec<f64> {
 // R <> faer //
 ///////////////
 
-/// Helper function to transform faer to R
-///
-/// ### Params
-///
-/// * `mat` - The faer matrix
-///
-/// ### Returns
-///
-/// The R-matrix
-pub fn faer_to_r_matrix(mat: &MatRef<f64>) -> RMatrix<f64> {
-    let nrow = mat.nrows();
-    let ncol = mat.ncols();
-    RMatrix::new_matrix(nrow, ncol, |row, column| mat[(row, column)])
-}
-
 /// Transform an R matrix to Vecs
 ///
 /// ### Params

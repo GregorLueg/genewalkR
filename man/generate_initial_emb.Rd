@@ -8,15 +8,13 @@ generate_initial_emb(
   object,
   embd_dim = 8L,
   node2vec_params = params_node2vec(),
-  backend = c("ndarray", "tch-cpu"),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
 )
 }
 \arguments{
-\item{object}{The \code{genewalkR_class} class, please see
-\code{\link[=genewalkR_class]{genewalkR_class()}}.}
+\item{object}{The \code{GeneWalk} class, please see \code{\link[=GeneWalk]{GeneWalk()}}.}
 
 \item{embd_dim}{Integer. Size of the embedding dimensions to create. Defaults
 to \code{8L} in line with the authors recommendations.}
@@ -40,9 +38,6 @@ all available threads.
 \item window_size - Integer.  Context window size. Defaults to \code{2L}.
 \item lr - Numeric. Learning rate. Defaults to \code{1e-2}.
 }}
-
-\item{backend}{String. One of \code{c("ndarray", "tch-cpu")}. \code{"tch-cpu"} is
-usually much faster and supported only on Unix-based systems.}
 
 \item{directed}{Boolean. Indicates if this is a directed or undirected
 network. Defaults to \code{FALSE}.}

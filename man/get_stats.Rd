@@ -7,8 +7,8 @@
 get_stats(object)
 }
 \arguments{
-\item{object}{The \code{genewalkR_class} class, please see
-\code{\link[=genewalkR_class]{genewalkR_class()}}.}
+\item{object}{The \code{GeneWalk} class, please see
+\code{\link[=GeneWalk]{GeneWalk()}}.}
 }
 \value{
 If found, the GeneWalk statistics results

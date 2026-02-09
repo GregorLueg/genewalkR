@@ -26,6 +26,7 @@ Supports building a master network once and subsetting to multiple gene sets.
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-GeneWalkGenerator-new}{\code{GeneWalkGenerator$new()}}
+\item \href{#method-GeneWalkGenerator-print}{\code{GeneWalkGenerator$print()}}
 \item \href{#method-GeneWalkGenerator-add_pathways}{\code{GeneWalkGenerator$add_pathways()}}
 \item \href{#method-GeneWalkGenerator-add_ppi}{\code{GeneWalkGenerator$add_ppi()}}
 \item \href{#method-GeneWalkGenerator-build}{\code{GeneWalkGenerator$build()}}
@@ -44,6 +45,23 @@ Initialise the generator
 \if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$new()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-GeneWalkGenerator-print"></a>}}
+\if{latex}{\out{\hypertarget{method-GeneWalkGenerator-print}{}}}
+\subsection{Method \code{print()}}{
+Print for GeneWalkGenerator
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$print(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Additional parameters to forward to the print}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GeneWalkGenerator-add_pathways"></a>}}
@@ -102,15 +120,22 @@ Add PPI sources to the network
 \subsection{Method \code{build()}}{
 Build the full network from selected sources
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$build()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$build(.verbose = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{.verbose}}{Boolean. Controls the verbosity of the function}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GeneWalkGenerator-create_for_genes"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneWalkGenerator-create_for_genes}{}}}
 \subsection{Method \code{create_for_genes()}}{
-Create a gene-specific genewalkR_class object
+Create a gene-specific GeneWalk object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$create_for_genes(genes)}\if{html}{\out{</div>}}
 }
@@ -121,6 +146,9 @@ Create a gene-specific genewalkR_class object
 \item{\code{genes}}{Character vector of gene symbols}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns the initialised \code{GeneWalk}.
 }
 }
 \if{html}{\out{<hr>}}
@@ -137,11 +165,14 @@ Resets the internal choices and erases any stored network.
 \if{html}{\out{<a id="method-GeneWalkGenerator-return_full_network_dt"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneWalkGenerator-return_full_network_dt}{}}}
 \subsection{Method \code{return_full_network_dt()}}{
-Resets the internal choices and erases any stored network.
+Returns the full network data.table.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$return_full_network_dt()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+data.table with the full internal network.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GeneWalkGenerator-clone"></a>}}

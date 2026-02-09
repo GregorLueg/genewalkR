@@ -1,8 +1,8 @@
 # classes ----------------------------------------------------------------------
 
-## genewalkR class -------------------------------------------------------------
+## GeneWalk class --------------------------------------------------------------
 
-#' genewalkR
+#' GeneWalk
 #'
 #' @description
 #' Class that stores keeps all of the important data for the Gene Walk
@@ -27,15 +27,15 @@
 #' @param graph_gene_params A list with information in terms of the generation
 #' of the graph.
 #'
-#' @return Returns the initialised genewalkR_class object for subsequent
+#' @return Returns the initialised GeneWalk initialised object for subsequent
 #' analysis.
 #'
 #' @export
 #'
 #' @references Ietswaart, et al., Genome Biol, 2021
-genewalkR_class <- S7::new_class(
+GeneWalk <- S7::new_class(
   # name
-  name = "genewalkR_class",
+  name = "GeneWalk",
   # properties
   properties = list(
     graph_dt = S7::class_data.frame,
@@ -69,14 +69,45 @@ genewalkR_class <- S7::new_class(
   }
 )
 
+## print -----------------------------------------------------------------------
+
+#' @name print.GeneWalk
+#' @title print Method for GeneWalk object
+#'
+#' @description
+#' Print a GeneWalk object.
+#'
+#' @param x An object of class GeneWalk
+#' @param ... Additional arguments (currently not used).
+#'
+#' @returns Invisibly returns x.
+#'
+#' @method print GeneWalk
+S7::method(print, GeneWalk) <- function(x, ...) {
+  n_edges <- nrow(x@graph_dt)
+  embd_generated <- nrow(x@embd) > 1 || ncol(x@embd) > 1
+  perm_generated <- length(x@permuted_embd) > 0
+  stats_calculated <- nrow(x@stats) > 0
+
+  cat("GeneWalk\n")
+  cat("  Number of edges:", n_edges, "\n")
+  cat("  Embedding generated:", ifelse(embd_generated, "yes", "no"), "\n")
+  cat("  Permutations generated:", ifelse(perm_generated, "yes", "no"), "\n")
+  cat("  Statistics calculated:", ifelse(stats_calculated, "yes", "no"), "\n")
+
+  invisible(x)
+}
+
 ## getters ---------------------------------------------------------------------
 
 #' Get the statistical results
 #'
-#' @param object The `genewalkR_class` class, please see
-#' [genewalkR::genewalkR_class()].
+#' @param object The `GeneWalk` class, please see
+#' [genewalkR::GeneWalk()].
 #'
 #' @returns If found, the GeneWalk statistics results
+#'
+#' @export
 get_stats <- S7::new_generic(
   name = "get_stats",
   dispatch_args = "object",
@@ -87,14 +118,14 @@ get_stats <- S7::new_generic(
   }
 )
 
-#' @method get_stats genewalkR_class
+#' @method get_stats GeneWalk
 #'
 #' @export
-S7::method(get_stats, genewalkR_class) <- function(
+S7::method(get_stats, GeneWalk) <- function(
   object
 ) {
   # checks
-  checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
 
   stats <- S7::prop(object, "stats")
 
@@ -105,7 +136,78 @@ S7::method(get_stats, genewalkR_class) <- function(
     ))
   }
 
+  data.table::setorder(stats, -similarity)
+
   return(stats)
+}
+
+#' Get the embedding
+#'
+#' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
+#'
+#' @returns If found, returns the embedding
+#'
+#' @export
+get_embedding <- S7::new_generic(
+  name = "get_embedding",
+  dispatch_args = "object",
+  fun = function(
+    object
+  ) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_embedding GeneWalk
+#'
+#' @export
+S7::method(get_embedding, GeneWalk) <- function(
+  object
+) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
+
+  embd <- S7::prop(object, "embd")
+
+  if (is.na(embd[1, 1])) {
+    warning(paste(
+      "It does not like the generate_initial_emb() was run.",
+      "Returning matrix with NA."
+    ))
+  }
+
+  return(embd)
+}
+
+#' Get the edge data.table
+#'
+#' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
+#'
+#' @returns Returns the edge data.table stored in the object
+#'
+#' @export
+get_graph_dt <- S7::new_generic(
+  name = "get_graph_dt",
+  dispatch_args = "object",
+  fun = function(
+    object
+  ) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_graph_dt GeneWalk
+#'
+#' @export
+S7::method(get_graph_dt, GeneWalk) <- function(
+  object
+) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
+
+  graph_dt <- S7::prop(object, "graph_dt")
+
+  return(graph_dt)
 }
 
 ## gene walk generator ---------------------------------------------------------
@@ -139,6 +241,75 @@ GeneWalkGenerator <- R6::R6Class(
       self$pathway_namespaces <- list()
       self$ppi_sources <- character(0)
       self$ppi_params <- list()
+    },
+
+    #' @description Print for GeneWalkGenerator
+    #'
+    #' @param ... Additional parameters to forward to the print
+    print = function(...) {
+      cat("GeneWalkGenerator\n")
+
+      cat(
+        "  Added pathway sources:",
+        if (length(self$pathway_sources) > 0) {
+          paste(self$pathway_sources, collapse = ", ")
+        } else {
+          "none"
+        },
+        "\n"
+      )
+
+      cat(
+        "  Added PPI sources:",
+        if (length(self$ppi_sources) > 0) {
+          paste(self$ppi_sources, collapse = ", ")
+        } else {
+          "none"
+        },
+        "\n"
+      )
+
+      if (length(self$pathway_namespaces) > 0) {
+        ns_text <- vapply(
+          names(self$pathway_namespaces),
+          function(nm) {
+            paste0(
+              nm,
+              " (",
+              paste(self$pathway_namespaces[[nm]], collapse = ", "),
+              ")"
+            )
+          },
+          character(1)
+        )
+        cat(
+          "  Pathway namespace constraints:",
+          paste(ns_text, collapse = "; "),
+          "\n"
+        )
+      } else {
+        cat("  Pathway namespace constraints: none\n")
+      }
+
+      if (length(self$ppi_params) > 0) {
+        param_text <- paste(
+          names(self$ppi_params),
+          self$ppi_params,
+          sep = " = ",
+          collapse = ", "
+        )
+        cat("  PPI params:", param_text, "\n")
+      } else {
+        cat("  PPI params: none\n")
+      }
+
+      cat(
+        "  Network generated:",
+        ifelse(is.null(self$network_dt), "no", "yes"),
+        "\n"
+      )
+
+      invisible(self)
     },
 
     #' @description Add pathway sources to the network
@@ -209,7 +380,12 @@ GeneWalkGenerator <- R6::R6Class(
     },
 
     #' @description Build the full network from selected sources
-    build = function() {
+    #'
+    #' @param .verbose Boolean. Controls the verbosity of the function
+    build = function(.verbose = TRUE) {
+      # checks
+      checkmate::qassert(.verbose, "B1")
+
       if (length(self$pathway_sources) == 0 && length(self$ppi_sources) == 0) {
         stop("Must add at least one pathway or PPI source")
       }
@@ -223,18 +399,22 @@ GeneWalkGenerator <- R6::R6Class(
         fill = TRUE
       )
 
-      message(sprintf(
-        "Built network with %d edges and %d nodes",
-        nrow(self$network_dt),
-        length(unique(c(self$network_dt$from, self$network_dt$to)))
-      ))
+      if (.verbose) {
+        message(sprintf(
+          "Built network with %d edges and %d nodes",
+          nrow(self$network_dt),
+          length(unique(c(self$network_dt$from, self$network_dt$to)))
+        ))
+      }
 
       invisible(self)
     },
 
-    #' @description Create a gene-specific genewalkR_class object
+    #' @description Create a gene-specific GeneWalk object
     #'
     #' @param genes Character vector of gene symbols
+    #'
+    #' @return Returns the initialised `GeneWalk`.
     create_for_genes = function(genes) {
       checkmate::qassert(genes, "S+")
 
@@ -242,7 +422,6 @@ GeneWalkGenerator <- R6::R6Class(
         stop("Must call $build() before creating gene-specific networks")
       }
 
-      checkmate::assert_character(genes, min.len = 1)
       genes <- unique(genes)
 
       # get edges involving these genes
@@ -263,8 +442,10 @@ GeneWalkGenerator <- R6::R6Class(
       ]
 
       subset_dt <- data.table::rbindlist(list(gene_edges, hierarchy_edges))
+      # deal with edge type problems from the different networks
+      subset_dt$edge_type[is.na(subset_dt$edge_type)] <- "interacts"
 
-      genewalkR_class(
+      GeneWalk(
         graph_dt = subset_dt,
         graph_gene_params = list(
           genes = genes,
@@ -285,10 +466,12 @@ GeneWalkGenerator <- R6::R6Class(
       self$pathway_namespaces <- list()
       self$ppi_sources <- character(0)
       self$ppi_params <- list()
-      self$graph_dt <- NULL
+      self$network_dt <- NULL
     },
 
-    #' @description Resets the internal choices and erases any stored network.
+    #' @description Returns the full network data.table.
+    #'
+    #' @return data.table with the full internal network.
     return_full_network_dt = function() {
       self$network_dt
     }

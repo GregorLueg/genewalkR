@@ -10,73 +10,58 @@
 #' @useDynLib genewalkR, .registration = TRUE
 NULL
 
-#' Function that generates the GeneWalk embedding
+#' Generate GeneWalk node embeddings
 #'
-#' @description Wrapper function that leverages Rust and the Burn Tensor
-#' framework to generate node representations for subsequent usage in the
-#' GeneWalk approach. The default back end is the torch CPU backend. In the
-#' future there might be other backends added, but testing revealed this one
-#' to be very performant.
+#' @description Uses a SIMD-accelerated CPU implementation of word2vec
+#' with negative sampling to learn node representations from biased
+#' random walks (node2vec).
 #'
-#' @param from Integer vector. The node indices indicating where the edge
-#' originates from.
-#' @param to Integer vector. The node indices indicating where the edge
-#' goes to.
-#' @param weights Optional numeric vector. If not supplied, defaults to `1.0`
-#' as edge weight.
-#' @param gene_walk_params Named list. Contains the parameters for running
-#' gene walk.
-#' @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
-#' supported on Windows and will panic.
+#' @param from Integer vector. Node indices for edge origins.
+#' @param to Integer vector. Node indices for edge destinations.
+#' @param weights Optional numeric vector. Edge weights, defaults to 1.0.
+#' @param gene_walk_params Named list. Training parameters (p, q,
+#'   walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
+#'   window_size, lr, dim).
 #' @param embd_dim Integer. Embedding dimension.
-#' @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
-#' edges will be added.
-#' @param seed Integer. For reproducibility of the algorithm.
-#' @param verbose Boolean. Controls verbosity of the algorithm.
+#' @param directed Boolean. Treat graph as directed.
+#' @param seed Integer. Random seed.
+#' @param verbose Boolean. Controls verbosity.
 #'
-#' @return A numerical matrix of number nodes x desired embedding dimensios.
+#' @return A numeric matrix of n_nodes x embedding dimensions.
 #'
 #' @export
-rs_gene_walk <- function(from, to, weights, gene_walk_params, backend, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk, from, to, weights, gene_walk_params, backend, embd_dim, directed, seed, verbose)
+rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk, from, to, weights, gene_walk_params, embd_dim, directed, seed, verbose)
 
-#' Function to generate permuted embeddings
+#' Generate permuted embeddings for null distribution
 #'
-#' @description
-#' Wrapper function to generate permuted embeddings and subsequently the
-#' null distribution of cosine similarities for statistical testing.
+#' @description Generates permuted network embeddings and computes the null
+#' distribution of cosine similarities for statistical testing.
 #'
-#' @param from Integer vector. The node indices indicating where the edge
-#' originates from.
-#' @param to Integer vector. The node indices indicating where the edge
-#' goes to.
-#' @param weights Optional numeric vector. If not supplied, defaults to `1.0`
-#' as edge weight.
-#' @param gene_walk_params Named list. Contains the parameters for running
-#' gene walk.
-#' @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
-#' supported on Windows and will panic.
-#' @param n_perm Integer.
+#' @param from Integer vector. Node indices for edge origins.
+#' @param to Integer vector. Node indices for edge destinations.
+#' @param weights Optional numeric vector. Edge weights, defaults to 1.0.
+#' @param gene_walk_params Named list. Training parameters.
+#' @param n_perm Integer. Number of permutations.
 #' @param embd_dim Integer. Embedding dimension.
-#' @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
-#' edges will be added.
-#' @param seed Integer. For reproducibility of the algorithm.
-#' @param verbose Boolean. Controls verbosity of the algorithm.
+#' @param directed Boolean. Treat graph as directed.
+#' @param seed Integer. Random seed.
+#' @param verbose Boolean. Controls verbosity.
 #'
-#' @returns A list with the null distribution of the cosine similarities per
-#' given permutation.
+#' @returns A list of numeric vectors containing the null distribution of
+#' cosine similarities per permutation.
 #'
 #' @export
-rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, backend, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, backend, n_perm, embd_dim, directed, seed, verbose)
+rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose)
 
 #' Calculate the test statistics
 #'
-#' @description Calculates the test statistic for the gene / pathway pairs.
+#' @description Calculates the test statistic for the gene/pathway pairs.
 #'
-#' @param gene_embds Matrix of n_genes x their graph embeddings
-#' @param pathway_embds Matrix of n_pathways x their graph embeddings
+#' @param gene_embds Matrix of n_genes x their graph embeddings.
+#' @param pathway_embds Matrix of n_pathways x their graph embeddings.
 #' @param null_distributions List of null distribution vectors (one per
-#' permutation).
-#' @param verbose Controls verbosity of the function.
+#'   permutation).
+#' @param verbose Controls verbosity.
 #'
 #' @returns A list with vectors:
 #' \itemize{
@@ -99,13 +84,12 @@ rs_gene_walk_test <- function(gene_embds, pathway_embds, null_distributions, ver
 
 #' Cosine similarity between two vectors
 #'
-#' @description
-#' Rust function to quickly calculate Cosine distances.
+#' @description Computes cosine similarity between two numeric vectors.
 #'
-#' @param a Numeric vector. Vector a for which to calculate the similarity.
-#' @param b Numeric vector. Vector b for which to calculate the similarity.
+#' @param a Numeric vector.
+#' @param b Numeric vector.
 #'
-#' @returns Cosine similarity between the two vectors
+#' @returns Cosine similarity between the two vectors.
 #'
 #' @export
 rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
@@ -113,20 +97,37 @@ rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
 #' Generate synthetic data for node2vec
 #'
 #' @param test_data String. One of
-#' `c("barbell", "caveman", "stochastic_block")`. Weird strings will default to
-#' "barbell" data.
-#' @param n_nodes_per_cluster Integer. Number of nodes in the test graph.
-#' @param n_clusters Integer. Number of nodes per cluster.
-#' @param p_within Numeric. Probability of edges within cluster (0-1).
-#' @param p_between Numeric. Probability of edges between clusters (0-1).
+#'   c("barbell", "caveman", "stochastic_block").
+#' @param n_nodes_per_cluster Integer. Nodes per cluster.
+#' @param n_clusters Integer. Number of clusters.
+#' @param p_within Numeric. Within-cluster edge probability (0-1).
+#' @param p_between Numeric. Between-cluster edge probability (0-1).
 #' @param seed Integer. Random seed.
 #'
-#' @returns A list with the following elements:
-#' \itemize{
-#'  \item edges - List with the edge data.
-#'  \item nodes - List with the node information.
-#' }
+#' @returns A list with edges and nodes.
+#'
+#' @export
 rs_node2vec_synthetic_data <- function(test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed) .Call(wrap__rs_node2vec_synthetic_data, test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed)
+
+#' Generate pathway structure and gene-pathway associations
+#'
+#' @param n_pathways Integer. Number of pathways to generate.
+#' @param pathway_depth Integer. Maximum depth of pathway hierarchy.
+#' @param pathway_branching Integer. Average branching factor for pathway tree.
+#' @param n_communities Integer. Number of gene communities.
+#' @param gene_ids Character vector. Gene identifiers.
+#' @param gene_communities Integer vector. Community assignment for each gene.
+#' @param n_focal_pathways Integer. Number of focal pathways per community.
+#' @param signal_strength Numeric. Probability of connecting to focal pathways
+#'   (0-1).
+#' @param connections_per_gene Integer. Number of pathway connections per gene.
+#' @param seed Integer. Random seed.
+#'
+#' @returns A list with pathway edges, metadata, gene-pathway associations ano
+#' community to subtree parts.
+#'
+#' @export
+rs_generate_pathway_structure <- function(n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed) .Call(wrap__rs_generate_pathway_structure, n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed)
 
 
 # nolint end

@@ -1,11 +1,16 @@
 use extendr_api::*;
-use rand::rngs::StdRng;
-use rand::Rng;
-use rand::SeedableRng;
+use rand::{rngs::StdRng, Rng, SeedableRng};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 /////////////
 // Helpers //
 /////////////
+
+/// Results for the
+///
+/// * `0` - Edge list with (from, to)
+/// * `1` - Vector of the pathway nodes
+type DagResults = (Vec<(String, String)>, Vec<PathwayNode>);
 
 /// Enum to describe the different synthetic data types
 #[derive(Debug, Clone, Default)]
@@ -93,6 +98,26 @@ impl Node2VecData {
     }
 }
 
+/// Pathway node structure
+///
+/// ### Params
+///
+/// * `id` - Name of the pathway
+/// * `subtree` - Identifier of the sub tree
+/// * `depth` - Depth of the node
+/// * `ancestors` - Name of the ancestors
+#[derive(Clone)]
+pub struct PathwayNode {
+    pub id: String,
+    pub subtree: usize,
+    pub depth: usize,
+    pub ancestors: Vec<String>,
+}
+
+//////////////
+// Node2Vec //
+//////////////
+
 /// Generate barbell like graph data
 ///
 /// ### Params
@@ -149,7 +174,7 @@ pub fn node2vec_barbell(n_nodes_per_cluster: usize) -> Node2VecData {
 ///
 /// ### Returns
 ///
-/// Synthetic data as `Node2VecData` with barbell-like graph with two
+/// Synthetic data as `Node2VecData` with caveman-like graph with sparse connections between communities
 /// communities
 pub fn node2vec_caveman(
     n_nodes_per_cluster: usize,
@@ -208,7 +233,7 @@ pub fn node2vec_caveman(
 ///
 /// ### Returns
 ///
-/// Synthetic data as `Node2VecData` with barbell-like graph with two
+/// Synthetic data as `Node2VecData` with stochastic block-like graph with probabilistic community structure
 /// communities
 pub fn node2vec_stochastic_block(
     n_nodes_per_cluster: usize,
@@ -250,4 +275,177 @@ pub fn node2vec_stochastic_block(
         .collect();
 
     Node2VecData::new(from, to, edge_type, node_ids, cluster)
+}
+
+//////////////////////////
+// GeneWalk pathway DAG //
+//////////////////////////
+
+/// Build the pathway DAG
+///
+/// ### Params
+///
+/// * `n_pathways` - Number of pathways to generate
+/// * `pathway_depth` - The depth of the pathways
+/// * `pathway_branching` - Number of branches
+/// * `n_communities` - Number of communities
+pub fn build_pathway_dag(
+    n_pathways: usize,
+    pathway_depth: usize,
+    pathway_branching: usize,
+    n_communities: usize,
+) -> DagResults {
+    let mut pathway_edges = Vec::new();
+    let mut pathways = Vec::new();
+    let mut pathway_ancestors: FxHashMap<String, Vec<String>> = FxHashMap::default();
+
+    let n_roots = std::cmp::max(2, n_communities);
+    let mut current_id = 1;
+    let mut subtree_id = 1;
+
+    for _ in 0..n_roots {
+        if current_id > n_pathways {
+            break;
+        }
+
+        let root_name = format!("pathway_{:04}", current_id);
+        pathways.push(PathwayNode {
+            id: root_name.clone(),
+            subtree: subtree_id,
+            depth: 0,
+            ancestors: Vec::new(),
+        });
+        pathway_ancestors.insert(root_name.clone(), Vec::new());
+
+        let mut current_level = vec![root_name];
+        current_id += 1;
+
+        for depth in 1..pathway_depth {
+            if current_id > n_pathways {
+                break;
+            }
+
+            let mut next_level = Vec::new();
+
+            for parent in &current_level {
+                let n_children = fastrand::usize(
+                    std::cmp::max(1, pathway_branching - 1)..=pathway_branching + 1,
+                );
+
+                for _ in 0..n_children {
+                    if current_id > n_pathways {
+                        break;
+                    }
+
+                    let child_name = format!("pathway_{:04}", current_id);
+                    let parent_ancestors = pathway_ancestors.get(parent).unwrap();
+                    let mut child_ancestors = parent_ancestors.clone();
+                    child_ancestors.push(parent.clone());
+
+                    pathways.push(PathwayNode {
+                        id: child_name.clone(),
+                        subtree: subtree_id,
+                        depth,
+                        ancestors: child_ancestors.clone(),
+                    });
+
+                    pathway_edges.push((parent.clone(), child_name.clone()));
+                    pathway_ancestors.insert(child_name.clone(), child_ancestors.clone());
+
+                    next_level.push(child_name.clone());
+                    current_id += 1;
+
+                    // occasional second parent for DAG structure
+                    if fastrand::f64() < 0.2 && current_level.len() > 1 {
+                        let eligible: Vec<_> =
+                            current_level.iter().filter(|p| *p != parent).collect();
+
+                        if !eligible.is_empty() {
+                            let alt_parent = eligible[fastrand::usize(..eligible.len())];
+                            pathway_edges.push((alt_parent.clone(), child_name.clone()));
+
+                            let alt_ancestors = pathway_ancestors.get(alt_parent).unwrap();
+                            let mut combined: FxHashSet<String> =
+                                child_ancestors.iter().cloned().collect();
+                            combined.extend(alt_ancestors.iter().cloned());
+                            combined.insert(alt_parent.clone());
+
+                            let updated: Vec<_> = combined.into_iter().collect();
+                            pathway_ancestors.insert(child_name.clone(), updated.clone());
+
+                            if let Some(node) = pathways.iter_mut().find(|n| n.id == child_name) {
+                                node.ancestors = updated;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if next_level.is_empty() {
+                break;
+            }
+            current_level = next_level;
+        }
+        subtree_id += 1;
+    }
+
+    (pathway_edges, pathways)
+}
+
+/// Generate the gene to pathway associations
+///
+/// ### Params
+///
+/// * `gene_ids` - Names of the genes
+/// * `gene_communities` - The indices of gene to community
+/// * `pathway_ids` - The name of the pathways
+/// * `pathways` - Slice of the pathway nodes
+/// * `community_focal_pathways` -
+pub fn build_gene_pathway_associations(
+    gene_ids: &[String],
+    gene_communities: &[i32],
+    pathway_ids: &[String],
+    pathways: &[PathwayNode],
+    community_focal_pathways: &FxHashMap<i32, Vec<String>>,
+    signal_strength: f64,
+    connections_per_gene: usize,
+) -> Vec<(String, String)> {
+    let mut edges = Vec::new();
+    let pathway_ancestor_map: FxHashMap<_, _> = pathways
+        .iter()
+        .map(|p| (p.id.clone(), p.ancestors.clone()))
+        .collect();
+
+    for (gene_idx, gene) in gene_ids.iter().enumerate() {
+        let gene_comm = gene_communities[gene_idx];
+        let focal_pathways = community_focal_pathways
+            .get(&gene_comm)
+            .map(|v| v.as_slice())
+            .unwrap_or(pathway_ids);
+
+        let mut connected_pathways = FxHashSet::default();
+
+        for _ in 0..connections_per_gene {
+            let pathway = if fastrand::f64() < signal_strength && !focal_pathways.is_empty() {
+                focal_pathways[fastrand::usize(..focal_pathways.len())].clone()
+            } else {
+                pathway_ids[fastrand::usize(..pathway_ids.len())].clone()
+            };
+            connected_pathways.insert(pathway);
+        }
+
+        for pathway in connected_pathways {
+            edges.push((gene.clone(), pathway.clone()));
+
+            if let Some(ancestors) = pathway_ancestor_map.get(&pathway) {
+                for ancestor in ancestors {
+                    edges.push((gene.clone(), ancestor.clone()));
+                }
+            }
+        }
+    }
+
+    edges.sort();
+    edges.dedup();
+    edges
 }

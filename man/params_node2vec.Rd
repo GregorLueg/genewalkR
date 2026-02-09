@@ -11,7 +11,7 @@ params_node2vec(
   walk_length = 40L,
   num_workers = 4L,
   batch_size = 256L,
-  n_epochs = 15L,
+  n_epochs = 20L,
   n_negatives = 5L,
   window_size = 2L,
   lr = 0.01
@@ -33,7 +33,7 @@ params_node2vec(
 
 \item{batch_size}{Integer. Batch size for training. Defaults to \code{256L}.}
 
-\item{n_epochs}{Integer. Number of training epochs. Defaults to \code{15L}.}
+\item{n_epochs}{Integer. Number of training epochs. Defaults to \code{20L}.}
 
 \item{n_negatives}{Integer. Number of negative samples. Defaults to \code{5L}.}
 

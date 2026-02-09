@@ -3,29 +3,17 @@ pub mod embedding;
 pub mod graph;
 pub mod utils;
 
-use burn::prelude::Backend;
 use extendr_api::prelude::*;
 use faer::Mat;
-use itertools::Itertools;
-use node2vec_rs::model::SkipGramConfig;
 use rayon::prelude::*;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::time::Instant;
-
-// torch is only support on NoneWindows
-#[cfg(not(target_os = "windows"))]
-use burn::backend::libtorch::{LibTorch, LibTorchDevice};
-
-use burn::backend::{
-    ndarray::{NdArray, NdArrayDevice},
-    Autodiff,
-};
 
 use crate::data::*;
 use crate::embedding::*;
 use crate::graph::*;
 use crate::utils::*;
 
-// export the function to R
 extendr_module! {
     mod genewalkR;
     fn rs_gene_walk;
@@ -33,40 +21,33 @@ extendr_module! {
     fn rs_gene_walk_test;
     fn rs_cosine_sim;
     fn rs_node2vec_synthetic_data;
+    fn rs_generate_pathway_structure;
 }
 
 /////////////////////////
 // Gene Walk functions //
 /////////////////////////
 
-/// Function that generates the GeneWalk embedding
+/// Generate GeneWalk node embeddings
 ///
-/// @description Wrapper function that leverages Rust and the Burn Tensor
-/// framework to generate node representations for subsequent usage in the
-/// GeneWalk approach. The default back end is the torch CPU backend. In the
-/// future there might be other backends added, but testing revealed this one
-/// to be very performant.
+/// @description Uses a SIMD-accelerated CPU implementation of word2vec
+/// with negative sampling to learn node representations from biased
+/// random walks (node2vec).
 ///
-/// @param from Integer vector. The node indices indicating where the edge
-/// originates from.
-/// @param to Integer vector. The node indices indicating where the edge
-/// goes to.
-/// @param weights Optional numeric vector. If not supplied, defaults to `1.0`
-/// as edge weight.
-/// @param gene_walk_params Named list. Contains the parameters for running
-/// gene walk.
-/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
-/// supported on Windows and will panic.
+/// @param from Integer vector. Node indices for edge origins.
+/// @param to Integer vector. Node indices for edge destinations.
+/// @param weights Optional numeric vector. Edge weights, defaults to 1.0.
+/// @param gene_walk_params Named list. Training parameters (p, q,
+///   walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
+///   window_size, lr, dim).
 /// @param embd_dim Integer. Embedding dimension.
-/// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
-/// edges will be added.
-/// @param seed Integer. For reproducibility of the algorithm.
-/// @param verbose Boolean. Controls verbosity of the algorithm.
+/// @param directed Boolean. Treat graph as directed.
+/// @param seed Integer. Random seed.
+/// @param verbose Boolean. Controls verbosity.
 ///
-/// @return A numerical matrix of number nodes x desired embedding dimensios.
+/// @return A numeric matrix of n_nodes x embedding dimensions.
 ///
 /// @export
-#[cfg(not(target_os = "windows"))]
 #[extendr]
 #[allow(clippy::too_many_arguments)]
 fn rs_gene_walk(
@@ -74,35 +55,34 @@ fn rs_gene_walk(
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
-    backend: String,
     embd_dim: usize,
     directed: bool,
     seed: usize,
     verbose: bool,
 ) -> RMatrix<f64> {
-    let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
+    let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
+    config.train_args.dim = embd_dim;
 
     if verbose {
-        println!("Preparing the network edges.")
+        println!("Preparing the network edges.");
     }
     let start_edge_prep = Instant::now();
 
-    // go from R i32 to u32 and deal with indexing
     let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
     let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
-
     let edges = prepare_edges(from, to, weights);
 
-    let end_edge_prep = start_edge_prep.elapsed();
-
     if verbose {
-        println!("Processed the edges in {:.2}s", end_edge_prep.as_secs_f64());
-        println!("Running the random walks.")
+        println!(
+            "Processed the edges in {:.2}s",
+            start_edge_prep.elapsed().as_secs_f64()
+        );
+        println!("Running the random walks.");
     }
 
     let start_rw = Instant::now();
 
-    let node2vec_graph = create_graph(&edges, gene_walk_config.p, gene_walk_config.q, directed);
+    let node2vec_graph = create_graph(&edges, config.p, config.q, directed);
 
     let vocab_size = edges
         .iter()
@@ -111,192 +91,29 @@ fn rs_gene_walk(
         .map(|max_id| max_id as usize + 1)
         .unwrap_or(0);
 
-    let random_walks = node2vec_graph.generate_walks(
-        gene_walk_config.walks_per_node,
-        gene_walk_config.walk_length,
-        gene_walk_config.seed,
-    );
-
-    let end_rw = start_rw.elapsed();
+    let random_walks =
+        node2vec_graph.generate_walks(config.walks_per_node, config.walk_length, config.seed);
 
     if verbose {
-        println!("Generated the random walks in {:.2}s", end_rw.as_secs_f64());
         println!(
-            "Training the SkipGram model now for {:?} epochs",
-            gene_walk_config.num_epochs
+            "Generated the random walks in {:.2}s",
+            start_rw.elapsed().as_secs_f64()
+        );
+        println!(
+            "Training the word2vec model for {} epochs",
+            config.train_args.epochs
         );
     }
 
-    let backend = parse_backend(&backend).unwrap_or_default();
     let start_training = Instant::now();
 
-    let embedding: Vec<Vec<f32>> = match backend {
-        Node2VecBackEnd::TorchCpu => {
-            let device = LibTorchDevice::Cpu;
-            LibTorch::<f32>::seed(&device, gene_walk_config.seed);
-
-            let skipgram_config = SkipGramConfig {
-                vocab_size,
-                embedding_dim: embd_dim,
-            };
-
-            train_node2vec::<Autodiff<LibTorch>>(
-                skipgram_config,
-                gene_walk_config,
-                random_walks,
-                device,
-                verbose,
-            )
-        }
-        Node2VecBackEnd::Ndarray => {
-            let device = NdArrayDevice::Cpu;
-            NdArray::<f32>::seed(&device, gene_walk_config.seed);
-
-            let skipgram_config = SkipGramConfig {
-                vocab_size,
-                embedding_dim: embd_dim,
-            };
-
-            train_node2vec::<Autodiff<NdArray>>(
-                skipgram_config,
-                gene_walk_config,
-                random_walks,
-                device,
-                verbose,
-            )
-        }
-    };
-
-    let end_training = start_training.elapsed();
+    let embedding = train_node2vec(random_walks, vocab_size, &config, verbose);
 
     if verbose {
-        println!("Training completed in {:.2}s.", end_training.as_secs_f64());
-    }
-
-    let nrows = embedding.len();
-    let ncols = embedding[0].len();
-
-    RMatrix::new_matrix(nrows, ncols, |r, c| embedding[r][c] as f64)
-}
-
-/// Function that generates the GeneWalk embedding
-///
-/// @description Wrapper function that leverages Rust and the Burn Tensor
-/// framework to generate node representations for subsequent usage in the
-/// GeneWalk approach. The default back end is the torch CPU backend. In the
-/// future there might be other backends added, but testing revealed this one
-/// to be very performant.
-///
-/// @param from Integer vector. The node indices indicating where the edge
-/// originates from.
-/// @param to Integer vector. The node indices indicating where the edge
-/// goes to.
-/// @param weights Optional numeric vector. If not supplied, defaults to `1.0`
-/// as edge weight.
-/// @param gene_walk_params Named list. Contains the parameters for running
-/// gene walk.
-/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
-/// supported on Windows and will panic.
-/// @param embd_dim Integer. Embedding dimension.
-/// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
-/// edges will be added.
-/// @param seed Integer. For reproducibility of the algorithm.
-/// @param verbose Boolean. Controls verbosity of the algorithm.
-///
-/// @return A numerical matrix of number nodes x desired embedding dimensios.
-///
-/// @export
-#[cfg(target_os = "windows")]
-#[extendr]
-#[allow(clippy::too_many_arguments)]
-fn rs_gene_walk(
-    from: Vec<i32>,
-    to: Vec<i32>,
-    weights: Option<Vec<f64>>,
-    gene_walk_params: List,
-    backend: String,
-    embd_dim: usize,
-    directed: bool,
-    seed: usize,
-    verbose: bool,
-) -> RMatrix<f64> {
-    let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
-
-    if verbose {
-        println!("Preparing the network edges.")
-    }
-    let start_edge_prep = Instant::now();
-
-    // go from R i32 to u32 and deal with indexing
-    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
-    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
-
-    let edges = prepare_edges(from, to, weights);
-
-    let end_edge_prep = start_edge_prep.elapsed();
-
-    if verbose {
-        println!("Processed the edges in {:.2}s", end_edge_prep.as_secs_f64());
-        println!("Running the random walks.")
-    }
-
-    let start_rw = Instant::now();
-
-    let node2vec_graph = create_graph(&edges, gene_walk_config.p, gene_walk_config.q, directed);
-
-    let vocab_size = edges
-        .iter()
-        .flat_map(|(from, to, _)| [*from, *to])
-        .max()
-        .map(|max_id| max_id as usize + 1)
-        .unwrap_or(0);
-
-    let random_walks = node2vec_graph.generate_walks(
-        gene_walk_config.walks_per_node,
-        gene_walk_config.walk_length,
-        gene_walk_config.seed,
-    );
-
-    let end_rw = start_rw.elapsed();
-
-    if verbose {
-        println!("Generated the random walks in {:.2}s", end_rw.as_secs_f64());
         println!(
-            "Training the SkipGram model now for {:?} epochs",
-            gene_walk_config.num_epochs
+            "Training completed in {:.2}s.",
+            start_training.elapsed().as_secs_f64()
         );
-    }
-
-    let backend = parse_backend(&backend).unwrap_or_default();
-    let start_training = Instant::now();
-
-    let embedding: Vec<Vec<f32>> = match backend {
-        Node2VecBackEnd::TorchCpu => {
-            panic!("Torch is not supported on Windows!")
-        }
-        Node2VecBackEnd::Ndarray => {
-            let device = NdArrayDevice::Cpu;
-            NdArray::<f32>::seed(&device, gene_walk_config.seed);
-
-            let skipgram_config = SkipGramConfig {
-                vocab_size,
-                embedding_dim: embd_dim,
-            };
-
-            train_node2vec::<Autodiff<NdArray>>(
-                skipgram_config,
-                gene_walk_config,
-                random_walks,
-                device,
-                verbose,
-            )
-        }
-    };
-
-    let end_training = start_training.elapsed();
-
-    if verbose {
-        println!("Training completed in {:.2}s.", end_training.as_secs_f64());
     }
 
     let nrows = embedding.len();
@@ -309,155 +126,95 @@ fn rs_gene_walk(
 // Permutations //
 //////////////////
 
-/// Function to generate permuted embeddings
+/// Generate permuted embeddings for null distribution
 ///
-/// @description
-/// Wrapper function to generate permuted embeddings and subsequently the
-/// null distribution of cosine similarities for statistical testing.
+/// @description Generates permuted network embeddings and computes the null
+/// distribution of cosine similarities for statistical testing.
 ///
-/// @param from Integer vector. The node indices indicating where the edge
-/// originates from.
-/// @param to Integer vector. The node indices indicating where the edge
-/// goes to.
-/// @param weights Optional numeric vector. If not supplied, defaults to `1.0`
-/// as edge weight.
-/// @param gene_walk_params Named list. Contains the parameters for running
-/// gene walk.
-/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
-/// supported on Windows and will panic.
-/// @param n_perm Integer.
+/// @param from Integer vector. Node indices for edge origins.
+/// @param to Integer vector. Node indices for edge destinations.
+/// @param weights Optional numeric vector. Edge weights, defaults to 1.0.
+/// @param gene_walk_params Named list. Training parameters.
+/// @param n_perm Integer. Number of permutations.
 /// @param embd_dim Integer. Embedding dimension.
-/// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
-/// edges will be added.
-/// @param seed Integer. For reproducibility of the algorithm.
-/// @param verbose Boolean. Controls verbosity of the algorithm.
+/// @param directed Boolean. Treat graph as directed.
+/// @param seed Integer. Random seed.
+/// @param verbose Boolean. Controls verbosity.
 ///
-/// @returns A list with the null distribution of the cosine similarities per
-/// given permutation.
+/// @returns A list of numeric vectors containing the null distribution of
+/// cosine similarities per permutation.
 ///
 /// @export
 #[extendr]
-#[cfg(not(target_os = "windows"))]
 #[allow(clippy::too_many_arguments)]
 fn rs_gene_walk_perm(
     from: Vec<i32>,
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
-    backend: String,
     n_perm: usize,
     embd_dim: usize,
     directed: bool,
     seed: usize,
     verbose: bool,
 ) -> extendr_api::Result<List> {
-    let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
+    let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
+    config.train_args.dim = embd_dim;
 
     if verbose {
-        println!("Preparing the network edges.")
+        println!("Preparing the network edges.");
     }
     let start_edge_prep = Instant::now();
 
-    // go from R i32 to u32 and deal with indexing
     let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
     let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
-
     let edges = prepare_edges(from, to, weights);
 
-    let end_edge_prep = start_edge_prep.elapsed();
     if verbose {
-        println!("Processed the edges in {:.2}s", end_edge_prep.as_secs_f64());
+        println!(
+            "Processed the edges in {:.2}s",
+            start_edge_prep.elapsed().as_secs_f64()
+        );
     }
 
-    let mut null_similarities: Vec<Vec<f64>> = Vec::with_capacity(n_perm);
+    let vocab_size = edges
+        .iter()
+        .flat_map(|(from, to, _)| [*from, *to])
+        .max()
+        .map(|max_id| max_id as usize + 1)
+        .unwrap_or(0);
 
-    let backend = parse_backend(&backend).unwrap_or_default();
+    let mut null_similarities: Vec<Vec<f64>> = Vec::with_capacity(n_perm);
 
     for perm in 0..n_perm {
         let start_perm = Instant::now();
 
-        let gene_walk_config_i = gene_walk_config.clone();
-
         if verbose {
-            println!("Starting permutation: {:?}", perm + 1);
-            println!(" Generating randomised edges and random walks.")
+            println!("Starting permutation: {}", perm + 1);
+            println!("  Generating randomised edges and random walks.");
         }
 
         let start_rw = Instant::now();
 
         let perm_edges = generate_random_network(&edges, directed, (seed + perm) as u64);
 
-        let node2vec_graph = create_graph(
-            &perm_edges,
-            gene_walk_config_i.p,
-            gene_walk_config_i.q,
-            directed,
-        );
+        let node2vec_graph = create_graph(&perm_edges, config.p, config.q, directed);
 
-        let vocab_size = edges
-            .iter()
-            .flat_map(|(from, to, _)| [*from, *to])
-            .max()
-            .map(|max_id| max_id as usize + 1)
-            .unwrap_or(0);
-
-        let random_walks_perm = node2vec_graph.generate_walks(
-            gene_walk_config_i.walks_per_node,
-            gene_walk_config_i.walk_length,
-            gene_walk_config_i.seed,
-        );
-
-        let end_rw = start_rw.elapsed();
+        let random_walks_perm =
+            node2vec_graph.generate_walks(config.walks_per_node, config.walk_length, config.seed);
 
         if verbose {
             println!(
-                " Finished the generation of the random walks on permutated data in {:.2}s",
-                end_rw.as_secs_f64()
+                "  Random walks on permuted data in {:.2}s",
+                start_rw.elapsed().as_secs_f64()
             );
             println!(
-                " Training the SkipGram model on permuted network for {:?} epochs",
-                gene_walk_config.num_epochs
+                "  Training word2vec model on permuted network for {} epochs",
+                config.train_args.epochs
             );
         }
 
-        let skipgram_config = SkipGramConfig {
-            vocab_size,
-            embedding_dim: embd_dim,
-        };
-
-        let embd_i: Vec<Vec<f32>> = match backend {
-            Node2VecBackEnd::TorchCpu => {
-                let device = LibTorchDevice::Cpu;
-                LibTorch::<f32>::seed(&device, gene_walk_config.seed);
-
-                train_node2vec::<Autodiff<LibTorch>>(
-                    skipgram_config,
-                    gene_walk_config_i,
-                    random_walks_perm,
-                    device,
-                    verbose,
-                )
-            }
-            Node2VecBackEnd::Ndarray => {
-                let device = NdArrayDevice::Cpu;
-                NdArray::<f32>::seed(&device, gene_walk_config.seed);
-
-                let skipgram_config = SkipGramConfig {
-                    vocab_size,
-                    embedding_dim: embd_dim,
-                };
-
-                train_node2vec::<Autodiff<NdArray>>(
-                    skipgram_config,
-                    gene_walk_config_i,
-                    random_walks_perm,
-                    device,
-                    verbose,
-                )
-            }
-        };
-
-        let end_perm = start_perm.elapsed();
+        let embd_i = train_node2vec(random_walks_perm, vocab_size, &config, verbose);
 
         let null_vals_i = perm_edges
             .par_iter()
@@ -470,176 +227,9 @@ fn rs_gene_walk_perm(
 
         if verbose {
             println!(
-                " Finished the generation of the embedding on permutated data in {:.2}s",
-                end_perm.as_secs_f64()
-            );
-        }
-    }
-
-    let mut res_ls = List::new(n_perm);
-
-    #[allow(clippy::needless_range_loop)]
-    for i in 0..n_perm {
-        res_ls.set_elt(i, Robj::from(&null_similarities[i]))?;
-    }
-
-    Ok(res_ls)
-}
-
-/// Function to generate permuted embeddings
-///
-/// @description
-/// Wrapper function to generate permuted embeddings and subsequently the
-/// null distribution of cosine similarities for statistical testing.
-///
-/// @param from Integer vector. The node indices indicating where the edge
-/// originates from.
-/// @param to Integer vector. The node indices indicating where the edge
-/// goes to.
-/// @param weights Optional numeric vector. If not supplied, defaults to `1.0`
-/// as edge weight.
-/// @param gene_walk_params Named list. Contains the parameters for running
-/// gene walk.
-/// @param backend String. One of `c("tch-cpu", "ndarray")`. Torch is not
-/// supported on Windows and will panic.
-/// @param n_perm Integer.
-/// @param embd_dim Integer. Embedding dimension.
-/// @param directed Boolean. Is the graph directed. If set to `FALSE` reverse
-/// edges will be added.
-/// @param seed Integer. For reproducibility of the algorithm.
-/// @param verbose Boolean. Controls verbosity of the algorithm.
-///
-/// @returns A list with the null distribution of the cosine similarities per
-/// given permutation.
-///
-/// @export
-#[cfg(target_os = "windows")]
-#[extendr]
-#[allow(clippy::too_many_arguments)]
-fn rs_gene_walk_perm(
-    from: Vec<i32>,
-    to: Vec<i32>,
-    weights: Option<Vec<f64>>,
-    gene_walk_params: List,
-    backend: String,
-    n_perm: usize,
-    embd_dim: usize,
-    directed: bool,
-    seed: usize,
-    verbose: bool,
-) -> extendr_api::Result<List> {
-    let gene_walk_config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
-
-    if verbose {
-        println!("Preparing the network edges.")
-    }
-    let start_edge_prep = Instant::now();
-
-    // go from R i32 to u32 and deal with indexing
-    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
-    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
-
-    let edges = prepare_edges(from, to, weights);
-
-    let end_edge_prep = start_edge_prep.elapsed();
-    if verbose {
-        println!("Processed the edges in {:.2}s", end_edge_prep.as_secs_f64());
-    }
-
-    let mut null_similarities: Vec<Vec<f64>> = Vec::with_capacity(n_perm);
-
-    let backend = parse_backend(&backend).unwrap_or_default();
-
-    for perm in 0..n_perm {
-        let start_perm = Instant::now();
-
-        let gene_walk_config_i = gene_walk_config.clone();
-
-        if verbose {
-            println!("Starting permutation: {:?}", perm + 1);
-            println!(" Generating randomised edges and random walks.")
-        }
-
-        let start_rw = Instant::now();
-
-        let perm_edges = generate_random_network(&edges, directed, (seed + perm) as u64);
-
-        let node2vec_graph = create_graph(
-            &perm_edges,
-            gene_walk_config_i.p,
-            gene_walk_config_i.q,
-            directed,
-        );
-
-        let vocab_size = edges
-            .iter()
-            .flat_map(|(from, to, _)| [*from, *to])
-            .max()
-            .map(|max_id| max_id as usize + 1)
-            .unwrap_or(0);
-
-        let random_walks_perm = node2vec_graph.generate_walks(
-            gene_walk_config_i.walks_per_node,
-            gene_walk_config_i.walk_length,
-            gene_walk_config_i.seed,
-        );
-
-        let end_rw = start_rw.elapsed();
-
-        if verbose {
-            println!(
-                " Finished the generation of the random walks on permutated data in {:.2}s",
-                end_rw.as_secs_f64()
-            );
-            println!(
-                " Training the SkipGram model on permuted network for {:?} epochs",
-                gene_walk_config.num_epochs
-            );
-        }
-
-        let skipgram_config = SkipGramConfig {
-            vocab_size,
-            embedding_dim: embd_dim,
-        };
-
-        let embd_i: Vec<Vec<f32>> = match backend {
-            Node2VecBackEnd::TorchCpu => {
-                panic!("Windows does not support Torch CPU!")
-            }
-            Node2VecBackEnd::Ndarray => {
-                let device = NdArrayDevice::Cpu;
-                NdArray::<f32>::seed(&device, gene_walk_config.seed);
-
-                let skipgram_config = SkipGramConfig {
-                    vocab_size,
-                    embedding_dim: embd_dim,
-                };
-
-                train_node2vec::<Autodiff<NdArray>>(
-                    skipgram_config,
-                    gene_walk_config_i,
-                    random_walks_perm,
-                    device,
-                    verbose,
-                )
-            }
-        };
-
-        let end_perm = start_perm.elapsed();
-
-        let null_vals_i = perm_edges
-            .par_iter()
-            .map(|(node_i, node_j, _)| {
-                cosine_similarity(&embd_i[*node_i as usize], &embd_i[*node_j as usize]) as f64
-            })
-            .collect::<Vec<f64>>();
-
-        null_similarities.push(null_vals_i);
-
-        if verbose {
-            println!(
-                " Finished the generation of the embedding on permutated data in {:.2}s",
-                end_perm.as_secs_f64()
+                "  Permutation {} completed in {:.2}s",
+                perm + 1,
+                start_perm.elapsed().as_secs_f64()
             );
         }
     }
@@ -660,13 +250,13 @@ fn rs_gene_walk_perm(
 
 /// Calculate the test statistics
 ///
-/// @description Calculates the test statistic for the gene / pathway pairs.
+/// @description Calculates the test statistic for the gene/pathway pairs.
 ///
-/// @param gene_embds Matrix of n_genes x their graph embeddings
-/// @param pathway_embds Matrix of n_pathways x their graph embeddings
+/// @param gene_embds Matrix of n_genes x their graph embeddings.
+/// @param pathway_embds Matrix of n_pathways x their graph embeddings.
 /// @param null_distributions List of null distribution vectors (one per
-/// permutation).
-/// @param verbose Controls verbosity of the function.
+///   permutation).
+/// @param verbose Controls verbosity.
 ///
 /// @returns A list with vectors:
 /// \itemize{
@@ -696,7 +286,7 @@ fn rs_gene_walk_test(
     let pathway_embds = r_matrix_to_vec(pathway_embds);
 
     if verbose {
-        println!("Calculating Cosine similarities");
+        println!("Calculating cosine similarities");
     }
     let cosine_sim: Mat<f64> = compute_cross_cosine(&gene_embds, &pathway_embds);
 
@@ -709,7 +299,6 @@ fn rs_gene_walk_test(
         println!("Processing {} permutations", n_perms);
     }
 
-    // Store results from all permutations
     let mut all_pvals = Vec::with_capacity(n_perms);
     let mut all_global_fdr = Vec::with_capacity(n_perms);
     let mut all_gene_fdr = Vec::with_capacity(n_perms);
@@ -722,7 +311,6 @@ fn rs_gene_walk_test(
         let null_vec: Vec<f64> = null_dist.1.as_real_vector().unwrap();
         let pvals: Mat<f64> = calculate_p_vals(&cosine_sim.as_ref(), null_vec);
 
-        // Flatten to vector
         let mut pval_vec = Vec::with_capacity(total_size);
         for i in 0..n_genes {
             for j in 0..n_pathways {
@@ -730,7 +318,6 @@ fn rs_gene_walk_test(
             }
         }
 
-        // Calculate FDRs
         let global_fdr = calc_fdr(&pval_vec);
         let gene_fdr: Vec<f64> = (0..n_genes)
             .into_par_iter()
@@ -756,15 +343,12 @@ fn rs_gene_walk_test(
             let gene_idx = idx / n_pathways;
             let pathway_idx = idx % n_pathways;
 
-            // Get the actual cosine similarity
             let similarity = cosine_sim[(gene_idx, pathway_idx)];
 
-            // Collect values across permutations
             let mut pvals_for_pair: Vec<f64> = all_pvals.iter().map(|v| v[idx]).collect();
             let mut global_fdr_for_pair: Vec<f64> = all_global_fdr.iter().map(|v| v[idx]).collect();
             let mut gene_fdr_for_pair: Vec<f64> = all_gene_fdr.iter().map(|v| v[idx]).collect();
 
-            // Unstable sort (faster, order of equal elements doesn't matter)
             pvals_for_pair.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
             global_fdr_for_pair.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
             gene_fdr_for_pair.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
@@ -788,7 +372,8 @@ fn rs_gene_walk_test(
         })
         .collect();
 
-    // Unpack parallel results
+    use itertools::Itertools;
+
     #[allow(clippy::complexity)]
     let (
         gene_indices,
@@ -840,13 +425,12 @@ fn rs_gene_walk_test(
 
 /// Cosine similarity between two vectors
 ///
-/// @description
-/// Rust function to quickly calculate Cosine distances.
+/// @description Computes cosine similarity between two numeric vectors.
 ///
-/// @param a Numeric vector. Vector a for which to calculate the similarity.
-/// @param b Numeric vector. Vector b for which to calculate the similarity.
+/// @param a Numeric vector.
+/// @param b Numeric vector.
 ///
-/// @returns Cosine similarity between the two vectors
+/// @returns Cosine similarity between the two vectors.
 ///
 /// @export
 #[extendr]
@@ -857,19 +441,16 @@ fn rs_cosine_sim(a: &[f64], b: &[f64]) -> f64 {
 /// Generate synthetic data for node2vec
 ///
 /// @param test_data String. One of
-/// `c("barbell", "caveman", "stochastic_block")`. Weird strings will default to
-/// "barbell" data.
-/// @param n_nodes_per_cluster Integer. Number of nodes in the test graph.
-/// @param n_clusters Integer. Number of nodes per cluster.
-/// @param p_within Numeric. Probability of edges within cluster (0-1).
-/// @param p_between Numeric. Probability of edges between clusters (0-1).
+///   c("barbell", "caveman", "stochastic_block").
+/// @param n_nodes_per_cluster Integer. Nodes per cluster.
+/// @param n_clusters Integer. Number of clusters.
+/// @param p_within Numeric. Within-cluster edge probability (0-1).
+/// @param p_between Numeric. Between-cluster edge probability (0-1).
 /// @param seed Integer. Random seed.
 ///
-/// @returns A list with the following elements:
-/// \itemize{
-///  \item edges - List with the edge data.
-///  \item nodes - List with the node information.
-/// }
+/// @returns A list with edges and nodes.
+///
+/// @export
 #[extendr]
 fn rs_node2vec_synthetic_data(
     test_data: String,
@@ -892,4 +473,163 @@ fn rs_node2vec_synthetic_data(
     let (edge_data, node_data) = synthetic_data.generate_lists();
 
     list!(edges = edge_data, nodes = node_data)
+}
+
+/// Generate pathway structure and gene-pathway associations
+///
+/// @param n_pathways Integer. Number of pathways to generate.
+/// @param pathway_depth Integer. Maximum depth of pathway hierarchy.
+/// @param pathway_branching Integer. Average branching factor for pathway tree.
+/// @param n_communities Integer. Number of gene communities.
+/// @param gene_ids Character vector. Gene identifiers.
+/// @param gene_communities Integer vector. Community assignment for each gene.
+/// @param n_focal_pathways Integer. Number of focal pathways per community.
+/// @param signal_strength Numeric. Probability of connecting to focal pathways
+///   (0-1).
+/// @param connections_per_gene Integer. Number of pathway connections per gene.
+/// @param seed Integer. Random seed.
+///
+/// @returns A list with pathway edges, metadata, gene-pathway associations ano
+/// community to subtree parts.
+///
+/// @export
+#[allow(clippy::too_many_arguments)]
+#[extendr]
+fn rs_generate_pathway_structure(
+    n_pathways: usize,
+    pathway_depth: usize,
+    pathway_branching: usize,
+    n_communities: usize,
+    gene_ids: Vec<String>,
+    gene_communities: Vec<i32>,
+    n_focal_pathways: i32,
+    signal_strength: f64,
+    connections_per_gene: usize,
+    seed: usize,
+) -> List {
+    fastrand::seed(seed as u64);
+
+    let (pathway_edges, pathways) =
+        build_pathway_dag(n_pathways, pathway_depth, pathway_branching, n_communities);
+
+    let pathway_ids: Vec<_> = pathways.iter().map(|p| p.id.clone()).collect();
+
+    // mark hub pathways
+    let is_hub: Vec<_> = pathways.iter().map(|p| p.depth <= 1).collect();
+
+    // assign focal pathways to communities
+    let unique_comms: FxHashSet<_> = gene_communities.iter().cloned().collect();
+    let unique_subtrees: FxHashSet<_> = pathways.iter().map(|p| p.subtree).collect();
+    let n_mappable = std::cmp::min(unique_comms.len(), unique_subtrees.len());
+
+    let mut comm_vec: Vec<_> = unique_comms.into_iter().collect();
+    comm_vec.sort();
+    let mut subtree_vec: Vec<_> = unique_subtrees.into_iter().collect();
+    subtree_vec.sort();
+
+    let comm_to_subtree: FxHashMap<_, _> = comm_vec
+        .iter()
+        .take(n_mappable)
+        .zip(subtree_vec.iter().take(n_mappable))
+        .map(|(c, s)| (*c, *s))
+        .collect();
+
+    let mut community_focal_pathways = FxHashMap::default();
+
+    for (comm_id, subtree) in &comm_to_subtree {
+        let candidates: Vec<_> = pathways
+            .iter()
+            .filter(|p| p.subtree == *subtree && p.depth >= 2)
+            .map(|p| p.id.clone())
+            .collect();
+
+        let candidates = if candidates.is_empty() {
+            pathways
+                .iter()
+                .filter(|p| p.subtree == *subtree && p.depth >= 1)
+                .map(|p| p.id.clone())
+                .collect()
+        } else {
+            candidates
+        };
+
+        let candidates = if candidates.is_empty() {
+            pathways
+                .iter()
+                .filter(|p| p.subtree == *subtree)
+                .map(|p| p.id.clone())
+                .collect()
+        } else {
+            candidates
+        };
+
+        let n_to_pick = std::cmp::min(n_focal_pathways as usize, candidates.len());
+        let mut focal = Vec::new();
+        let mut available = candidates;
+
+        for _ in 0..n_to_pick {
+            if available.is_empty() {
+                break;
+            }
+            let idx = fastrand::usize(..available.len());
+            focal.push(available.remove(idx));
+        }
+
+        community_focal_pathways.insert(*comm_id, focal);
+    }
+
+    let gene_pathway_edges = build_gene_pathway_associations(
+        &gene_ids,
+        &gene_communities,
+        &pathway_ids,
+        &pathways,
+        &community_focal_pathways,
+        signal_strength,
+        connections_per_gene,
+    );
+
+    // convert community_focal_pathways to vectors for R
+    let mut cfp_communities = Vec::new();
+    let mut cfp_pathways = Vec::new();
+    for (comm, pathways) in &community_focal_pathways {
+        for pathway in pathways {
+            cfp_communities.push(*comm);
+            cfp_pathways.push(pathway.clone());
+        }
+    }
+
+    // convert comm_to_subtree to vectors for R
+    let mut cts_communities = Vec::new();
+    let mut cts_subtrees = Vec::new();
+    for (comm, subtree) in &comm_to_subtree {
+        cts_communities.push(*comm);
+        cts_subtrees.push(*subtree);
+    }
+
+    list!(
+        pathway_edges_from = pathway_edges
+            .iter()
+            .map(|(f, _)| f.clone())
+            .collect::<Vec<_>>(),
+        pathway_edges_to = pathway_edges
+            .iter()
+            .map(|(_, t)| t.clone())
+            .collect::<Vec<_>>(),
+        pathway_ids = pathway_ids,
+        pathway_subtrees = pathways.iter().map(|p| p.subtree).collect::<Vec<_>>(),
+        pathway_depths = pathways.iter().map(|p| p.depth).collect::<Vec<_>>(),
+        is_hub = is_hub,
+        gene_pathway_edges_from = gene_pathway_edges
+            .iter()
+            .map(|(f, _)| f.clone())
+            .collect::<Vec<_>>(),
+        gene_pathway_edges_to = gene_pathway_edges
+            .iter()
+            .map(|(_, t)| t.clone())
+            .collect::<Vec<_>>(),
+        cfp_communities = cfp_communities,
+        cfp_pathways = cfp_pathways,
+        cts_communities = cts_communities,
+        cts_subtrees = cts_subtrees
+    )
 }

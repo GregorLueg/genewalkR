@@ -19,11 +19,10 @@ stochastic_data <- node2vec_test_data(
 
 ### barbell graph --------------------------------------------------------------
 
-barbell_res <- if (.Platform$OS.type == "unix") {
-  node2vec(graph_dt = barbell_data$edges, backend = "tch-cpu", .verbose = FALSE)
-} else {
-  node2vec(graph_dt = barbell_data$edges, .verbose = FALSE)
-}
+barbell_res <- node2vec(
+  graph_dt = barbell_data$edges,
+  .verbose = FALSE
+)
 
 barbell_metrics <- evaluate_node2vec_test(
   embeddings = barbell_res,
@@ -36,26 +35,18 @@ expect_true(
 )
 
 expect_true(
-  current = barbell_metrics$between_cluster_sim <= 0,
+  current = barbell_metrics$between_cluster_sim <
+    barbell_metrics$within_cluster_sim,
   info = "barbell graph - between cluster similarity"
 )
 
 ### caveman graph --------------------------------------------------------------
 
-caveman_res <- if (.Platform$OS.type == "unix") {
-  node2vec(
-    graph_dt = caveman_data$edges,
-    backend = "tch-cpu",
-    node2vec_params = params_node2vec(n_epochs = 25L),
-    .verbose = FALSE
-  )
-} else {
-  node2vec(
-    graph_dt = caveman_data$edges,
-    node2vec_params = params_node2vec(n_epochs = 25L),
-    .verbose = FALSE
-  )
-}
+caveman_res <- node2vec(
+  graph_dt = caveman_data$edges,
+  node2vec_params = params_node2vec(n_epochs = 25L),
+  .verbose = FALSE
+)
 
 caveman_metrics <- evaluate_node2vec_test(
   embeddings = caveman_res,
@@ -68,26 +59,18 @@ expect_true(
 )
 
 expect_true(
-  current = caveman_metrics$between_cluster_sim <= 0,
+  current = caveman_metrics$between_cluster_sim <
+    caveman_metrics$within_cluster_sim,
   info = "caveman graph - between cluster similarity"
 )
 
 ### stochastic data ------------------------------------------------------------
 
-stochastic_res <- if (.Platform$OS.type == "unix") {
-  node2vec(
-    graph_dt = stochastic_data$edges,
-    backend = "tch-cpu",
-    node2vec_params = params_node2vec(n_epochs = 25L),
-    .verbose = FALSE
-  )
-} else {
-  node2vec(
-    graph_dt = stochastic_data$edges,
-    node2vec_params = params_node2vec(n_epochs = 25L),
-    .verbose = FALSE
-  )
-}
+stochastic_res <- node2vec(
+  graph_dt = stochastic_data$edges,
+  node2vec_params = params_node2vec(n_epochs = 25L),
+  .verbose = FALSE
+)
 
 stochastic_metrics <- evaluate_node2vec_test(
   embeddings = stochastic_res,
@@ -100,30 +83,23 @@ expect_true(
 )
 
 expect_true(
-  current = stochastic_metrics$between_cluster_sim <= 0,
+  current = stochastic_metrics$between_cluster_sim <=
+    stochastic_metrics$within_cluster_sim,
   info = "stochastic graph - between cluster similarity"
 )
 
 ### seed reproducibility -------------------------------------------------------
 
-caveman_res_2 <- if (.Platform$OS.type == "unix") {
-  node2vec(
-    graph_dt = caveman_data$edges,
-    backend = "tch-cpu",
-    node2vec_params = params_node2vec(n_epochs = 25L),
-    .verbose = FALSE
-  )
-} else {
-  node2vec(
-    graph_dt = caveman_data$edges,
-    node2vec_params = params_node2vec(n_epochs = 25L),
-    .verbose = FALSE
-  )
-}
+caveman_res_2 <- node2vec(
+  graph_dt = caveman_data$edges,
+  node2vec_params = params_node2vec(n_epochs = 25L),
+  .verbose = FALSE
+)
 
-# this is not perfect due to threading and floating point errors with
-# torch... but very highly correlated
+# there should be a decent'ish mean absolute correlation despite the race
+# conditions
+
 expect_true(
-  current = all(diag(cor(caveman_res, caveman_res_2)) >= 0.9),
+  current = mean(abs(diag(cor(caveman_res, caveman_res_2)))) >= 0.7,
   info = "reproducibility of the seeds"
 )

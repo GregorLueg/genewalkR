@@ -14,10 +14,10 @@ evaluate_node2vec_test(embeddings, node_labels)
 \value{
 A list with:
 \itemize{
-\item{within_cluster_sim}{Mean similarity within clusters}
-\item{between_cluster_sim}{Mean similarity between clusters}
-\item{within_dist}{The within cluster similarities as vector}
-\item{between_dist}{The between cluster similarities as vector}
+\item within_cluster_sim - Mean similarity within clusters.
+\item between_cluster_sim - Mean similarity between clusters.
+\item within_dist - The within cluster similarities as vector.
+\item between_dist - The between cluster similarities as vector.
 }
 }
 \description{

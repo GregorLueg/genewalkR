@@ -2,14 +2,13 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{rs_gene_walk}
 \alias{rs_gene_walk}
-\title{Function that generates the GeneWalk embedding}
+\title{Generate GeneWalk node embeddings}
 \usage{
 rs_gene_walk(
   from,
   to,
   weights,
   gene_walk_params,
-  backend,
   embd_dim,
   directed,
   seed,
@@ -17,37 +16,29 @@ rs_gene_walk(
 )
 }
 \arguments{
-\item{from}{Integer vector. The node indices indicating where the edge
-originates from.}
+\item{from}{Integer vector. Node indices for edge origins.}
 
-\item{to}{Integer vector. The node indices indicating where the edge
-goes to.}
+\item{to}{Integer vector. Node indices for edge destinations.}
 
-\item{weights}{Optional numeric vector. If not supplied, defaults to \code{1.0}
-as edge weight.}
+\item{weights}{Optional numeric vector. Edge weights, defaults to 1.0.}
 
-\item{gene_walk_params}{Named list. Contains the parameters for running
-gene walk.}
-
-\item{backend}{String. One of \code{c("tch-cpu", "ndarray")}. Torch is not
-supported on Windows and will panic.}
+\item{gene_walk_params}{Named list. Training parameters (p, q,
+walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
+window_size, lr, dim).}
 
 \item{embd_dim}{Integer. Embedding dimension.}
 
-\item{directed}{Boolean. Is the graph directed. If set to \code{FALSE} reverse
-edges will be added.}
+\item{directed}{Boolean. Treat graph as directed.}
 
-\item{seed}{Integer. For reproducibility of the algorithm.}
+\item{seed}{Integer. Random seed.}
 
-\item{verbose}{Boolean. Controls verbosity of the algorithm.}
+\item{verbose}{Boolean. Controls verbosity.}
 }
 \value{
-A numerical matrix of number nodes x desired embedding dimensios.
+A numeric matrix of n_nodes x embedding dimensions.
 }
 \description{
-Wrapper function that leverages Rust and the Burn Tensor
-framework to generate node representations for subsequent usage in the
-GeneWalk approach. The default back end is the torch CPU backend. In the
-future there might be other backends added, but testing revealed this one
-to be very performant.
+Uses a SIMD-accelerated CPU implementation of word2vec
+with negative sampling to learn node representations from biased
+random walks (node2vec).
 }

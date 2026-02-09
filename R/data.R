@@ -1,12 +1,100 @@
 # db utils ---------------------------------------------------------------------
 
+## downloads -------------------------------------------------------------------
+
+#' Check if database file is a Git LFS pointer
+#'
+#' @param db_path String. The path to the DB
+#'
+#' @keywords internal
+is_lfs_pointer <- function(db_path) {
+  # checks
+  checkmate::qassert(db_path, "S1")
+
+  if (!file.exists(db_path)) {
+    return(FALSE)
+  }
+
+  if (file.size(db_path) > 200) {
+    return(FALSE)
+  }
+
+  first_line <- readLines(db_path, n = 1, warn = FALSE)
+  grepl("^version https://git-lfs\\.github\\.com", first_line)
+}
+
+#' Download actual database from Git LFS
+#'
+#' @param repo String. Repository in format "user/repo" (default:
+#' `"GregorLueg/genewalkR"`).
+#' @param branch String. Branch name (default: `"main"`)
+#'
+#' @export
+download_database <- function(repo = "GregorLueg/genewalkR", branch = "main") {
+  # checks
+  checkmate::qassert(repo, "S1")
+  checkmate::qassert(branch, "S1")
+
+  db_path <- system.file("extdata", "genewalk.duckdb", package = "genewalkR")
+
+  if (!is_lfs_pointer(db_path)) {
+    message("Database already downloaded")
+    return(invisible(db_path))
+  }
+
+  # Construct LFS URL
+  lfs_url <- sprintf(
+    "https://media.githubusercontent.com/media/%s/%s/inst/extdata/database.duckdb",
+    repo,
+    branch
+  )
+
+  message("Downloading database (150 MB)...")
+  tryCatch(
+    {
+      download.file(lfs_url, db_path, mode = "wb", quiet = FALSE)
+      message("Download complete")
+      invisible(db_path)
+    },
+    error = function(e) {
+      stop("Failed to download database: ", e$message, call. = FALSE)
+    }
+  )
+}
+
 ## connection ------------------------------------------------------------------
 
 #' Internal connector to the DB
 #'
+#' @param repo String. Repository in format "user/repo" (default:
+#' `"GregorLueg/genewalkR"`).
+#' @param branch String. Branch name (default: `"main"`)
+#'
 #' @returns The DuckDB connection to the internal data
-get_db_connection <- function() {
+#'
+#' @export
+get_db_connection <- function(repo = "GregorLueg/genewalkR", branch = "main") {
+  # checks
+  checkmate::qassert(repo, "S1")
+  checkmate::qassert(branch, "S1")
+
   db_path <- system.file("extdata", "genewalk.duckdb", package = "genewalkR")
+
+  # check if the DB is only a pointer - if yes, download
+  if (is_lfs_pointer(db_path)) {
+    message("Downloading database (150 MB)...")
+    tryCatch(
+      {
+        download.file(lfs_url, db_path, mode = "wb", quiet = FALSE)
+        message("Download complete")
+        invisible(db_path)
+      },
+      error = function(e) {
+        stop("Failed to download database: ", e$message, call. = FALSE)
+      }
+    )
+  }
+
   DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
 }
 
