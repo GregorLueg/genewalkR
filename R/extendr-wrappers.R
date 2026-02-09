@@ -109,5 +109,25 @@ rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
 #' @export
 rs_node2vec_synthetic_data <- function(test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed) .Call(wrap__rs_node2vec_synthetic_data, test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed)
 
+#' Generate pathway structure and gene-pathway associations
+#'
+#' @param n_pathways Integer. Number of pathways to generate.
+#' @param pathway_depth Integer. Maximum depth of pathway hierarchy.
+#' @param pathway_branching Integer. Average branching factor for pathway tree.
+#' @param n_communities Integer. Number of gene communities.
+#' @param gene_ids Character vector. Gene identifiers.
+#' @param gene_communities Integer vector. Community assignment for each gene.
+#' @param n_focal_pathways Integer. Number of focal pathways per community.
+#' @param signal_strength Numeric. Probability of connecting to focal pathways
+#'   (0-1).
+#' @param connections_per_gene Integer. Number of pathway connections per gene.
+#' @param seed Integer. Random seed.
+#'
+#' @returns A list with pathway edges, metadata, gene-pathway associations ano
+#' community to subtree parts.
+#'
+#' @export
+rs_generate_pathway_structure <- function(n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed) .Call(wrap__rs_generate_pathway_structure, n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed)
+
 
 # nolint end

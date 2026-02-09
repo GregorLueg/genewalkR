@@ -12,8 +12,7 @@
 #' calculation of test statistics. For more details, please refer to Ietswaart,
 #' et al.
 #'
-#' @param object The `genewalkR_class` class, please see
-#' [genewalkR::genewalkR_class()].
+#' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
 #' @param embd_dim Integer. Size of the embedding dimensions to create. Defaults
 #' to `8L` in line with the authors recommendations.
 #' @param node2vec_params Named list. Contains the node2vec parameters. The
@@ -60,10 +59,10 @@ generate_initial_emb <- S7::new_generic(
   }
 )
 
-#' @method generate_initial_emb genewalkR_class
+#' @method generate_initial_emb GeneWalk
 #'
 #' @export
-S7::method(generate_initial_emb, genewalkR_class) <- function(
+S7::method(generate_initial_emb, GeneWalk) <- function(
   object,
   embd_dim = 8L,
   node2vec_params = params_node2vec(),
@@ -72,7 +71,7 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
   .verbose = TRUE
 ) {
   # checks
-  checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
   assertNode2VecParam(node2vec_params)
   checkmate::qassert(directed, "B1")
   checkmate::qassert(.verbose, "B1")
@@ -80,7 +79,7 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
   graph_dt <- S7::prop(object, "graph_dt")
 
   # function body
-  nodes <- unique(c(graph_dt$from, graph_dt$to))
+  nodes <- sort(unique(c(graph_dt$from, graph_dt$to)))
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
 
@@ -91,7 +90,7 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
   }
 
   # generate the embedding
-  rnd_embd <- embd <- rs_gene_walk(
+  embd <- rs_gene_walk(
     from = from_idx,
     to = to_idx,
     weights = weights,
@@ -128,8 +127,7 @@ S7::method(generate_initial_emb, genewalkR_class) <- function(
 #' will return a warning and the class as is if you have not run
 #' [genewalkR::generate_initial_emb()].
 #'
-#' @param object The `genewalkR_class` class, please see
-#' [genewalkR::genewalkR_class()].
+#' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
 #' @param n_perm Inter. Number of permutations to generate. Defaults to `3L`,
 #' the recommendation of the authors.
 #' @param seed Integer. Seed for reproducibility.
@@ -157,17 +155,17 @@ generate_permuted_emb <- S7::new_generic(
   }
 )
 
-#' @method generate_permuted_emb genewalkR_class
+#' @method generate_permuted_emb GeneWalk
 #'
 #' @export
-S7::method(generate_permuted_emb, genewalkR_class) <- function(
+S7::method(generate_permuted_emb, GeneWalk) <- function(
   object,
   n_perm = 3L,
   seed = 42L,
   .verbose = TRUE
 ) {
   # checks
-  checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
   checkmate::qassert(n_perm, "I1")
   checkmate::qassert(seed, "I1")
   checkmate::qassert(.verbose, "B1")
@@ -229,8 +227,8 @@ S7::method(generate_permuted_emb, genewalkR_class) <- function(
 #' determining p-values based on null distributions from randomised networks,
 #' and applying Benjamini-Hochberg FDR corrections.
 #'
-#' @param object The `genewalkR_class` object containing actual and permuted
-#' embeddings. See [genewalkR::genewalkR_class()].
+#' @param object The `GeneWalk` object containing actual and permuted
+#' embeddings. See [genewalkR::GeneWalk()].
 #' @param gene_nodes Character vector. Names of the gene nodes included in
 #' the analysis. Must correspond to row names in the embedding matrix.
 #' @param pathway_nodes Character vector. Names of the pathway nodes included
@@ -267,20 +265,20 @@ calculate_genewalk_stats <- S7::new_generic(
   }
 )
 
-#' @method calculate_genewalk_stats genewalkR_class
+#' @method calculate_genewalk_stats GeneWalk
 #'
 #' @export
 #'
 #' @importFrom magrittr `%>%`
 #' @import data.table
-S7::method(calculate_genewalk_stats, genewalkR_class) <- function(
+S7::method(calculate_genewalk_stats, GeneWalk) <- function(
   object,
   gene_nodes,
   pathway_nodes,
   .verbose = TRUE
 ) {
   # checks
-  checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
   checkmate::qassert(gene_nodes, "S+")
   checkmate::qassert(pathway_nodes, "S+")
   checkmate::qassert(.verbose, "B1")

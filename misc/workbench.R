@@ -7,13 +7,12 @@ library(ggplot2)
 devtools::load_all()
 
 test_data <- synthetic_genewalk_data(
-  n_genes = 500L,
-  n_pathways = 250L,
-  n_communities = 3L,
-  ppi_m = 4L
+  ppi_params = params_ppi(),
+  pathway_params = params_pathway(),
+  n_communities = 3L
 )
 
-test <- genewalkR_class(test_data$edges, list())
+test <- GeneWalk(test_data$edges, list())
 
 # run node2vec to generate the initial embeddings
 test <- generate_initial_emb(
@@ -87,17 +86,13 @@ gw_factory$add_ppi(source = "combined")
 gw_factory$add_ppi(source = "intact")
 gw_factory$add_pathways()
 
-gw_factory$ppi_sources
-
-gw_factory$reset_choices()
-
 gw_factory$build()
 
 gois <- as.character(gw_factory$return_full_network_dt()[, from][1:100])
 
 gw_obj <- gw_factory$create_for_genes(genes = gois)
 
-gw_obj@graph_dt
+gw_obj@graph_dt[edge_type != "gene_to_pathway"]
 
 devtools::install(".")
 

@@ -6,6 +6,7 @@ pub mod utils;
 use extendr_api::prelude::*;
 use faer::Mat;
 use rayon::prelude::*;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::time::Instant;
 
 use crate::data::*;
@@ -20,6 +21,7 @@ extendr_module! {
     fn rs_gene_walk_test;
     fn rs_cosine_sim;
     fn rs_node2vec_synthetic_data;
+    fn rs_generate_pathway_structure;
 }
 
 /////////////////////////
@@ -471,4 +473,163 @@ fn rs_node2vec_synthetic_data(
     let (edge_data, node_data) = synthetic_data.generate_lists();
 
     list!(edges = edge_data, nodes = node_data)
+}
+
+/// Generate pathway structure and gene-pathway associations
+///
+/// @param n_pathways Integer. Number of pathways to generate.
+/// @param pathway_depth Integer. Maximum depth of pathway hierarchy.
+/// @param pathway_branching Integer. Average branching factor for pathway tree.
+/// @param n_communities Integer. Number of gene communities.
+/// @param gene_ids Character vector. Gene identifiers.
+/// @param gene_communities Integer vector. Community assignment for each gene.
+/// @param n_focal_pathways Integer. Number of focal pathways per community.
+/// @param signal_strength Numeric. Probability of connecting to focal pathways
+///   (0-1).
+/// @param connections_per_gene Integer. Number of pathway connections per gene.
+/// @param seed Integer. Random seed.
+///
+/// @returns A list with pathway edges, metadata, gene-pathway associations ano
+/// community to subtree parts.
+///
+/// @export
+#[allow(clippy::too_many_arguments)]
+#[extendr]
+fn rs_generate_pathway_structure(
+    n_pathways: usize,
+    pathway_depth: usize,
+    pathway_branching: usize,
+    n_communities: usize,
+    gene_ids: Vec<String>,
+    gene_communities: Vec<i32>,
+    n_focal_pathways: i32,
+    signal_strength: f64,
+    connections_per_gene: usize,
+    seed: usize,
+) -> List {
+    fastrand::seed(seed as u64);
+
+    let (pathway_edges, pathways) =
+        build_pathway_dag(n_pathways, pathway_depth, pathway_branching, n_communities);
+
+    let pathway_ids: Vec<_> = pathways.iter().map(|p| p.id.clone()).collect();
+
+    // mark hub pathways
+    let is_hub: Vec<_> = pathways.iter().map(|p| p.depth <= 1).collect();
+
+    // assign focal pathways to communities
+    let unique_comms: FxHashSet<_> = gene_communities.iter().cloned().collect();
+    let unique_subtrees: FxHashSet<_> = pathways.iter().map(|p| p.subtree).collect();
+    let n_mappable = std::cmp::min(unique_comms.len(), unique_subtrees.len());
+
+    let mut comm_vec: Vec<_> = unique_comms.into_iter().collect();
+    comm_vec.sort();
+    let mut subtree_vec: Vec<_> = unique_subtrees.into_iter().collect();
+    subtree_vec.sort();
+
+    let comm_to_subtree: FxHashMap<_, _> = comm_vec
+        .iter()
+        .take(n_mappable)
+        .zip(subtree_vec.iter().take(n_mappable))
+        .map(|(c, s)| (*c, *s))
+        .collect();
+
+    let mut community_focal_pathways = FxHashMap::default();
+
+    for (comm_id, subtree) in &comm_to_subtree {
+        let candidates: Vec<_> = pathways
+            .iter()
+            .filter(|p| p.subtree == *subtree && p.depth >= 2)
+            .map(|p| p.id.clone())
+            .collect();
+
+        let candidates = if candidates.is_empty() {
+            pathways
+                .iter()
+                .filter(|p| p.subtree == *subtree && p.depth >= 1)
+                .map(|p| p.id.clone())
+                .collect()
+        } else {
+            candidates
+        };
+
+        let candidates = if candidates.is_empty() {
+            pathways
+                .iter()
+                .filter(|p| p.subtree == *subtree)
+                .map(|p| p.id.clone())
+                .collect()
+        } else {
+            candidates
+        };
+
+        let n_to_pick = std::cmp::min(n_focal_pathways as usize, candidates.len());
+        let mut focal = Vec::new();
+        let mut available = candidates;
+
+        for _ in 0..n_to_pick {
+            if available.is_empty() {
+                break;
+            }
+            let idx = fastrand::usize(..available.len());
+            focal.push(available.remove(idx));
+        }
+
+        community_focal_pathways.insert(*comm_id, focal);
+    }
+
+    let gene_pathway_edges = build_gene_pathway_associations(
+        &gene_ids,
+        &gene_communities,
+        &pathway_ids,
+        &pathways,
+        &community_focal_pathways,
+        signal_strength,
+        connections_per_gene,
+    );
+
+    // convert community_focal_pathways to vectors for R
+    let mut cfp_communities = Vec::new();
+    let mut cfp_pathways = Vec::new();
+    for (comm, pathways) in &community_focal_pathways {
+        for pathway in pathways {
+            cfp_communities.push(*comm);
+            cfp_pathways.push(pathway.clone());
+        }
+    }
+
+    // convert comm_to_subtree to vectors for R
+    let mut cts_communities = Vec::new();
+    let mut cts_subtrees = Vec::new();
+    for (comm, subtree) in &comm_to_subtree {
+        cts_communities.push(*comm);
+        cts_subtrees.push(*subtree);
+    }
+
+    list!(
+        pathway_edges_from = pathway_edges
+            .iter()
+            .map(|(f, _)| f.clone())
+            .collect::<Vec<_>>(),
+        pathway_edges_to = pathway_edges
+            .iter()
+            .map(|(_, t)| t.clone())
+            .collect::<Vec<_>>(),
+        pathway_ids = pathway_ids,
+        pathway_subtrees = pathways.iter().map(|p| p.subtree).collect::<Vec<_>>(),
+        pathway_depths = pathways.iter().map(|p| p.depth).collect::<Vec<_>>(),
+        is_hub = is_hub,
+        gene_pathway_edges_from = gene_pathway_edges
+            .iter()
+            .map(|(f, _)| f.clone())
+            .collect::<Vec<_>>(),
+        gene_pathway_edges_to = gene_pathway_edges
+            .iter()
+            .map(|(_, t)| t.clone())
+            .collect::<Vec<_>>(),
+        cfp_communities = cfp_communities,
+        cfp_pathways = cfp_pathways,
+        cts_communities = cts_communities,
+        cts_subtrees = cts_subtrees
+    )
 }

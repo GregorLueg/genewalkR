@@ -7,8 +7,8 @@
 calculate_genewalk_stats(object, gene_nodes, pathway_nodes, .verbose = TRUE)
 }
 \arguments{
-\item{object}{The \code{genewalkR_class} object containing actual and permuted
-embeddings. See \code{\link[=genewalkR_class]{genewalkR_class()}}.}
+\item{object}{The \code{GeneWalk} object containing actual and permuted
+embeddings. See \code{\link[=GeneWalk]{GeneWalk()}}.}
 
 \item{gene_nodes}{Character vector. Names of the gene nodes included in
 the analysis. Must correspond to row names in the embedding matrix.}

@@ -659,6 +659,7 @@ version = "0.1.0"
 dependencies = [
  "extendr-api",
  "faer",
+ "fastrand",
  "itertools",
  "node2vec-rs",
  "num-traits",
@@ -890,7 +891,8 @@ dependencies = [
 [[package]]
 name = "node2vec-rs"
 version = "0.1.4"
-source = "git+https://github.com/GregorLueg/node2vec-rs.git?branch=feat-gensim-type-implementation#36b1531ab251e4f4f0b4f2d29b6c9ca2f6898ec2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57d9430c1dfcbc34a6a197d82661caab4a75c564f2039d97ab70973a01f0ae30"
 dependencies = [
  "clap",
  "csv",

@@ -1,8 +1,8 @@
 # classes ----------------------------------------------------------------------
 
-## genewalkR class -------------------------------------------------------------
+## GeneWalk class --------------------------------------------------------------
 
-#' genewalkR
+#' GeneWalk
 #'
 #' @description
 #' Class that stores keeps all of the important data for the Gene Walk
@@ -27,15 +27,15 @@
 #' @param graph_gene_params A list with information in terms of the generation
 #' of the graph.
 #'
-#' @return Returns the initialised genewalkR_class object for subsequent
+#' @return Returns the initialised GeneWalk initialised object for subsequent
 #' analysis.
 #'
 #' @export
 #'
 #' @references Ietswaart, et al., Genome Biol, 2021
-genewalkR_class <- S7::new_class(
+GeneWalk <- S7::new_class(
   # name
-  name = "genewalkR_class",
+  name = "GeneWalk",
   # properties
   properties = list(
     graph_dt = S7::class_data.frame,
@@ -73,8 +73,8 @@ genewalkR_class <- S7::new_class(
 
 #' Get the statistical results
 #'
-#' @param object The `genewalkR_class` class, please see
-#' [genewalkR::genewalkR_class()].
+#' @param object The `GeneWalk` class, please see
+#' [genewalkR::GeneWalk()].
 #'
 #' @returns If found, the GeneWalk statistics results
 get_stats <- S7::new_generic(
@@ -87,14 +87,14 @@ get_stats <- S7::new_generic(
   }
 )
 
-#' @method get_stats genewalkR_class
+#' @method get_stats GeneWalk
 #'
 #' @export
-S7::method(get_stats, genewalkR_class) <- function(
+S7::method(get_stats, GeneWalk) <- function(
   object
 ) {
   # checks
-  checkmate::assertTRUE(S7::S7_inherits(object, genewalkR_class))
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
 
   stats <- S7::prop(object, "stats")
 
@@ -105,7 +105,45 @@ S7::method(get_stats, genewalkR_class) <- function(
     ))
   }
 
+  data.table::setorder(stats, -similarity)
+
   return(stats)
+}
+
+#' Get the embedding
+#'
+#' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
+#'
+#' @returns If found, returns the embedding
+get_embedding <- S7::new_generic(
+  name = "get_embedding",
+  dispatch_args = "object",
+  fun = function(
+    object
+  ) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_embedding GeneWalk
+#'
+#' @export
+S7::method(get_embedding, GeneWalk) <- function(
+  object
+) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
+
+  embd <- S7::prop(object, "embd")
+
+  if (is.na(embd[1, 1])) {
+    warning(paste(
+      "It does not like the generate_initial_emb() was run.",
+      "Returning matrix with NA."
+    ))
+  }
+
+  return(embd)
 }
 
 ## gene walk generator ---------------------------------------------------------
@@ -232,9 +270,11 @@ GeneWalkGenerator <- R6::R6Class(
       invisible(self)
     },
 
-    #' @description Create a gene-specific genewalkR_class object
+    #' @description Create a gene-specific GeneWalk object
     #'
     #' @param genes Character vector of gene symbols
+    #'
+    #' @return Returns the initialised `GeneWalk`.
     create_for_genes = function(genes) {
       checkmate::qassert(genes, "S+")
 
@@ -264,7 +304,7 @@ GeneWalkGenerator <- R6::R6Class(
 
       subset_dt <- data.table::rbindlist(list(gene_edges, hierarchy_edges))
 
-      genewalkR_class(
+      GeneWalk(
         graph_dt = subset_dt,
         graph_gene_params = list(
           genes = genes,
@@ -288,7 +328,9 @@ GeneWalkGenerator <- R6::R6Class(
       self$graph_dt <- NULL
     },
 
-    #' @description Resets the internal choices and erases any stored network.
+    #' @description Returns the full network data.table.
+    #'
+    #' @return data.table with the full internal network.
     return_full_network_dt = function() {
       self$network_dt
     }

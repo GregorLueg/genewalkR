@@ -2,61 +2,31 @@
 % Please edit documentation in R/synthetic_data.R
 \name{synthetic_genewalk_data}
 \alias{synthetic_genewalk_data}
-\title{Generate Synthetic GeneWalk Data}
+\title{Generate synthetic GeneWalk data}
 \usage{
 synthetic_genewalk_data(
-  n_genes = 500L,
-  n_pathways = 250L,
+  ppi_params = params_ppi(),
+  pathway_params = params_pathway(),
   n_communities = 3L,
   signal_strength = 0.8,
-  seed = 42L,
-  ppi_m = 3L,
-  pathway_depth = 4L,
-  pathway_branching = 3L,
-  n_focal_pathways = 15L,
-  connections_per_gene = 3L,
-  min_community_size = 20L
+  seed = 42L
 )
 }
 \arguments{
-\item{n_genes}{Integer. Number of genes to generate.}
+\item{ppi_params}{List. PPI parameters from \code{\link[=params_ppi]{params_ppi()}}.}
 
-\item{n_pathways}{Integer. Number of pathways to generate.}
+\item{pathway_params}{List. Pathway parameters from \code{\link[=params_pathway]{params_pathway()}}.}
 
-\item{n_communities}{Integer. Number of gene communities in PPI network.}
+\item{n_communities}{Integer. Number of gene communities. Defaults to \code{3L}.}
 
-\item{signal_strength}{Numeric. Probability (0-1) that genes connect to
-their community's focal pathways vs random pathways.}
+\item{signal_strength}{Numeric. Probability of connecting to focal pathways
+(0-1). Defaults to \code{0.8}.}
 
-\item{seed}{Integer. Random seed for reproducibility.}
-
-\item{ppi_m}{Integer. Number of edges attached per new node in
-Barabási-Albert model.}
-
-\item{pathway_depth}{Integer. Depth of pathway hierarchy.}
-
-\item{pathway_branching}{Integer. Average number of children per parent
-pathway.}
-
-\item{n_focal_pathways}{Integer. Number of focal pathways assigned to each
-community.}
-
-\item{connections_per_gene}{Integer. Number of pathway connections per gene.}
-
-\item{min_community_size}{Integer. Minimum genes per community.}
+\item{seed}{Integer. Random seed. Defaults to \code{42L}.}
 }
 \value{
-List containing:
-\item{edges}{data.table with columns: from, to, edge_type}
-\item{ground_truth}{data.table mapping genes to communities}
-\item{pathway_metadata}{data.table with pathway properties (depth, subtree,
-is_hub)}
-\item{community_focal_pathways}{List mapping community IDs to focal
-pathway sets}
-\item{comm_to_subtree}{Named vector mapping community IDs to subtree IDs}
+A list with edges, ground truth, and pathway metadata.
 }
 \description{
-Creates a synthetic dataset combining a scale-free PPI network with a
-hierarchical pathway DAG. Genes within communities share specific focal
-pathways to enable signal recovery testing.
+Generate synthetic GeneWalk data
 }

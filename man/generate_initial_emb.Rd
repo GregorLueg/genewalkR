@@ -14,8 +14,7 @@ generate_initial_emb(
 )
 }
 \arguments{
-\item{object}{The \code{genewalkR_class} class, please see
-\code{\link[=genewalkR_class]{genewalkR_class()}}.}
+\item{object}{The \code{GeneWalk} class, please see \code{\link[=GeneWalk]{GeneWalk()}}.}
 
 \item{embd_dim}{Integer. Size of the embedding dimensions to create. Defaults
 to \code{8L} in line with the authors recommendations.}

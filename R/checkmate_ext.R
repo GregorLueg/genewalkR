@@ -1,6 +1,6 @@
 # checkmate extensions ---------------------------------------------------------
 
-## checks ----------------------------------------------------------------------
+## node2vec --------------------------------------------------------------------
 
 #' Check node2vec parameters
 #'
@@ -96,8 +96,6 @@ checkNode2VecParams <- function(x) {
   return(TRUE)
 }
 
-## asserts ---------------------------------------------------------------------
-
 #' Assert node2vec parameters
 #'
 #' @description Checkmate extension for asserting the node2vec parameters.
@@ -111,3 +109,103 @@ checkNode2VecParams <- function(x) {
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
 assertNode2VecParam <- checkmate::makeAssertionFunction(checkNode2VecParams)
+
+## ppi parameter ---------------------------------------------------------------
+
+#' Check PPI parameters
+#'
+#' @description Checkmate extension for checking PPI parameters.
+#'
+#' @param x The list to check/assert.
+#'
+#' @return \code{TRUE} if the check was successful, otherwise an error message.
+checkPPIParams <- function(x) {
+  res <- checkmate::checkList(x)
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  res <- checkmate::checkNames(
+    names(x),
+    must.include = c("n_genes", "ppi_m", "min_community_size")
+  )
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  for (param in names(x)) {
+    res <- checkmate::qtest(x[[param]], "I1")
+    if (!isTRUE(res)) {
+      return(sprintf("`%s` must be a single integer", param))
+    }
+  }
+
+  TRUE
+}
+
+#' Assert PPI parameters
+#'
+#' @description Checkmate extension for asserting PPI parameters.
+#'
+#' @inheritParams checkPPIParams
+#'
+#' @param .var.name Name of the checked object to print in assertions. Defaults
+#'   to the heuristic implemented in checkmate.
+#' @param add Collection to store assertion messages. See
+#'   [checkmate::makeAssertCollection()].
+#'
+#' @return Invisibly returns the checked object if the assertion is successful.
+assertPPIParams <- checkmate::makeAssertionFunction(checkPPIParams)
+
+## pathway parameters ----------------------------------------------------------
+
+#' Check pathway parameters
+#'
+#' @description Checkmate extension for checking pathway parameters.
+#'
+#' @param x The list to check/assert.
+#'
+#' @return \code{TRUE} if the check was successful, otherwise an error message.
+checkPathwayParams <- function(x) {
+  res <- checkmate::checkList(x)
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  res <- checkmate::checkNames(
+    names(x),
+    must.include = c(
+      "n_pathways",
+      "pathway_depth",
+      "pathway_branching",
+      "n_focal_pathways",
+      "connections_per_gene"
+    )
+  )
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  for (param in names(x)) {
+    res <- checkmate::qtest(x[[param]], "I1")
+    if (!isTRUE(res)) {
+      return(sprintf("`%s` must be a single integer", param))
+    }
+  }
+
+  TRUE
+}
+
+#' Assert pathway parameters
+#'
+#' @description Checkmate extension for asserting pathway parameters.
+#'
+#' @inheritParams checkPathwayParams
+#'
+#' @param .var.name Name of the checked object to print in assertions. Defaults
+#' to the heuristic implemented in checkmate.
+#' @param add Collection to store assertion messages. See
+#' [checkmate::makeAssertCollection()].
+#'
+#' @return Invisibly returns the checked object if the assertion is successful.
+assertPathwayParams <- checkmate::makeAssertionFunction(checkPathwayParams)

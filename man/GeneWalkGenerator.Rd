@@ -110,7 +110,7 @@ Build the full network from selected sources
 \if{html}{\out{<a id="method-GeneWalkGenerator-create_for_genes"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneWalkGenerator-create_for_genes}{}}}
 \subsection{Method \code{create_for_genes()}}{
-Create a gene-specific genewalkR_class object
+Create a gene-specific GeneWalk object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$create_for_genes(genes)}\if{html}{\out{</div>}}
 }
@@ -121,6 +121,9 @@ Create a gene-specific genewalkR_class object
 \item{\code{genes}}{Character vector of gene symbols}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Returns the initialised \code{GeneWalk}.
 }
 }
 \if{html}{\out{<hr>}}
@@ -137,11 +140,14 @@ Resets the internal choices and erases any stored network.
 \if{html}{\out{<a id="method-GeneWalkGenerator-return_full_network_dt"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneWalkGenerator-return_full_network_dt}{}}}
 \subsection{Method \code{return_full_network_dt()}}{
-Resets the internal choices and erases any stored network.
+Returns the full network data.table.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$return_full_network_dt()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+data.table with the full internal network.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GeneWalkGenerator-clone"></a>}}

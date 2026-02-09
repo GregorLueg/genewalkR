@@ -7,8 +7,7 @@
 generate_permuted_emb(object, n_perm = 3L, seed = 42L, .verbose = TRUE)
 }
 \arguments{
-\item{object}{The \code{genewalkR_class} class, please see
-\code{\link[=genewalkR_class]{genewalkR_class()}}.}
+\item{object}{The \code{GeneWalk} class, please see \code{\link[=GeneWalk]{GeneWalk()}}.}
 
 \item{n_perm}{Inter. Number of permutations to generate. Defaults to \code{3L},
 the recommendation of the authors.}
