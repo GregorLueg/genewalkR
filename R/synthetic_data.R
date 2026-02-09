@@ -78,10 +78,10 @@ node2vec_test_data <- function(
 #'
 #' @return A list with:
 #' \itemize{
-#'   \item{within_cluster_sim}{Mean similarity within clusters}
-#'   \item{between_cluster_sim}{Mean similarity between clusters}
-#'   \item{within_dist}{The within cluster similarities as vector}
-#'   \item{between_dist}{The between cluster similarities as vector}
+#'   \item within_cluster_sim - Mean similarity within clusters.
+#'   \item between_cluster_sim - Mean similarity between clusters.
+#'   \item within_dist - The within cluster similarities as vector.
+#'   \item between_dist - The between cluster similarities as vector.
 #' }
 #'
 #' @export
@@ -218,7 +218,7 @@ synthetic_genewalk_data <- function(
   }
 
   ppi_edges <- igraph::as_edgelist(ppi_graph)
-  ppi_dt <- data.table(
+  ppi_dt <- data.table::data.table(
     from = ppi_edges[, 1],
     to = ppi_edges[, 2],
     edge_type = "interacts"
@@ -238,27 +238,27 @@ synthetic_genewalk_data <- function(
     seed = seed
   )
 
-  pathway_dt <- data.table(
+  pathway_dt <- data.table::data.table(
     from = pathway_result$pathway_edges_from,
     to = pathway_result$pathway_edges_to,
     edge_type = "parent_of"
   )
 
-  pathway_metadata <- data.table(
+  pathway_metadata <- data.table::data.table(
     pathway = pathway_result$pathway_ids,
     subtree = pathway_result$pathway_subtrees,
     depth = pathway_result$pathway_depths,
     is_hub = pathway_result$is_hub
   )
 
-  gene_pathway_dt <- data.table(
+  gene_pathway_dt <- data.table::data.table(
     from = pathway_result$gene_pathway_edges_from,
     to = pathway_result$gene_pathway_edges_to,
     edge_type = "part_of"
   )
 
   # reconstruct community_focal_pathways as named list
-  cfp_dt <- data.table(
+  cfp_dt <- data.table::data.table(
     community = pathway_result$cfp_communities,
     pathway = pathway_result$cfp_pathways
   )
@@ -270,9 +270,9 @@ synthetic_genewalk_data <- function(
     as.character(pathway_result$cts_communities)
   )
 
-  all_edges <- rbindlist(list(ppi_dt, pathway_dt, gene_pathway_dt))
+  all_edges <- data.table::rbindlist(list(ppi_dt, pathway_dt, gene_pathway_dt))
 
-  ground_truth <- data.table(
+  ground_truth <- data.table::data.table(
     gene = gene_ids,
     community = gene_communities
   )
@@ -320,8 +320,8 @@ get_expected_associations <- function(
     )
   )
 
-  ground_truth <- copy(synthetic_data$ground_truth)
-  pathway_metadata <- copy(synthetic_data$pathway_metadata)
+  ground_truth <- data.table::copy(synthetic_data$ground_truth)
+  pathway_metadata <- data.table::copy(synthetic_data$pathway_metadata)
   community_focal_pathways <- synthetic_data$community_focal_pathways
   comm_to_subtree <- synthetic_data$comm_to_subtree
 
@@ -354,7 +354,7 @@ get_expected_associations <- function(
     )
   }
 
-  positive_pairs <- rbindlist(positive_pairs_list)
+  positive_pairs <- data.table::rbindlist(positive_pairs_list)
   positive_pairs[, expected_signal := TRUE]
 
   if (!return_negatives) {
@@ -384,14 +384,18 @@ get_expected_associations <- function(
       n_sample <- min(n_negatives_per_gene, length(other_pathways))
       sampled_pathways <- sample(other_pathways, n_sample)
 
-      negative_pairs_list[[paste0(comm_id, "_", gene)]] <- data.table(
+      negative_pairs_list[[paste0(
+        comm_id,
+        "_",
+        gene
+      )]] <- data.table::data.table(
         gene = gene,
         pathway = sampled_pathways
       )
     }
   }
 
-  negative_pairs <- rbindlist(negative_pairs_list)
+  negative_pairs <- data.table::rbindlist(negative_pairs_list)
   negative_pairs[, expected_signal := FALSE]
 
   if (nrow(negative_pairs) > nrow(positive_pairs)) {
