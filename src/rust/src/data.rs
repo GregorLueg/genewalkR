@@ -233,7 +233,7 @@ pub fn node2vec_caveman(
 ///
 /// ### Returns
 ///
-/// Synthetic data as `Node2VecData` with barbell-like graph with two
+/// Synthetic data as `Node2VecData` with stochastic block-like graph with probabilistic community structure
 /// communities
 pub fn node2vec_stochastic_block(
     n_nodes_per_cluster: usize,
