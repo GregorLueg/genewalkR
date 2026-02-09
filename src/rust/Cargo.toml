@@ -14,6 +14,11 @@ name = 'genewalkR'
 opt-level = 3
 debug = false
 
+[profile.dev]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
 [profile.release]
 lto = "thin"
 codegen-units = 1

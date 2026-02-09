@@ -39,7 +39,7 @@ genewalk_obj <- generate_initial_emb(
     walks_per_node = 25L,
     walk_length = 25L
   ),
-  .verbose = FALSE
+  .verbose = TRUE
 )
 
 embeddings <- get_embedding(genewalk_obj)

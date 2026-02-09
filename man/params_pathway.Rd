@@ -13,7 +13,8 @@ params_pathway(
 )
 }
 \arguments{
-\item{n_pathways}{Integer. Number of pathways. Defaults to \code{250L}.}
+\item{n_pathways}{Integer. Maximum number of pathways. Defaults to \code{250L}.
+You can undershoot the number here due to the building of the DAG.}
 
 \item{pathway_depth}{Integer. Maximum depth of pathway hierarchy. Defaults
 to \code{4L}.}
