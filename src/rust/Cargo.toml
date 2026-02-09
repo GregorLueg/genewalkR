@@ -9,6 +9,7 @@ rust-version = '1.85'
 crate-type = ['staticlib']
 name = 'genewalkR'
 
+# I want aggressive optimisation also during testing
 [profile.test]
 opt-level = 3
 debug = false
