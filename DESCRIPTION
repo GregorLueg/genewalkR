@@ -2,11 +2,18 @@ Package: genewalkR
 Title: Implements the GeneWalk approach into R
 Version: 0.0.1.0
 Authors@R: 
+    c(
     person(
         given = "Gregor", 
         family = "Lueg", 
         email = "gregorlueg@me.com", 
-        role = c("aut", "cre")
+        role = c("aut", "cre")),
+    person(
+        given = "Mi",
+        family = "Trinh",
+        email = "mi.k.trinh@gmail.com",
+        role = c("ctb")
+    )
     )
 Description: 
     Run the GeneWalk algorithm via node2vec to identify interesting embeddings.
