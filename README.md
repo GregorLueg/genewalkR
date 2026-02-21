@@ -4,22 +4,24 @@
 [![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+<img src="man/figures/genewalkR_logo.png" width="128" height="128" alt="genewalk logo">
+
 ## Description
 
-This package is an attempt to implement the GeneWalk approach from 
+This package implements the GeneWalk approach from 
 [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)
 (see GitHub [here](https://github.com/churchmanlab/genewalk)) into R
-leveraging Rust under the hood to generate rapidly the random walks + use the
-[Burn tensor library](https://burn.dev) to fit the SkipGram model for the 
-generation of the embeddings.
+leveraging Rust under the hood to generate rapidly the random walks and run
+the word2vec model. It uses a highly optimised, fast implementation, leveraging
+SIMD-acceleration and multi-threading.
 
 ## Installation
 
 You will need Rust on your system to have the package working. An installation
 guide is provided [here](https://www.rust-lang.org/tools/install). There is a
 bunch of further help written [here](https://extendr.github.io/rextendr/index.html)
-by the rextendr guys in terms of Rust set up. (bixverse uses rextendr to interface
-with Rust.)
+by the rextendr guys in terms of Rust set up. (`genewalkR` uses rextendr to 
+interface with Rust.)
 
 ### Setting up the Rust toolchain
 
@@ -51,3 +53,5 @@ remotes::install_github("GregorLueg/genewalkR")
 ```
 
 ## How to use the package
+
+To be written

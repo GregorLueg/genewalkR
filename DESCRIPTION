@@ -44,3 +44,4 @@ Suggests:
     msigdbr
 VignetteBuilder: quarto
 LazyData: true
+URL: https://gregorlueg.github.io/genewalkR/
