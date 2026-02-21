@@ -27,6 +27,7 @@ Imports:
     duckdb,
     DBI,
     data.table,
+    ggplot2,
     purrr,
     igraph,
     magrittr,
@@ -39,5 +40,7 @@ Depends:
 Suggests: 
     tinytest,
     quarto,
-    knitr
+    knitr,
+    msigdbr
 VignetteBuilder: quarto
+LazyData: true

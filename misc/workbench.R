@@ -72,7 +72,7 @@ gene_translator <- setNames(h_gene_sets$gene_symbol, h_gene_sets$ensembl_gene)
 
 setDT(h_gene_sets)
 
-myc_genes <- h_gene_sets[gs_name == "HALLMARK_MYC_TARGETS_V1", ensembl_gene]
+myc_genes <- h_gene_sets[gs_name == "HALLMARK_MYC_TARGETS_V1"][]
 
 go_genes[from %in% myc_genes]
 

@@ -1,3 +1,22 @@
+# exported data ----------------------------------------------------------------
+
+## myc genes -------------------------------------------------------------------
+
+#' MYC target genes
+#'
+#' The MYC target genes from the MSigDB (Hallmarks V1).
+#'
+#' @format ## `myc_genes`
+#' A data.table with 200 rows and 3 columns:
+#' \describe{
+#'   \item{ensembl_gene}{Ensembl identifier}
+#'   \item{gene_symbol}{Gene Symbol}
+#'   \item{gene_set}{Name of the gene set}
+#' }
+#'
+#' @references Liberzon, et al., Cell Syst, 2015
+"myc_genes"
+
 # db utils ---------------------------------------------------------------------
 
 ## utils -----------------------------------------------------------------------
