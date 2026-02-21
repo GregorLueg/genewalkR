@@ -1,6 +1,6 @@
 # genewalkR package
 
-![r_package](https://img.shields.io/badge/R_package-0.0.1.0-orange) 
+![r_package](https://img.shields.io/badge/R_package-0.0.1.1-orange) 
 [![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -20,6 +20,8 @@ guide is provided [here](https://www.rust-lang.org/tools/install). There is a
 bunch of further help written [here](https://extendr.github.io/rextendr/index.html)
 by the rextendr guys in terms of Rust set up. (bixverse uses rextendr to interface
 with Rust.)
+
+### Setting up the Rust toolchain
 
 Steps for installation:
 
@@ -48,5 +50,4 @@ devtools::install_github("https://github.com/GregorLueg/genewalkR")
 remotes::install_github("GregorLueg/genewalkR")
 ```
 
-**Note**: If LibTorch is installed in a non-standard location, set 
-`LIBTORCH_PATH` before installing the package.
+## How to use the package

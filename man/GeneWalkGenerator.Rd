@@ -17,8 +17,6 @@ Supports building a master network once and subsetting to multiple gene sets.
 \item{\code{ppi_sources}}{Character vector of PPI sources}
 
 \item{\code{ppi_params}}{List of PPI filtering parameters}
-
-\item{\code{network_dt}}{data.table containing the full network}
 }
 \if{html}{\out{</div>}}
 }
@@ -78,7 +76,8 @@ Add pathway sources to the network
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{source}}{Character vector of sources: "go", "reactome"}
+\item{\code{source}}{Character vector of sources: \code{"go"}, \code{"reactome"}. Defaults
+to \code{"go"} only by default.}
 
 \item{\code{go_namespace}}{Character vector. Specifically for GO. Choices
 are \code{c("biological_process", "molecular_function", "cellular_component")}}
@@ -109,7 +108,8 @@ Add PPI sources to the network
 
 \item{\code{intact_threshold}}{Numeric threshold for Intact scores}
 
-\item{\code{intact_physical_only}}{Logical, only physical interactions from Intact}
+\item{\code{intact_physical_only}}{Logical, only physical interactions from
+Intact}
 }
 \if{html}{\out{</div>}}
 }
@@ -155,7 +155,8 @@ Returns the initialised \code{GeneWalk}.
 \if{html}{\out{<a id="method-GeneWalkGenerator-reset_choices"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneWalkGenerator-reset_choices}{}}}
 \subsection{Method \code{reset_choices()}}{
-Resets the internal choices and erases any stored network.
+Resets the internal choices and erases any stored network
+data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{GeneWalkGenerator$reset_choices()}\if{html}{\out{</div>}}
 }

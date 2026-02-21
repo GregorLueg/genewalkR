@@ -4,29 +4,36 @@
 \alias{synthetic_genewalk_data}
 \title{Generate synthetic GeneWalk data}
 \usage{
-synthetic_genewalk_data(
-  ppi_params = params_ppi(),
-  pathway_params = params_pathway(),
-  n_communities = 3L,
-  signal_strength = 0.8,
-  seed = 42L
-)
+synthetic_genewalk_data(data_params = params_genewalk_data(), seed = 42L)
 }
 \arguments{
-\item{ppi_params}{List. PPI parameters from \code{\link[=params_ppi]{params_ppi()}}.}
-
-\item{pathway_params}{List. Pathway parameters from \code{\link[=params_pathway]{params_pathway()}}.}
-
-\item{n_communities}{Integer. Number of gene communities. Defaults to \code{3L}.}
-
-\item{signal_strength}{Numeric. Probability of connecting to focal pathways
-(0-1). Defaults to \code{0.8}.}
+\item{data_params}{Named list. Return from
+\code{\link[=params_genewalk_data]{params_genewalk_data()}}.}
 
 \item{seed}{Integer. Random seed. Defaults to \code{42L}.}
 }
 \value{
-A list with edges, ground truth, and pathway metadata.
+A list with the following items:
+\describe{
+\item{full_data}{A data.table with columns \code{from} and \code{to} containing
+all edges (ontology hierarchy, gene-to-pathway, and PPI).}
+\item{gene_to_pathways}{A data.table with columns \code{from} (gene) and
+\code{to} (pathway) for gene-to-ontology annotation edges only.}
+\item{gene_ids}{Character vector of all gene identifiers (signal and
+noise).}
+\item{pathway_ids}{Character vector of all ontology term identifiers.}
+}
 }
 \description{
-Generate synthetic GeneWalk data
+Generates a synthetic network that mimics real GeneWalk input data for
+testing and benchmarking. The network consists of three components: a
+hierarchical ontology (tree structure with lateral edges), gene-to-ontology
+annotations, and protein-protein interactions (PPI).
+
+Signal genes are annotated exclusively within a single ontology subtree and
+form PPI edges among themselves, creating coherent graph neighbourhoods.
+Noise genes receive the same number of annotations but are forced to span
+multiple subtrees, and their PPI edges are random across the noise group.
+Both groups are degree-matched so that significance is driven by annotation
+coherence rather than connectivity alone.
 }

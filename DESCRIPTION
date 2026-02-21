@@ -1,6 +1,6 @@
 Package: genewalkR
 Title: Implements the GeneWalk approach into R
-Version: 0.0.1.0
+Version: 0.0.1.1
 Authors@R: 
     c(
     person(
@@ -36,4 +36,8 @@ Imports:
     zeallot
 Depends: 
     R (>= 4.2)
-Suggests: tinytest
+Suggests: 
+    tinytest,
+    quarto,
+    knitr
+VignetteBuilder: quarto

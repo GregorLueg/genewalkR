@@ -1,101 +1,156 @@
-devtools::load_all()
+# new synthetic data -----------------------------------------------------------
 
-library(data.table)
-library(magrittr)
-library(ggplot2)
+gene_walk_syn_data <- synthetic_genewalk_data()
 
-devtools::load_all()
-
-test_data <- synthetic_genewalk_data(
-  ppi_params = params_ppi(),
-  pathway_params = params_pathway(),
-  n_communities = 3L
+genewalk_obj <- GeneWalk(
+  graph_dt = gene_walk_syn_data$full_data,
+  gene_to_pathway_dt = gene_walk_syn_data$gene_to_pathways,
+  gene_ids = gene_walk_syn_data$gene_ids,
+  pathway_ids = gene_walk_syn_data$pathway_ids
 )
 
-test <- GeneWalk(test_data$edges, list())
+genewalk_obj <- generate_initial_emb(
+  genewalk_obj,
+  node2vec_params = params_node2vec(),
+  .verbose = TRUE
+)
 
-# run node2vec to generate the initial embeddings
-test <- generate_initial_emb(
-  test,
-  node2vec_params = params_node2vec(
-    window_size = 2L,
-    n_epochs = 20L,
-    lr = 1e-2,
-    walks_per_node = 25L,
-    walk_length = 25L
+genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = TRUE)
+
+genewalk_obj <- calculate_genewalk_stats(
+  genewalk_obj,
+  .verbose = FALSE
+)
+
+gw_stats <- get_stats(genewalk_obj)
+
+hist(gw_stats[grepl("signal", gene), similarity], xlim = c(-1, 1))
+
+hist(gw_stats[grepl("noise", gene), similarity])
+
+summary(gw_stats[grepl("signal", gene), similarity])
+
+summary(gw_stats[grepl("noise", gene), similarity])
+
+summary(gw_stats[grepl("signal", gene), avg_pval])
+summary(gw_stats[grepl("noise", gene), avg_pval])
+
+hist(gw_stats[grepl("signal", gene), avg_pval])
+
+hist(gw_stats[grepl("noise", gene), avg_pval])
+
+summary(gw_stats[grepl("signal", gene), avg_global_fdr])
+summary(gw_stats[grepl("noise", gene), avg_global_fdr])
+
+t.test(
+  gw_stats[grepl("signal", gene), similarity],
+  gw_stats[grepl("noise", gene), similarity]
+)
+
+table(
+  grepl("signal", gw_stats$gene),
+  gw_stats$avg_global_fdr < 0.05
+)
+
+# test on real data ------------------------------------------------------------
+
+go_info <- get_gene_ontology_info()
+
+go_translator <- setNames(go_info$go_name, go_info$go_id)
+
+go_ontology <- get_gene_ontology_hierarchy()
+
+go_genes <- get_gene_to_go()
+
+combined_network <- get_interactions_combined()
+
+library(msigdbr)
+
+h_gene_sets <- msigdbr(species = "human", collection = "H")
+
+gene_translator <- setNames(h_gene_sets$gene_symbol, h_gene_sets$ensembl_gene)
+
+setDT(h_gene_sets)
+
+myc_genes <- h_gene_sets[gs_name == "HALLMARK_MYC_TARGETS_V1", ensembl_gene]
+
+go_genes[from %in% myc_genes]
+
+final_network <- rbindlist(
+  list(
+    go_genes[from %in% myc_genes],
+    go_ontology[, c("from", "to")],
+    combined_network[, c("from", "to")][from %in% myc_genes & to %in% myc_genes]
   )
+) %>%
+  unique() %>%
+  .[, `:=`(from = as.character(from), to = as.character(to))]
+
+genes <- unique(c(
+  combined_network[, c("from", "to")][
+    from %in% myc_genes & to %in% myc_genes
+  ] %$%
+    c(from, to),
+  go_genes[from %in% myc_genes, from]
+))
+
+pathways <- unique(c(
+  go_ontology[, c("from", "to")] %$% c(from, to),
+  go_genes[from %in% myc_genes, to]
+))
+
+go_genes[from %in% myc_genes] %$% unique(c(from, to))
+
+genewalk_obj <- GeneWalk(
+  graph_dt = final_network,
+  gene_to_pathway_dt = go_genes[from %in% myc_genes],
+  gene_ids = myc_genes,
+  pathway_ids = pathways
 )
 
-# generate random permutations
-test <- generate_permuted_emb(test)
-
-# calculate the test statistics for gene <> pathway pairs
-test <- calculate_genewalk_stats(
-  test,
-  gene_nodes = intersect(test_data$ground_truth$gene, rownames(test@embd)),
-  pathway_nodes = intersect(
-    test_data$pathway_metadata$pathway,
-    rownames(test@embd)
-  )
+genewalk_obj <- generate_initial_emb(
+  genewalk_obj,
+  node2vec_params = params_node2vec(n_epochs = 5L, num_workers = 4L),
+  .verbose = TRUE
 )
 
-stats <- get_stats(test)
+genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = TRUE)
 
-ground_truth_data <- get_expected_associations(
-  synthetic_data = test_data,
-  return_negatives = TRUE
+genewalk_obj <- calculate_genewalk_stats(
+  genewalk_obj,
+  .verbose = TRUE
 )
 
-positive_examples <- merge(
-  ground_truth_data[(expected_signal)],
-  stats,
-  by = c("gene", "pathway")
-)
+res <- get_stats(genewalk_obj)[, `:=`(
+  gene_symbol = gene_translator[gene],
+  go_name = go_translator[pathway]
+)]
 
-hist(
-  positive_examples$similarity,
-  xlab = "Cosine Similarity",
-  main = "Positive pathways"
-)
-hist(
-  positive_examples$avg_pval,
-  xlab = "p-value",
-  main = "Positive pathways"
-)
-
-negative_examples <- merge(
-  ground_truth_data[!(expected_signal)],
-  stats,
-  by = c("gene", "pathway")
-)
-
-hist(
-  negative_examples$similarity,
-  xlab = "Cosine Similarity",
-  main = "Negative pathways"
-)
-hist(negative_examples$avg_pval, xlab = "p-value", main = "Negative pathways")
-
-# generate the internal db -----------------------------------------------------
 
 devtools::load_all()
 
-gw_factory <- GeneWalkGenerator$new()
+builder <- GeneWalkGenerator$new()
 
-gw_factory$add_ppi(source = "combined")
-gw_factory$add_ppi(source = "intact")
-gw_factory$add_pathways()
+builder$add_ppi(source = "combined")
 
-gw_factory$build()
+builder$add_pathways()
 
-gois <- as.character(gw_factory$return_full_network_dt()[, from][1:100])
+builder$build()
 
-gw_obj <- gw_factory$create_for_genes(genes = gois)
+builder$create_for_genes(genes = myc_genes)
 
-gw_obj@graph_dt[edge_type != "gene_to_pathway"]
+builder[['.__enclos_env__']]$private$gene_walk_data
 
-devtools::install(".")
+nrow(builder[['.__enclos_env__']]$private$gene_walk_data)
+n_nodes(builder[['.__enclos_env__']]$private$gene_walk_data)
 
-library(genewalkR)
+class(builder[['.__enclos_env__']]$private$gene_walk_data)
 
-system("otool -L $(find . -name 'genewalkR.so' | head -1)")
+get_gw_data(builder[['.__enclos_env__']]$private$gene_walk_data)
+
+x <- get_gw_data_filtered(
+  builder[['.__enclos_env__']]$private$gene_walk_data,
+  gene_ids = myc_genes
+)
+
+str(x)

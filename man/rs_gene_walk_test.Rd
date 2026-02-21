@@ -4,35 +4,38 @@
 \alias{rs_gene_walk_test}
 \title{Calculate the test statistics}
 \usage{
-rs_gene_walk_test(gene_embds, pathway_embds, null_distributions, verbose)
+rs_gene_walk_test(
+  gene_embds,
+  pathway_embds,
+  permuted_embds,
+  gene_indices,
+  pathway_indices,
+  connected_pathways,
+  verbose
+)
 }
 \arguments{
-\item{gene_embds}{Matrix of n_genes x their graph embeddings.}
+\item{gene_embds}{Matrix of n_genes x embedding dimensions.}
 
-\item{pathway_embds}{Matrix of n_pathways x their graph embeddings.}
+\item{pathway_embds}{Matrix of n_pathways x embedding dimensions.}
 
-\item{null_distributions}{List of null distribution vectors (one per
-permutation).}
+\item{permuted_embds}{List of permuted embedding matrices (n_nodes x dim).}
+
+\item{gene_indices}{Integer vector. 1-based row indices for genes in
+permuted embeddings.}
+
+\item{pathway_indices}{Integer vector. 1-based row indices for pathways in
+permuted embeddings.}
+
+\item{connected_pathways}{List. Gene to pathway connections (1-indexed).}
 
 \item{verbose}{Controls verbosity.}
 }
 \value{
-A list with vectors:
-\itemize{
-\item gene - Gene indices (1-based for R)
-\item pathway - Pathway indices (1-based for R)
-\item similarity - Cosine similarity between gene and pathway
-\item avg_pval - Mean p-value across permutations
-\item pval_ci_lower - Lower 95\% CI for p-value
-\item pval_ci_upper - Upper 95\% CI for p-value
-\item avg_global_fdr - Mean global FDR across permutations
-\item global_fdr_ci_lower - Lower 95\% CI for global FDR
-\item global_fdr_ci_upper - Upper 95\% CI for global FDR
-\item avg_gene_fdr - Mean gene-specific FDR across permutations
-\item gene_fdr_ci_lower - Lower 95\% CI for gene FDR
-\item gene_fdr_ci_upper - Upper 95\% CI for gene FDR
-}
+A list with per-pair statistics (see original docs).
 }
 \description{
-Calculates the test statistic for the gene/pathway pairs.
+Calculates test statistics for gene-pathway pairs. The null
+distribution is derived from gene-pathway cosine similarities in permuted
+embeddings (full cross-cosine, not just connected pairs).
 }

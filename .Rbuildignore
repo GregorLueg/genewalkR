@@ -5,3 +5,7 @@
 ^src/Makevars\.win$
 ^LICENSE\.md$
 ^data-raw$
+^vignettes/\.quarto$
+^vignettes/*_files$
+^doc$
+^Meta$

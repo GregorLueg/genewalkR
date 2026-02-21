@@ -34,8 +34,9 @@ rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed
 
 #' Generate permuted embeddings for null distribution
 #'
-#' @description Generates permuted network embeddings and computes the null
-#' distribution of cosine similarities for statistical testing.
+#' @description Generates degree-preserving random networks and trains node2vec
+#' on each, returning the raw embedding matrices for downstream statistical
+#' testing.
 #'
 #' @param from Integer vector. Node indices for edge origins.
 #' @param to Integer vector. Node indices for edge destinations.
@@ -47,40 +48,31 @@ rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed
 #' @param seed Integer. Random seed.
 #' @param verbose Boolean. Controls verbosity.
 #'
-#' @returns A list of numeric vectors containing the null distribution of
-#' cosine similarities per permutation.
+#' @returns A list of n_perm embedding matrices (each n_nodes x embd_dim).
 #'
 #' @export
 rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose)
 
 #' Calculate the test statistics
 #'
-#' @description Calculates the test statistic for the gene/pathway pairs.
+#' @description Calculates test statistics for gene-pathway pairs. The null
+#' distribution is derived from gene-pathway cosine similarities in permuted
+#' embeddings (full cross-cosine, not just connected pairs).
 #'
-#' @param gene_embds Matrix of n_genes x their graph embeddings.
-#' @param pathway_embds Matrix of n_pathways x their graph embeddings.
-#' @param null_distributions List of null distribution vectors (one per
-#'   permutation).
+#' @param gene_embds Matrix of n_genes x embedding dimensions.
+#' @param pathway_embds Matrix of n_pathways x embedding dimensions.
+#' @param permuted_embds List of permuted embedding matrices (n_nodes x dim).
+#' @param gene_indices Integer vector. 1-based row indices for genes in
+#'   permuted embeddings.
+#' @param pathway_indices Integer vector. 1-based row indices for pathways in
+#'   permuted embeddings.
+#' @param connected_pathways List. Gene to pathway connections (1-indexed).
 #' @param verbose Controls verbosity.
 #'
-#' @returns A list with vectors:
-#' \itemize{
-#'   \item gene - Gene indices (1-based for R)
-#'   \item pathway - Pathway indices (1-based for R)
-#'   \item similarity - Cosine similarity between gene and pathway
-#'   \item avg_pval - Mean p-value across permutations
-#'   \item pval_ci_lower - Lower 95% CI for p-value
-#'   \item pval_ci_upper - Upper 95% CI for p-value
-#'   \item avg_global_fdr - Mean global FDR across permutations
-#'   \item global_fdr_ci_lower - Lower 95% CI for global FDR
-#'   \item global_fdr_ci_upper - Upper 95% CI for global FDR
-#'   \item avg_gene_fdr - Mean gene-specific FDR across permutations
-#'   \item gene_fdr_ci_lower - Lower 95% CI for gene FDR
-#'   \item gene_fdr_ci_upper - Upper 95% CI for gene FDR
-#' }
+#' @returns A list with per-pair statistics (see original docs).
 #'
 #' @export
-rs_gene_walk_test <- function(gene_embds, pathway_embds, null_distributions, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, null_distributions, verbose)
+rs_gene_walk_test <- function(gene_embds, pathway_embds, permuted_embds, gene_indices, pathway_indices, connected_pathways, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, permuted_embds, gene_indices, pathway_indices, connected_pathways, verbose)
 
 #' Cosine similarity between two vectors
 #'
@@ -128,6 +120,29 @@ rs_node2vec_synthetic_data <- function(test_data, n_nodes_per_cluster, n_cluster
 #'
 #' @export
 rs_generate_pathway_structure <- function(n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed) .Call(wrap__rs_generate_pathway_structure, n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed)
+
+#' Generate synthetic GeneWalk data with controlled signal structure
+#'
+#' @param n_signal_genes Integer. Genes annotated to a single ontology subtree.
+#' @param n_noise_genes Integer. Genes with annotations scattered across
+#'   subtrees.
+#' @param n_roots Integer. Number of ontology root terms.
+#' @param depth Integer. Depth of each ontology subtree.
+#' @param branching Integer. Average branching factor per node.
+#' @param p_lateral Numeric. Probability of lateral edges within each ontology
+#'   level.
+#' @param p_ppi Numeric. PPI connection probability within gene groups.
+#' @param min_annotations Integer. Minimum annotations per gene.
+#' @param max_annotations Integer. Maximum annotations per gene.
+#' @param min_noise_subtrees Integer. Minimum number of different subtrees
+#'   each noise gene must span.
+#' @param seed Integer. Random seed.
+#'
+#' @returns A list with: ontology_edges, gene_ont_edges, ppi_edges,
+#'   signal_genes, noise_genes.
+#'
+#' @export
+rs_build_synthetic_genewalk <- function(n_signal_genes, n_noise_genes, n_roots, depth, branching, p_lateral, p_ppi, min_annotations, max_annotations, min_noise_subtrees, seed) .Call(wrap__rs_build_synthetic_genewalk, n_signal_genes, n_noise_genes, n_roots, depth, branching, p_lateral, p_ppi, min_annotations, max_annotations, min_noise_subtrees, seed)
 
 
 # nolint end

@@ -36,10 +36,10 @@ rs_gene_walk_perm(
 \item{verbose}{Boolean. Controls verbosity.}
 }
 \value{
-A list of numeric vectors containing the null distribution of
-cosine similarities per permutation.
+A list of n_perm embedding matrices (each n_nodes x embd_dim).
 }
 \description{
-Generates permuted network embeddings and computes the null
-distribution of cosine similarities for statistical testing.
+Generates degree-preserving random networks and trains node2vec
+on each, returning the raw embedding matrices for downstream statistical
+testing.
 }

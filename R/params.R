@@ -61,66 +61,63 @@ params_node2vec <- function(
 
 ## genewalk synthetic data -----------------------------------------------------
 
-#' PPI parameters
+#' GeneWalk synthetic data params
 #'
-#' @param n_genes Integer. Number of genes. Defaults to `500L`.
-#' @param ppi_m Integer. Number of edges to attach in preferential attachment.
-#' Defaults to `3L`.
-#' @param min_community_size Integer. Minimum size for gene communities.
-#' Defaults to `20L`.
+#' @param n_signal_genes Integer. Number of signal genes. Defaults to `300L`.
+#' @param n_noise_genes Integer. Number of noise genes. Defaults to `300L`.
+#' @param n_roots Integer. Number of ontology root nodes. Defaults to `10L`.
+#' @param depth Integer. Depth of each ontology subtree. Defaults to `3L`.
+#' @param branching Integer. Base branching factor per ontology node. Defaults
+#' to `3L`.
+#' @param p_lateral Numeric. Probability of a lateral edge between sibling
+#' nodes. Defaults to `0.1`.
+#' @param p_ppi Numeric. Probability of a PPI edge between any two genes in
+#' the same group. Defaults to `0.05`.
+#' @param min_annotations Integer. Minimum ontology term annotations per gene.
+#' Defaults to `10L`.
+#' @param max_annotations Integer. Maximum ontology term annotations per gene.
+#' Defaults to `25L`.
+#' @param min_noise_subtrees Integer. Minimum distinct ontology subtrees a noise
+#' gene must span. Defaults to `10L`.
 #'
-#' @returns A list with PPI parameters.
-#'
-#' @export
-params_ppi <- function(
-  n_genes = 500L,
-  ppi_m = 3L,
-  min_community_size = 20L
-) {
-  checkmate::qassert(n_genes, "I1")
-  checkmate::qassert(ppi_m, "I1")
-  checkmate::qassert(min_community_size, "I1")
-
-  list(
-    n_genes = n_genes,
-    ppi_m = ppi_m,
-    min_community_size = min_community_size
-  )
-}
-
-#' Pathway parameters
-#'
-#' @param n_pathways Integer. Maximum number of pathways. Defaults to `250L`.
-#' You can undershoot the number here due to the building of the DAG.
-#' @param pathway_depth Integer. Maximum depth of pathway hierarchy. Defaults
-#' to `4L`.
-#' @param pathway_branching Integer. Average branching factor. Defaults to `3L`.
-#' @param n_focal_pathways Integer. Number of focal pathways per community.
-#' Defaults to `15L`.
-#' @param connections_per_gene Integer. Number of pathway connections per gene.
-#' Defaults to `3L`.
-#'
-#' @returns A list with pathway parameters.
+#' @returns A list with GeneWalk parameters.
 #'
 #' @export
-params_pathway <- function(
-  n_pathways = 250L,
-  pathway_depth = 4L,
-  pathway_branching = 3L,
-  n_focal_pathways = 15L,
-  connections_per_gene = 3L
+params_genewalk_data <- function(
+  n_signal_genes = 300L,
+  n_noise_genes = 300L,
+  n_roots = 10L,
+  depth = 3L,
+  branching = 3L,
+  p_lateral = 0.1,
+  p_ppi = 0.05,
+  min_annotations = 10L,
+  max_annotations = 25L,
+  min_noise_subtrees = 10L
 ) {
-  checkmate::qassert(n_pathways, "I1")
-  checkmate::qassert(pathway_depth, "I1")
-  checkmate::qassert(pathway_branching, "I1")
-  checkmate::qassert(n_focal_pathways, "I1")
-  checkmate::qassert(connections_per_gene, "I1")
+  # checks
+  checkmate::qassert(n_signal_genes, "I1")
+  checkmate::qassert(n_noise_genes, "I1")
+  checkmate::qassert(n_roots, "I1")
+  checkmate::qassert(depth, "I1")
+  checkmate::qassert(branching, "I1")
+  checkmate::qassert(p_lateral, "N1")
+  checkmate::qassert(p_ppi, "N1")
+  checkmate::qassert(min_annotations, "I1")
+  checkmate::qassert(max_annotations, "I1")
+  checkmate::qassert(min_noise_subtrees, "I1")
 
+  # return
   list(
-    n_pathways = n_pathways,
-    pathway_depth = pathway_depth,
-    pathway_branching = pathway_branching,
-    n_focal_pathways = n_focal_pathways,
-    connections_per_gene = connections_per_gene
+    n_signal_genes = n_signal_genes,
+    n_noise_genes = n_noise_genes,
+    n_roots = n_roots,
+    depth = depth,
+    branching = branching,
+    p_lateral = p_lateral,
+    p_ppi = p_ppi,
+    min_annotations = min_annotations,
+    max_annotations = max_annotations,
+    min_noise_subtrees = min_noise_subtrees
   )
 }

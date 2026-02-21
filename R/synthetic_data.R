@@ -8,12 +8,12 @@
 #' working correctly. The following options exists:
 #' \itemize{
 #'  \item `"barbell"` - Two dense clusters connected by single edge.
-#'  \item `"caveman"` - Multiple isolated cliques with sparse inter-connections.
+#'  \item `"cavemen"` - Multiple isolated cliques with sparse inter-connections.
 #'  \item `"stochastic_block"` - Communities with controlled edge probabilities.
 #' }
 #'
 #' @param test_type String. One of
-#' `c("barbell", "caveman", "stochastic_block")`
+#' `c("barbell", "cavemen", "stochastic_block")`
 #' @param n_nodes_per_cluster Integer. Nodes per cluster/community.
 #' @param n_clusters Integer. Number of clusters.
 #' @param p_within Numeric. Probability of edges within cluster (0-1).
@@ -28,7 +28,7 @@
 #'
 #' @import data.table
 node2vec_test_data <- function(
-  test_type = c("barbell", "caveman", "stochastic_block"),
+  test_type = c("barbell", "cavemen", "stochastic_block"),
   n_nodes_per_cluster = 10L,
   n_clusters = 3L,
   p_within = 0.8,
@@ -40,7 +40,7 @@ node2vec_test_data <- function(
   # checks
   checkmate::assertChoice(
     test_type,
-    c("barbell", "caveman", "stochastic_block")
+    c("barbell", "cavemen", "stochastic_block")
   )
   checkmate::qassert(n_nodes_per_cluster, "I1")
   checkmate::qassert(n_clusters, "I1")
@@ -131,276 +131,81 @@ evaluate_node2vec_test <- function(embeddings, node_labels) {
 
 #' Generate synthetic GeneWalk data
 #'
-#' @param ppi_params List. PPI parameters from [params_ppi()].
-#' @param pathway_params List. Pathway parameters from [params_pathway()].
-#' @param n_communities Integer. Number of gene communities. Defaults to `3L`.
-#' @param signal_strength Numeric. Probability of connecting to focal pathways
-#'   (0-1). Defaults to `0.8`.
+#' @description
+#' Generates a synthetic network that mimics real GeneWalk input data for
+#' testing and benchmarking. The network consists of three components: a
+#' hierarchical ontology (tree structure with lateral edges), gene-to-ontology
+#' annotations, and protein-protein interactions (PPI).
+#'
+#' Signal genes are annotated exclusively within a single ontology subtree and
+#' form PPI edges among themselves, creating coherent graph neighbourhoods.
+#' Noise genes receive the same number of annotations but are forced to span
+#' multiple subtrees, and their PPI edges are random across the noise group.
+#' Both groups are degree-matched so that significance is driven by annotation
+#' coherence rather than connectivity alone.
+#'
+#' @param data_params Named list. Return from
+#' [genewalkR::params_genewalk_data()].
 #' @param seed Integer. Random seed. Defaults to `42L`.
 #'
-#' @returns A list with edges, ground truth, and pathway metadata.
+#' @returns A list with the following items:
+#' \describe{
+#'   \item{full_data}{A data.table with columns `from` and `to` containing
+#'   all edges (ontology hierarchy, gene-to-pathway, and PPI).}
+#'   \item{gene_to_pathways}{A data.table with columns `from` (gene) and
+#'   `to` (pathway) for gene-to-ontology annotation edges only.}
+#'   \item{gene_ids}{Character vector of all gene identifiers (signal and
+#'   noise).}
+#'   \item{pathway_ids}{Character vector of all ontology term identifiers.}
+#' }
 #'
 #' @export
 synthetic_genewalk_data <- function(
-  ppi_params = params_ppi(),
-  pathway_params = params_pathway(),
-  n_communities = 3L,
-  signal_strength = 0.8,
+  data_params = params_genewalk_data(),
   seed = 42L
 ) {
-  assertPPIParams(ppi_params)
-  assertPathwayParams(pathway_params)
-  checkmate::qassert(n_communities, "I1")
-  checkmate::qassert(signal_strength, "N1[0, 1]")
+  assertGeneWalkDataParams(data_params)
   checkmate::qassert(seed, "I1")
 
-  if (n_communities * ppi_params$min_community_size > ppi_params$n_genes) {
-    stop(
-      "Cannot create ",
-      n_communities,
-      " communities with minimum ",
-      ppi_params$min_community_size,
-      " genes each from ",
-      ppi_params$n_genes,
-      " total genes"
-    )
-  }
-
-  set.seed(seed)
-
-  gene_ids <- sprintf("gene_%04d", seq_len(ppi_params$n_genes))
-  ppi_graph <- igraph::sample_pa(
-    ppi_params$n_genes,
-    power = 1,
-    m = ppi_params$ppi_m,
-    directed = FALSE
-  )
-  igraph::V(ppi_graph)$name <- gene_ids
-
-  communities <- igraph::cluster_louvain(ppi_graph)
-  gene_communities <- igraph::membership(communities)
-
-  unique_comms <- unique(gene_communities)
-  if (length(unique_comms) > n_communities) {
-    comm_sizes <- table(gene_communities)
-    keep_comms <- names(sort(comm_sizes, decreasing = TRUE)[seq_len(
-      n_communities
-    )])
-    reassign_to <- as.integer(keep_comms[1])
-    gene_communities[
-      !gene_communities %in% as.integer(keep_comms)
-    ] <- reassign_to
-  }
-
-  comm_sizes <- table(gene_communities)
-  while (any(comm_sizes < ppi_params$min_community_size)) {
-    small_comms <- as.integer(names(comm_sizes[
-      comm_sizes < ppi_params$min_community_size
-    ]))
-    large_comm <- as.integer(names(which.max(comm_sizes)))
-
-    for (small_comm in small_comms) {
-      gene_communities[gene_communities == small_comm] <- large_comm
-    }
-
-    comm_sizes <- table(gene_communities)
-    unique_comms <- unique(gene_communities)
-
-    if (length(unique_comms) < n_communities) {
-      stop(
-        "Cannot maintain ",
-        n_communities,
-        " communities with minimum size ",
-        ppi_params$min_community_size,
-        ". Reduce n_communities or min_community_size."
-      )
-    }
-  }
-
-  ppi_edges <- igraph::as_edgelist(ppi_graph)
-  ppi_dt <- data.table::data.table(
-    from = ppi_edges[, 1],
-    to = ppi_edges[, 2],
-    edge_type = "interacts"
-  )
-
-  # call rust helper for pathway generation
-  pathway_result <- rs_generate_pathway_structure(
-    n_pathways = pathway_params$n_pathways,
-    pathway_depth = pathway_params$pathway_depth,
-    pathway_branching = pathway_params$pathway_branching,
-    n_communities = n_communities,
-    gene_ids = gene_ids,
-    gene_communities = as.integer(gene_communities),
-    n_focal_pathways = pathway_params$n_focal_pathways,
-    signal_strength = signal_strength,
-    connections_per_gene = pathway_params$connections_per_gene,
-    seed = seed
-  )
-
-  pathway_dt <- data.table::data.table(
-    from = pathway_result$pathway_edges_from,
-    to = pathway_result$pathway_edges_to,
-    edge_type = "parent_of"
-  )
-
-  pathway_metadata <- data.table::data.table(
-    pathway = pathway_result$pathway_ids,
-    subtree = pathway_result$pathway_subtrees,
-    depth = pathway_result$pathway_depths,
-    is_hub = pathway_result$is_hub
-  )
-
-  gene_pathway_dt <- data.table::data.table(
-    from = pathway_result$gene_pathway_edges_from,
-    to = pathway_result$gene_pathway_edges_to,
-    edge_type = "part_of"
-  )
-
-  # reconstruct community_focal_pathways as named list
-  cfp_dt <- data.table::data.table(
-    community = pathway_result$cfp_communities,
-    pathway = pathway_result$cfp_pathways
-  )
-  community_focal_pathways <- split(cfp_dt$pathway, cfp_dt$community)
-
-  # reconstruct comm_to_subtree as named vector
-  comm_to_subtree <- setNames(
-    pathway_result$cts_subtrees,
-    as.character(pathway_result$cts_communities)
-  )
-
-  all_edges <- data.table::rbindlist(list(ppi_dt, pathway_dt, gene_pathway_dt))
-
-  ground_truth <- data.table::data.table(
-    gene = gene_ids,
-    community = gene_communities
-  )
-
-  list(
-    edges = all_edges,
-    ground_truth = ground_truth,
-    pathway_metadata = pathway_metadata,
-    community_focal_pathways = community_focal_pathways,
-    comm_to_subtree = comm_to_subtree
-  )
-}
-
-
-#' Get Expected Gene-Pathway Associations
-#'
-#' Returns gene-pathway pairs that should show high cosine similarity based on
-#' the underlying community-subtree structure in synthetic data.
-#'
-#' @param synthetic_data List. Output from
-#' [genewalkR::synthetic_genewalk_data()].
-#' @param return_negatives Logical. If TRUE, also returns gene-pathway pairs
-#' from different communities/subtrees as negative controls.
-#' @param exclude_hubs Logical. If TRUE, excludes hub pathways (depth <= 1)
-#' from evaluation as they have high similarity to everything.
-#'
-#' @return data.table with columns: gene, pathway, expected_signal
-#'
-#' @export
-#'
-#' @import data.table
-get_expected_associations <- function(
-  synthetic_data,
-  return_negatives = FALSE,
-  exclude_hubs = TRUE
-) {
-  checkmate::assertList(synthetic_data)
-  checkmate::assertNames(
-    names(synthetic_data),
-    must.include = c(
-      "ground_truth",
-      "pathway_metadata",
-      "community_focal_pathways",
-      "comm_to_subtree"
+  data <- with(
+    data_params,
+    rs_build_synthetic_genewalk(
+      n_signal_genes = n_signal_genes,
+      n_noise_genes = n_noise_genes,
+      n_roots = n_roots,
+      depth = depth,
+      branching = branching,
+      p_lateral = p_lateral,
+      p_ppi = p_ppi,
+      min_annotations = min_annotations,
+      max_annotations = max_annotations,
+      min_noise_subtrees = min_noise_subtrees,
+      seed = seed
     )
   )
 
-  ground_truth <- data.table::copy(synthetic_data$ground_truth)
-  pathway_metadata <- data.table::copy(synthetic_data$pathway_metadata)
-  community_focal_pathways <- synthetic_data$community_focal_pathways
-  comm_to_subtree <- synthetic_data$comm_to_subtree
+  ontology <- data.table::as.data.table(data[c("ont_from", "ont_to")]) %>%
+    `colnames<-`(c("from", "to"))
+  pathway_genes <- data.table::as.data.table(data[c(
+    "gene_ont_from",
+    "gene_ont_to"
+  )]) %>%
+    `colnames<-`(c("from", "to"))
+  ppi <- data.table::as.data.table(data[c(
+    "ppi_from",
+    "ppi_to"
+  )]) %>%
+    `colnames<-`(c("from", "to"))
 
-  # filter out hub pathways if requested
-  if (exclude_hubs) {
-    pathway_metadata <- pathway_metadata[is_hub == FALSE]
-  }
+  full_dt <- data.table::rbindlist(list(ontology, pathway_genes, ppi))
 
-  positive_pairs_list <- list()
+  pathways <- (ontology %$% unique(c(from, to)))
+  genes <- unique(c(pathway_genes$from, (ppi %$% c(from, to))))
 
-  for (comm_id in names(community_focal_pathways)) {
-    focal_pathways <- community_focal_pathways[[comm_id]]
-
-    if (exclude_hubs) {
-      focal_pathways <- intersect(
-        focal_pathways,
-        pathway_metadata$pathway
-      )
-    }
-
-    if (length(focal_pathways) == 0) {
-      next
-    }
-
-    genes_in_comm <- ground_truth[community == as.integer(comm_id), gene]
-
-    positive_pairs_list[[comm_id]] <- CJ(
-      gene = genes_in_comm,
-      pathway = focal_pathways
-    )
-  }
-
-  positive_pairs <- data.table::rbindlist(positive_pairs_list)
-  positive_pairs[, expected_signal := TRUE]
-
-  if (!return_negatives) {
-    return(positive_pairs)
-  }
-
-  negative_pairs_list <- list()
-
-  for (comm_id in names(comm_to_subtree)) {
-    genes_in_comm <- ground_truth[community == as.integer(comm_id), gene]
-    target_subtree <- comm_to_subtree[comm_id]
-
-    other_pathways <- pathway_metadata[
-      subtree != target_subtree,
-      pathway
-    ]
-
-    if (length(other_pathways) == 0) {
-      next
-    }
-
-    n_negatives_per_gene <- ceiling(
-      nrow(positive_pairs) / length(genes_in_comm)
-    )
-
-    for (gene in genes_in_comm) {
-      n_sample <- min(n_negatives_per_gene, length(other_pathways))
-      sampled_pathways <- sample(other_pathways, n_sample)
-
-      negative_pairs_list[[paste0(
-        comm_id,
-        "_",
-        gene
-      )]] <- data.table::data.table(
-        gene = gene,
-        pathway = sampled_pathways
-      )
-    }
-  }
-
-  negative_pairs <- data.table::rbindlist(negative_pairs_list)
-  negative_pairs[, expected_signal := FALSE]
-
-  if (nrow(negative_pairs) > nrow(positive_pairs)) {
-    negative_pairs <- negative_pairs[sample(.N, nrow(positive_pairs))]
-  }
-
-  rbindlist(list(positive_pairs, negative_pairs))
+  res <- list(
+    full_data = full_dt,
+    gene_to_pathways = pathway_genes,
+    gene_ids = genes,
+    pathway_ids = pathways
+  )
 }

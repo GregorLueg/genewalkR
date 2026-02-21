@@ -5,7 +5,7 @@
 \title{Generate Simple Node2Vec Test Data}
 \usage{
 node2vec_test_data(
-  test_type = c("barbell", "caveman", "stochastic_block"),
+  test_type = c("barbell", "cavemen", "stochastic_block"),
   n_nodes_per_cluster = 10L,
   n_clusters = 3L,
   p_within = 0.8,
@@ -15,7 +15,7 @@ node2vec_test_data(
 }
 \arguments{
 \item{test_type}{String. One of
-\code{c("barbell", "caveman", "stochastic_block")}}
+\code{c("barbell", "cavemen", "stochastic_block")}}
 
 \item{n_nodes_per_cluster}{Integer. Nodes per cluster/community.}
 
@@ -37,7 +37,7 @@ Creates graphs with known structure to verify node2vec is
 working correctly. The following options exists:
 \itemize{
 \item \code{"barbell"} - Two dense clusters connected by single edge.
-\item \code{"caveman"} - Multiple isolated cliques with sparse inter-connections.
+\item \code{"cavemen"} - Multiple isolated cliques with sparse inter-connections.
 \item \code{"stochastic_block"} - Communities with controlled edge probabilities.
 }
 }

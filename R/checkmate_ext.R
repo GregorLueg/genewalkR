@@ -110,44 +110,58 @@ checkNode2VecParams <- function(x) {
 #' @return Invisibly returns the checked object if the assertion is successful.
 assertNode2VecParam <- checkmate::makeAssertionFunction(checkNode2VecParams)
 
-## ppi parameter ---------------------------------------------------------------
+## synthetic data parameter ----------------------------------------------------
 
-#' Check PPI parameters
+#' Check GeneWalk data parameters
 #'
-#' @description Checkmate extension for checking PPI parameters.
+#' @description Checkmate extension for checking GeneWalkData parameters.
 #'
 #' @param x The list to check/assert.
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
-checkPPIParams <- function(x) {
+checkGeneWalkDataParams <- function(x) {
   res <- checkmate::checkList(x)
   if (!isTRUE(res)) {
     return(res)
   }
-
+  integer_params <- c(
+    "n_signal_genes",
+    "n_noise_genes",
+    "n_roots",
+    "depth",
+    "branching",
+    "min_annotations",
+    "max_annotations",
+    "min_noise_subtrees"
+  )
+  numeric_params <- c("p_lateral", "p_ppi")
   res <- checkmate::checkNames(
     names(x),
-    must.include = c("n_genes", "ppi_m", "min_community_size")
+    must.include = c(integer_params, numeric_params)
   )
   if (!isTRUE(res)) {
     return(res)
   }
-
-  for (param in names(x)) {
+  for (param in integer_params) {
     res <- checkmate::qtest(x[[param]], "I1")
     if (!isTRUE(res)) {
       return(sprintf("`%s` must be a single integer", param))
     }
   }
-
+  for (param in numeric_params) {
+    res <- checkmate::qtest(x[[param]], "N1")
+    if (!isTRUE(res)) {
+      return(sprintf("`%s` must be a single numeric", param))
+    }
+  }
   TRUE
 }
 
-#' Assert PPI parameters
+#' Assert GeneWalk data parameters
 #'
-#' @description Checkmate extension for asserting PPI parameters.
+#' @description Checkmate extension for asserting GeneWalkData parameters.
 #'
-#' @inheritParams checkPPIParams
+#' @inheritParams checkGeneWalkDataParams
 #'
 #' @param .var.name Name of the checked object to print in assertions. Defaults
 #'   to the heuristic implemented in checkmate.
@@ -155,57 +169,43 @@ checkPPIParams <- function(x) {
 #'   [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
-assertPPIParams <- checkmate::makeAssertionFunction(checkPPIParams)
+assertGeneWalkDataParams <- checkmate::makeAssertionFunction(
+  checkGeneWalkDataParams
+)
 
-## pathway parameters ----------------------------------------------------------
+## interaction check -----------------------------------------------------------
 
-#' Check pathway parameters
+#' Check GeneWalk input data.table
 #'
-#' @description Checkmate extension for checking pathway parameters.
+#' @description Checkmate extension for checking GeneWalkDataTable parameters.
 #'
 #' @param x The list to check/assert.
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
-checkPathwayParams <- function(x) {
-  res <- checkmate::checkList(x)
+checkGeneWalkDataTable <- function(x) {
+  res <- checkmate::checkDataTable(x)
   if (!isTRUE(res)) {
     return(res)
   }
-
-  res <- checkmate::checkNames(
-    names(x),
-    must.include = c(
-      "n_pathways",
-      "pathway_depth",
-      "pathway_branching",
-      "n_focal_pathways",
-      "connections_per_gene"
-    )
-  )
+  res <- checkmate::checkNames(names(x), must.include = c("from", "to"))
   if (!isTRUE(res)) {
     return(res)
   }
-
-  for (param in names(x)) {
-    res <- checkmate::qtest(x[[param]], "I1")
-    if (!isTRUE(res)) {
-      return(sprintf("`%s` must be a single integer", param))
-    }
-  }
-
   TRUE
 }
 
-#' Assert pathway parameters
+#' Assert GeneWalk input data.table
 #'
-#' @description Checkmate extension for asserting pathway parameters.
+#' @description Checkmate extension for asserting GeneWalkDataTable parameters.
 #'
-#' @inheritParams checkPathwayParams
+#' @inheritParams checkGeneWalkDataTable
 #'
 #' @param .var.name Name of the checked object to print in assertions. Defaults
-#' to the heuristic implemented in checkmate.
+#'   to the heuristic implemented in checkmate.
 #' @param add Collection to store assertion messages. See
-#' [checkmate::makeAssertCollection()].
+#'   [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
-assertPathwayParams <- checkmate::makeAssertionFunction(checkPathwayParams)
+assertGeneWalkDataTable <- checkmate::makeAssertionFunction(
+  checkGeneWalkDataTable
+)
