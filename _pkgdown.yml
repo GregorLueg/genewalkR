@@ -7,6 +7,9 @@ template:
     primary: "#00bc8c"
     border-radius: 0.4rem
     btn-border-radius: 0.4rem
+  includes:
+    in_header: ""
+  css: pkgdown/extra.css
 
 home:
   title: "genewalkR"

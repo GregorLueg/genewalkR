@@ -68,7 +68,9 @@ implementation of node2vec. In its default setting, we use a HIGHLY optimised
 version that runs on the CPU with SIMD-acceleration and a tolerated race
 condition (undefined behaviour in low level terms) that makes this very fast.
 The issue with this is that the underlying embeddings will not be deterministic;
-however, the structure of the underlying graph will be identified.
+however, the structure of the underlying graph will be identified. If you
+really, really, really need deterministic results here, set the 
+`n_workers = 1L`.
 
 ```{r}
 #| label: run node2vec
@@ -109,7 +111,7 @@ in the underlying graph.
 
 ## Other graphs
 
-Let's look at some other synthetic graphs...
+Let's have a look at some other graphs with well known structures
 
 ### Cavemen graph
 
@@ -153,6 +155,9 @@ ggplot(data = pca_dt, mapping = aes(x = PC1, y = PC2)) +
 
 ### Stochastic blocks 
 
+In this graph, we have less defined communities with more between edges
+across the communities.
+
 ```{r}
 #| label: stochastic block igraph
 
@@ -195,4 +200,7 @@ ggplot(data = pca_dt, mapping = aes(x = PC1, y = PC2)) +
 In conclusion, node2vec generates an embedding of the underlying network 
 structure that you can then use to visualise the data or do additional analysis
 (supervised tasks or like in this package statistical testing for gene <>
-pathway associations in a bag of genes).
+pathway associations in a bag of genes). Pending on your needs, you can go
+high on the available workers and make this fast, or if you really, really,
+really need similar embeddings every single time, you can also choose to 
+disable the parallelism during training.

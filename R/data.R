@@ -85,7 +85,7 @@ download_database <- function(repo = "GregorLueg/genewalkR", branch = "main") {
 
   # Construct LFS URL
   lfs_url <- sprintf(
-    "https://media.githubusercontent.com/media/%s/%s/inst/extdata/database.duckdb",
+    "https://media.githubusercontent.com/media/%s/%s/inst/extdata/genewalk.duckdb",
     repo,
     branch
   )

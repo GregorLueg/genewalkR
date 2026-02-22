@@ -112,16 +112,23 @@ expect_true(
 
 ### seed reproducibility -------------------------------------------------------
 
-cavemen_res_2 <- node2vec(
+# due to the race condition implemented in the gradient, I need to reduce
+# to one thread
+
+cavemen_res_1 <- node2vec(
   graph_dt = cavemen_data$edges,
-  node2vec_params = params_node2vec(n_epochs = 25L),
+  node2vec_params = params_node2vec(n_epochs = 25L, num_workers = 1L),
   .verbose = FALSE
 )
 
-# there should be a decent'ish mean absolute correlation despite the race
-# conditions
+cavemen_res_2 <- node2vec(
+  graph_dt = cavemen_data$edges,
+  node2vec_params = params_node2vec(n_epochs = 25L, num_workers = 1L),
+  .verbose = FALSE
+)
 
-expect_true(
-  current = mean(abs(diag(cor(cavemen_res, cavemen_res_2)))) >= 0.7,
-  info = "reproducibility of the seeds"
+expect_equal(
+  current = cavemen_res_1,
+  target = cavemen_res_2,
+  info = "reproducibility with n_workers is set to 1"
 )

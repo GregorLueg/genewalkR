@@ -34,7 +34,9 @@ library(magrittr)
 Let's start with some synthetic data to understand how this works...
 The synthetic GeneWalk network is designed testing and benchmarking, with
 signal genes forming coherent, degree-matched graph neighbourhoods and noise
-genes spanning multiple ontology subtrees at random.
+genes spanning multiple ontology subtrees at random. The signal genes will have
+some VERY clear signal. Noise genes also still due to the nature of the 
+synthetic data; however, to a lesser extent.
 
 ```{r}
 #| label: generate synthetic data
