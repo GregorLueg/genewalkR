@@ -26,7 +26,9 @@
 #' }
 #'
 #' @param graph_dt A data.table with the graph information. Needs to have
-#' the columns `"from"` and `"to"`, and optionally a weight.
+#' the columns `"from"`, `"to"` and `"type"`; type must include `"hierarchy"`
+#' for the pathways, `"interaction"` for interactions and `"part_of"` for
+#' gene/pathway interactions, and optionally a weight.
 #' @param gene_to_pathway_dt A data.table with the gene to pathway information.
 #' Needs to have `"from"` (gene) and `"to"` (pathway).
 #' @param gene_ids String. The "bag of genes" you are testing.
@@ -55,13 +57,8 @@ GeneWalk <- S7::new_class(
   # constructor
   constructor = function(graph_dt, gene_to_pathway_dt, gene_ids, pathway_ids) {
     # checks
-    checkmate::assertDataTable(graph_dt)
-    checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
-    checkmate::assertDataTable(gene_to_pathway_dt)
-    checkmate::assertNames(
-      names(gene_to_pathway_dt),
-      must.include = c("from", "to")
-    )
+    checkGeneWalkGraphDt(graph_dt)
+    assertGeneWalkDataTable(gene_to_pathway_dt)
     checkmate::qassert(gene_ids, "S+")
     checkmate::qassert(pathway_ids, "S+")
 

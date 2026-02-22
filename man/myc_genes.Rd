@@ -22,6 +22,6 @@ myc_genes
 The MYC target genes from the MSigDB (Hallmarks V1).
 }
 \references{
-Liberzon, et al., Cell Sys, 2014
+Liberzon, et al., Cell Syst, 2015
 }
 \keyword{datasets}

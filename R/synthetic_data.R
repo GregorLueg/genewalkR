@@ -185,17 +185,20 @@ synthetic_genewalk_data <- function(
   )
 
   ontology <- data.table::as.data.table(data[c("ont_from", "ont_to")]) %>%
-    `colnames<-`(c("from", "to"))
+    `colnames<-`(c("from", "to")) %>%
+    .[, type := "hierarchy"]
   pathway_genes <- data.table::as.data.table(data[c(
     "gene_ont_from",
     "gene_ont_to"
   )]) %>%
-    `colnames<-`(c("from", "to"))
+    `colnames<-`(c("from", "to")) %>%
+    .[, type := "part_of"]
   ppi <- data.table::as.data.table(data[c(
     "ppi_from",
     "ppi_to"
   )]) %>%
-    `colnames<-`(c("from", "to"))
+    `colnames<-`(c("from", "to")) %>%
+    .[, type := "interaction"]
 
   full_dt <- data.table::rbindlist(list(ontology, pathway_genes, ppi))
 

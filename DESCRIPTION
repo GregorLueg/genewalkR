@@ -15,7 +15,7 @@ Authors@R:
         role = c("ctb"))
     )
 Description: 
-    Run the GeneWalk algorithm via node2vec to identify pathway to gene relationships.
+    Run the GeneWalk algorithm via node2vec to identify gene to pathway relationships.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -27,9 +27,10 @@ Imports:
     duckdb,
     DBI,
     data.table,
-    ggplot2,
-    purrr,
     igraph,
+    ggplot2,
+    plotly,
+    purrr,
     magrittr,
     rextendr,
     R6,

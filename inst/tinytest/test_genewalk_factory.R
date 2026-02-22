@@ -17,6 +17,8 @@ cell_cycle_reactome <- reactome_info[
 
 gois <- reactome_genes[to %in% cell_cycle_reactome, unique(from)]
 
+pathways_with_genes <- reactome_genes[from %in% gois, unique(to)]
+
 ### generate the class ---------------------------------------------------------
 
 gw_data <- new_data_builder(

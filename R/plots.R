@@ -1,46 +1,63 @@
 # plotting functions -----------------------------------------------------------
 
-## individual genes ------------------------------------------------------------
+## helpers ---------------------------------------------------------------------
 
-#' Generate a plot for an individual gene
+#' Helper function to get the node degree from the PPI
+#'
+#' @param graph_dt data.table. The graph info for which to get the node degree
+#' of the genes.
+#'
+#' @returns data.table with the gene and node degree in the network
+.get_node_degree <- function(graph_dt) {
+  # checks
+  assertGeneWalkDataTable(graph_dt)
+
+  node_degree <- igraph::graph_from_data_frame(
+    graph_dt[type == "interaction"],
+    directed = FALSE
+  ) %>%
+    igraph::degree()
+
+  node_dt <- data.table::data.table(
+    gene = names(node_degree),
+    degree = node_degree
+  )
+
+  node_dt
+}
+
+# plot the results -------------------------------------------------------------
+
+#' Plot the gene walk results
 #'
 #' @description
-#' Plots the enrichment for individual genes within your GeneWalk results.
-#' This will plot the top_n enriched pathways for the gene of interest.
+#' Plots the GeneWalk results. Creates an interactive plotly plot to explore
+#' the results interactively.
 #'
 #' @param object The `GeneWalk` class. The stats need to be available in the
 #' object.
-#' @param gene_of_interest String. The gene of interest for which to plot
-#' the enriched pathways.
-#' @param top_n Integer. Number of genes to plot
 #'
 #' @returns ggplot2 object with the plot for the gene
 #'
 #' @export
-plot_individual_gene <- S7::new_generic(
-  name = "plot_individual_gene",
+plot_gw_results <- S7::new_generic(
+  name = "plot_gw_results",
   dispatch_args = "object",
   fun = function(
-    object,
-    gene_of_interest,
-    top_n = 10L
+    object
   ) {
     S7::S7_dispatch()
   }
 )
 
-#' @method plot_individual_gene GeneWalk
+#' @method plot_gw_results GeneWalk
 #'
 #' @import ggplot2
-S7::method(plot_individual_gene, GeneWalk) <- function(
-  object,
-  gene_of_interest,
-  top_n = 10L
+S7::method(plot_gw_results, GeneWalk) <- function(
+  object
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
-  checkmate::qassert(gene_of_interest, "S1")
-  checkmate::qassert(top_n, "I1")
 
   # early return
   if (suppressWarnings(nrow(get_stats(genewalk_obj)) == 0)) {
@@ -52,47 +69,38 @@ S7::method(plot_individual_gene, GeneWalk) <- function(
     return(NULL)
   }
 
-  plot_df <- data.table::copy(get_stats(genewalk_obj))
+  results <- get_stats(object)
 
-  # throw an error if a gene that is not in the data was used
-  checkmate::assertTRUE(gene_of_interest %in% plot_df$gene)
+  graph_dt <- get_graph_dt(object)
 
-  plot_df <- get_stats(obj)[gene == gene_of_interest]
-  setorder(plot_df, avg_pval)
+  node_dt <- .get_node_degree(graph_dt)
 
-  plot_df <- plot_df[1:top_n, ][,
-    pathway := factor(pathway, levels = rev(pathway))
+  plot_dt <- results[,
+    .(
+      ratio = sum(avg_gene_fdr <= 0.1) / length(pathway),
+      pathway_connections = length(pathway)
+    ),
+    .(gene)
   ]
 
-  p <- ggplot(
-    data = plot_df,
-    mapping = aes(
-      x = -log10(avg_gene_fdr + .Machine$double.eps),
-      xend = 0,
-      y = pathway,
-      yend = pathway
-    )
-  ) +
-    geom_col(
-      mapping = aes(fill = pathway),
-      colour = "black",
-      show.legend = FALSE
-    ) +
-    geom_segment(aes(
-      x = -log10(gene_fdr_ci_lower + .Machine$double.eps),
-      xend = -log10(gene_fdr_ci_upper + .Machine$double.eps)
-    )) +
-    xlab("-log10(FDR)") +
-    ylab("Pathway") +
-    ggtitle(sprintf("Genewalk result - %s", gene_of_interest)) +
-    scale_fill_viridis_d(option = "C") +
-    geom_vline(
-      xintercept = 1,
-      linetype = "dashed",
-      linewidth = 0.5,
-      color = "darkred"
-    ) +
-    theme_bw()
+  plot_dt <- node_dt[plot_dt, on = "gene"][,
+    degree := fifelse(is.na(degree), 0, degree)
+  ]
 
-  return(p)
+  p <- ggplot(data = plot_dt, mapping = aes(x = degree + 1, y = ratio)) +
+    suppressWarnings(geom_point(
+      mapping = aes(fill = ratio, text = gene, size = pathway_connections),
+      shape = 21,
+      alpha = 0.7
+    )) +
+    scale_x_log10() +
+    scale_fill_viridis_c(limits = c(0, 1), option = "viridis") +
+    ylim(0, 1) +
+    xlab("log(degree + 1)") +
+    ylab("Ratio enrichment") +
+    labs(fill = "Ratio", size = "Pathway\nconnections") +
+    theme_bw() +
+    ggtitle("Gene Walk Results")
+
+  plotly::ggplotly(p, tooltip = c("text", "x", "y", "size"))
 }
