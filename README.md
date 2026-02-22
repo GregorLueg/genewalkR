@@ -12,8 +12,9 @@ This package implements the GeneWalk approach from
 [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)
 (see GitHub [here](https://github.com/churchmanlab/genewalk)) into R
 leveraging Rust under the hood to generate rapidly the random walks and run
-the word2vec model. It uses a highly optimised, fast implementation, leveraging
-SIMD-acceleration and multi-threading.
+the word2vec model for the generation of the embeddings. It uses a highly 
+optimised, fast implementation, leveraging SIMD-acceleration and multi-threading, 
+see [node2vec-rs](https://github.com/GregorLueg/node2vec-rs).
 
 ## Installation
 
@@ -54,11 +55,9 @@ remotes::install_github("GregorLueg/genewalkR")
 
 ## How to use the package
 
-Please refer to the vignettes in the package to get a better understanding 
-on how to use the functionality of the package. There is a very fast node2vec
-implementation powering the GeneWalk approach itself and a large number of
-classes, methods and helper functions to make the runs fast (and hopefully
-fun).
+Please refer to the [website](https://gregorlueg.github.io/genewalkR/) of the
+package to check out how to use this. Vignettes and function definitions are
+provided there.
 
 ## License
 
