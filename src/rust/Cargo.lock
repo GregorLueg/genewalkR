@@ -890,9 +890,9 @@ dependencies = [
 
 [[package]]
 name = "node2vec-rs"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57d9430c1dfcbc34a6a197d82661caab4a75c564f2039d97ab70973a01f0ae30"
+checksum = "531b9cf4676bd9383a74b6305450d27cdd0c242d393b2914d05e6aa7b7549913"
 dependencies = [
  "clap",
  "csv",

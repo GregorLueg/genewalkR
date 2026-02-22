@@ -9,6 +9,8 @@
 #' @param x The list to check/assert
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
 checkNode2VecParams <- function(x) {
   res <- checkmate::checkList(x)
   if (!isTRUE(res)) {
@@ -108,6 +110,8 @@ checkNode2VecParams <- function(x) {
 #' [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
 assertNode2VecParam <- checkmate::makeAssertionFunction(checkNode2VecParams)
 
 ## synthetic data parameter ----------------------------------------------------
@@ -119,6 +123,8 @@ assertNode2VecParam <- checkmate::makeAssertionFunction(checkNode2VecParams)
 #' @param x The list to check/assert.
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
 checkGeneWalkDataParams <- function(x) {
   res <- checkmate::checkList(x)
   if (!isTRUE(res)) {
@@ -169,6 +175,8 @@ checkGeneWalkDataParams <- function(x) {
 #'   [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
 assertGeneWalkDataParams <- checkmate::makeAssertionFunction(
   checkGeneWalkDataParams
 )
@@ -182,6 +190,8 @@ assertGeneWalkDataParams <- checkmate::makeAssertionFunction(
 #' @param x The list to check/assert.
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
 checkGeneWalkDataTable <- function(x) {
   res <- checkmate::checkDataTable(x)
   if (!isTRUE(res)) {
@@ -206,6 +216,8 @@ checkGeneWalkDataTable <- function(x) {
 #'   [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
 assertGeneWalkDataTable <- checkmate::makeAssertionFunction(
   checkGeneWalkDataTable
 )
@@ -219,6 +231,8 @@ assertGeneWalkDataTable <- checkmate::makeAssertionFunction(
 #' @param x The data.table to check.
 #'
 #' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
 checkGeneWalkGraphDt <- function(x) {
   res <- checkmate::checkDataTable(x)
   if (!isTRUE(res)) {
@@ -256,4 +270,6 @@ checkGeneWalkGraphDt <- function(x) {
 #'   [checkmate::makeAssertCollection()].
 #'
 #' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
 assertGeneWalkGraphDt <- checkmate::makeAssertionFunction(checkGeneWalkGraphDt)

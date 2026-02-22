@@ -236,11 +236,17 @@ myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
 # this will take a while
 myc_gwn <- generate_initial_emb(
   myc_gwn,
-  node2vec_params = params_node2vec(n_epochs = 5L),
+  node2vec_params = params_node2vec(
+    n_epochs = 5L,
+    walks_per_node = 20L,
+    walk_length = 20L
+  ),
   .verbose = TRUE
 )
 # if you are on a many core machines, consider upping the num_workers here
-# the default is 4L, but you can up this on your machine
+# the default is 4L, but you can up this on your machine. also, for 
+# speed purposes, the walks per node and walk length has been reduced
+# to 20L each.
 
 # this even longer... go get coffee
 myc_gwn <- generate_permuted_emb(

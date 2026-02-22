@@ -16,3 +16,4 @@ number of edges across all tables and the second element is \code{NA}.
 \description{
 Dimensions of a DataBuilder object
 }
+\keyword{internal}

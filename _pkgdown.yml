@@ -1,4 +1,107 @@
 url: https://gregorlueg.github.io/genewalkR/
+
 template:
   bootstrap: 5
+  bootswatch: darkly
+  bslib:
+    primary: "#00bc8c"
+    border-radius: 0.4rem
+    btn-border-radius: 0.4rem
 
+home:
+  title: "genewalkR"
+  description: "GeneWalk analysis in R with Rust-powered random walks"
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search, github]
+  components:
+    github:
+      icon: fab fa-github
+      href: https://github.com/GregorLueg/genewalkR
+      aria-label: GitHub
+
+articles:
+  - title: "Vignettes"
+    navbar: ~
+    contents:
+      - genewalk
+      - node2vec
+
+reference:
+  - title: "Core workflow"
+    desc: "Main classes and methods to run GeneWalk"
+    contents:
+      - GeneWalk
+      - GeneWalkGenerator
+      - generate_initial_emb
+      - generate_permuted_emb
+      - calculate_genewalk_stats
+      - plot_gw_results
+  - title: "Node2Vec"
+    desc: "Run Node2Vec"
+    contents:
+      - node2vec
+  - title: "Helpers and getters"
+    desc: "Various getters and helper classes"
+    contents:
+      - get_stats
+      - get_graph_dt
+      - get_gw_data
+      - get_gw_data_filtered
+      - get_gene_pathway_dt
+      - get_embedding
+      - get_gene_info
+      - n_nodes
+      - new_data_builder
+  - title: "Data sources"
+    desc: "How to download and interact with the internal DB."
+    contents:
+      - download_database
+      - get_db_connection
+      - get_interactions_combined
+      - get_interactions_intact
+      - get_interactions_reactome
+      - get_interactions_signor
+      - get_interactions_string
+      - get_gene_ontology_info
+      - get_gene_ontology_hierarchy
+      - get_reactome_info
+      - get_reactome_hierarchy
+      - get_gene_to_go
+      - get_gene_to_reactome
+  - title: "(Synthetic) Data & testing"
+    contents:
+      - synthetic_genewalk_data
+      - node2vec_test_data
+      - evaluate_node2vec_test
+      - myc_genes
+  - title: "Params"
+    desc: "Wrapper functions around core parameters"
+    contents:
+      - params_genewalk_data
+      - params_node2vec
+  - title: "Rust wrappers"
+    desc: "Everything rusty - only use this if you know what you are doing..."
+    contents:
+      - rs_build_synthetic_genewalk
+      - rs_cosine_sim
+      - rs_gene_walk
+      - rs_gene_walk_perm
+      - rs_gene_walk_test
+      - rs_generate_pathway_structure
+      - rs_node2vec_synthetic_data
+  - title: "Internal"
+    desc: "Internal helper functions"
+    contents:
+      - assertGeneWalkDataParams
+      - assertGeneWalkDataTable
+      - assertGeneWalkGraphDt
+      - assertNode2VecParam
+      - checkGeneWalkDataParams
+      - checkGeneWalkDataTable
+      - checkGeneWalkGraphDt
+      - checkNode2VecParams
+      - gene_ontology_source
+      - opentargets_source

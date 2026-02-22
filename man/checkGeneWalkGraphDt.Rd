@@ -16,3 +16,4 @@ checkGeneWalkGraphDt(x)
 Checkmate extension for checking the graph_dt parameter of a
 GeneWalk object.
 }
+\keyword{internal}

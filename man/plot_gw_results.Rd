@@ -14,6 +14,6 @@ object.}
 ggplot2 object with the plot for the gene
 }
 \description{
-Plots the enrichment for individual genes within your GeneWalk results.
-This will plot the top_n enriched pathways for the gene of interest.
+Plots the GeneWalk results. Creates an interactive plotly plot to explore
+the results interactively.
 }

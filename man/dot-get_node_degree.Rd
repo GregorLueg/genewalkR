@@ -16,3 +16,4 @@ data.table with the gene and node degree in the network
 \description{
 Helper function to get the node degree from the PPI
 }
+\keyword{internal}

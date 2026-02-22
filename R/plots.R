@@ -8,6 +8,8 @@
 #' of the genes.
 #'
 #' @returns data.table with the gene and node degree in the network
+#'
+#' @keywords internal
 .get_node_degree <- function(graph_dt) {
   # checks
   assertGeneWalkDataTable(graph_dt)

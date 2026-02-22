@@ -96,6 +96,8 @@ GeneWalk <- S7::new_class(
 #' @returns Invisibly returns x.
 #'
 #' @method print GeneWalk
+#'
+#' @keywords internal
 S7::method(print, GeneWalk) <- function(x, ...) {
   n_edges <- nrow(x@graph_dt)
   embd_generated <- nrow(x@embd) > 1 || ncol(x@embd) > 1
@@ -315,6 +317,8 @@ new_data_builder <- function(ppis, gene_to_pathways, pathway_hierarchy) {
 #'   number of edges across all tables and the second element is `NA`.
 #'
 #' @export
+#'
+#' @keywords internal
 dim.DataBuilder <- function(x) {
   c(x$n_edges, NA_integer_)
 }

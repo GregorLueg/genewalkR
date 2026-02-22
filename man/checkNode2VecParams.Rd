@@ -15,3 +15,4 @@ checkNode2VecParams(x)
 \description{
 Checkmate extension for checking the node2vec parameters.
 }
+\keyword{internal}

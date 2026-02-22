@@ -16,3 +16,4 @@ The data.table with the factor columns transformed to strings.
 \description{
 Transform string to factor columns
 }
+\keyword{internal}

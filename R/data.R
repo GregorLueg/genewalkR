@@ -27,6 +27,8 @@
 #' columns into strings.
 #'
 #' @returns The data.table with the factor columns transformed to strings.
+#'
+#' @keywords internal
 .string_cols_to_factors <- function(table) {
   # checks
   checkmate::assertDataTable(table)

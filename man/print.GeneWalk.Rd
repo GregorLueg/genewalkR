@@ -14,3 +14,4 @@ Invisibly returns x.
 \description{
 Print a GeneWalk object.
 }
+\keyword{internal}

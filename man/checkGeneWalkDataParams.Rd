@@ -15,3 +15,4 @@ checkGeneWalkDataParams(x)
 \description{
 Checkmate extension for checking GeneWalkData parameters.
 }
+\keyword{internal}

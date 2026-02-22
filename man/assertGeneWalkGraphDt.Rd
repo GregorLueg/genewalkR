@@ -22,3 +22,4 @@ Invisibly returns the checked object if the assertion is successful.
 Checkmate extension for asserting the graph_dt parameter of a
 GeneWalk object.
 }
+\keyword{internal}

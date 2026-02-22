@@ -15,3 +15,4 @@ checkGeneWalkDataTable(x)
 \description{
 Checkmate extension for checking GeneWalkDataTable parameters.
 }
+\keyword{internal}
