@@ -266,6 +266,33 @@ myc_gwn <- calculate_genewalk_stats(
 myc_gwn_res <- get_stats(myc_gwn)
 ```
 
+And look at some of the genes
+
+```{r}
+#| label: check the results on the MYC genes
+
+# translate go ids to names and do the same for the gene symbols
+gene_symbol_translation <- setNames(
+  myc_genes$gene_symbol,
+  myc_genes$ensembl_gene
+)
+
+# get the go data
+go_info <- get_gene_ontology_info()
+
+go_id_translation <- setNames(
+  go_info$go_name,
+  go_info$go_id
+)
+
+myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
+  gene = gene_symbol_translation[gene],
+  pathway = go_id_translation[pathway]
+)]
+
+head(myc_gwn_res_translated, 15L)
+```
+
 ### Exploring the results
 
 A simple way to visualise the initial results is to use the plot_results() 
