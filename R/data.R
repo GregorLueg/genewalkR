@@ -43,57 +43,36 @@
 
 ## downloads -------------------------------------------------------------------
 
-#' Check if database file is a Git LFS pointer
-#'
-#' @param db_path String. The path to the DB
+#' Get the path to the cached database, downloading if necessary
 #'
 #' @keywords internal
-is_lfs_pointer <- function(db_path) {
-  # checks
-  checkmate::qassert(db_path, "S1")
-
-  if (!file.exists(db_path)) {
-    return(FALSE)
+db_path <- function() {
+  cache_dir <- tools::R_user_dir("genewalkR", "cache")
+  path <- file.path(cache_dir, "genewalk.duckdb")
+  if (!file.exists(path)) {
+    download_database()
   }
-
-  if (file.size(db_path) > 200) {
-    return(FALSE)
-  }
-
-  first_line <- readLines(db_path, n = 1, warn = FALSE)
-  grepl("^version https://git-lfs\\.github\\.com", first_line)
+  path
 }
 
-#' Download actual database from Git LFS
-#'
-#' @param repo String. Repository in format "user/repo" (default:
-#' `"GregorLueg/genewalkR"`).
-#' @param branch String. Branch name (default: `"main"`)
+#' Download database from GitHub release
 #'
 #' @export
-download_database <- function(repo = "GregorLueg/genewalkR", branch = "main") {
-  # checks
-  checkmate::qassert(repo, "S1")
-  checkmate::qassert(branch, "S1")
+download_database <- function() {
+  cache_dir <- tools::R_user_dir("genewalkR", "cache")
+  dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
 
-  db_path <- system.file("extdata", "genewalk.duckdb", package = "genewalkR")
+  zip_path <- file.path(cache_dir, "genewalk.duckdb.zip")
+  db_path <- file.path(cache_dir, "genewalk.duckdb")
 
-  if (!is_lfs_pointer(db_path)) {
-    message("Database already downloaded")
-    return(invisible(db_path))
-  }
+  url <- "https://github.com/GregorLueg/genewalkR/releases/download/v0.1-data/genewalk.duckdb.zip"
 
-  # Construct LFS URL
-  lfs_url <- sprintf(
-    "https://media.githubusercontent.com/media/%s/%s/inst/extdata/genewalk.duckdb",
-    repo,
-    branch
-  )
-
-  message("Downloading database (150 MB)...")
+  message("Downloading database...")
   tryCatch(
     {
-      download.file(lfs_url, db_path, mode = "wb", quiet = FALSE)
+      utils::download.file(url, zip_path, mode = "wb", quiet = FALSE)
+      utils::unzip(zip_path, exdir = cache_dir)
+      file.remove(zip_path)
       message("Download complete")
       invisible(db_path)
     },
@@ -107,41 +86,21 @@ download_database <- function(repo = "GregorLueg/genewalkR", branch = "main") {
 
 #' Internal connector to the DB
 #'
-#' @param repo String. Repository in format "user/repo" (default:
-#' `"GregorLueg/genewalkR"`).
-#' @param branch String. Branch name (default: `"main"`)
+#' @description
+#' Downloads the DuckDB if not available and unzips it.
 #'
 #' @returns The DuckDB connection to the internal data
 #'
 #' @export
-get_db_connection <- function(repo = "GregorLueg/genewalkR", branch = "main") {
-  # checks
-  checkmate::qassert(repo, "S1")
-  checkmate::qassert(branch, "S1")
+get_db_connection <- function() {
+  cache_dir <- tools::R_user_dir("genewalkR", "cache")
+  path <- file.path(cache_dir, "genewalk.duckdb")
 
-  db_path <- system.file("extdata", "genewalk.duckdb", package = "genewalkR")
-
-  # check if the DB is only a pointer - if yes, download
-  if (is_lfs_pointer(db_path)) {
-    message("Downloading database (150 MB)...")
-    lfs_url <- sprintf(
-      "https://media.githubusercontent.com/media/%s/%s/inst/extdata/genewalk.duckdb",
-      repo,
-      branch
-    )
-    tryCatch(
-      {
-        download.file(lfs_url, db_path, mode = "wb", quiet = FALSE)
-        message("Download complete")
-        invisible(db_path)
-      },
-      error = function(e) {
-        stop("Failed to download database: ", e$message, call. = FALSE)
-      }
-    )
+  if (!file.exists(path)) {
+    download_database()
   }
 
-  DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
+  DBI::dbConnect(duckdb::duckdb(), dbdir = path, read_only = TRUE)
 }
 
 ## getters ---------------------------------------------------------------------
