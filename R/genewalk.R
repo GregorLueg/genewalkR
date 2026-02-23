@@ -255,7 +255,7 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
 #'
 #' @references Ietswaart, et al., Genome Biol, 2021
 calculate_genewalk_stats <- S7::new_generic(
-  name = "generate_permuted_emb",
+  name = "calculate_genewalk_stats",
   dispatch_args = "object",
   fun = function(
     object,
@@ -297,7 +297,7 @@ S7::method(calculate_genewalk_stats, GeneWalk) <- function(
 
   connected <- split(
     match(gene_to_pathways$to, pathway_ids),
-    match(gene_to_pathways$from, gene_ids)
+    factor(match(gene_to_pathways$from, gene_ids), levels = seq_along(gene_ids))
   )
 
   # Row indices into the full embedding (1-based for R/Rust bridge)

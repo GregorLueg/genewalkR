@@ -124,6 +124,11 @@ get_db_connection <- function(repo = "GregorLueg/genewalkR", branch = "main") {
   # check if the DB is only a pointer - if yes, download
   if (is_lfs_pointer(db_path)) {
     message("Downloading database (150 MB)...")
+    lfs_url <- sprintf(
+      "https://media.githubusercontent.com/media/%s/%s/inst/extdata/genewalk.duckdb",
+      repo,
+      branch
+    )
     tryCatch(
       {
         download.file(lfs_url, db_path, mode = "wb", quiet = FALSE)

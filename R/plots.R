@@ -62,7 +62,7 @@ S7::method(plot_gw_results, GeneWalk) <- function(
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
 
   # early return
-  if (suppressWarnings(nrow(get_stats(genewalk_obj)) == 0)) {
+  if (suppressWarnings(nrow(get_stats(object)) == 0)) {
     warning(paste(
       "No stats found in the object.",
       "Did you run calculate_genewalk_stats()?",
