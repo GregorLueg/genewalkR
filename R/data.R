@@ -54,8 +54,7 @@ is_lfs_pointer <- function(db_path) {
 
   if (!file.exists(db_path)) {
     return(FALSE)
-checkmate::assertCharacter(db_path, min.chars = 1)
-checkmate::checkFileExists(db_path)
+  }
 
   if (file.size(db_path) > 200) {
     return(FALSE)
