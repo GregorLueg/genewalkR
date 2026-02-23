@@ -8,3 +8,8 @@ src/rust/vendor
 src/Makevars
 src/Makevars.win
 
+inst/doc
+**/.quarto/
+/doc/
+/Meta/
+docs

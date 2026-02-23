@@ -9,3 +9,4 @@ OpenTargets Data Source
 \details{
 The data is extracted from the OpenTargets release \code{25.12}
 }
+\keyword{internal}

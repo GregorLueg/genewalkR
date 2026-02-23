@@ -1,4 +1,45 @@
+# exported data ----------------------------------------------------------------
+
+## myc genes -------------------------------------------------------------------
+
+#' MYC target genes
+#'
+#' The MYC target genes from the MSigDB (Hallmarks V1).
+#'
+#' @format ## `myc_genes`
+#' A data.table with 200 rows and 3 columns:
+#' \describe{
+#'   \item{ensembl_gene}{Ensembl identifier}
+#'   \item{gene_symbol}{Gene Symbol}
+#'   \item{gene_set}{Name of the gene set}
+#' }
+#'
+#' @references Liberzon, et al., Cell Syst, 2015
+"myc_genes"
+
 # db utils ---------------------------------------------------------------------
+
+## utils -----------------------------------------------------------------------
+
+#' Transform string to factor columns
+#'
+#' @param table data.table. The data.table for which to transform the factor
+#' columns into strings.
+#'
+#' @returns The data.table with the factor columns transformed to strings.
+#'
+#' @keywords internal
+.string_cols_to_factors <- function(table) {
+  # checks
+  checkmate::assertDataTable(table)
+
+  table <- table[,
+    (names(table)[sapply(table, is.factor)]) := lapply(.SD, as.character),
+    .SDcols = is.factor
+  ]
+
+  table
+}
 
 ## downloads -------------------------------------------------------------------
 
@@ -44,7 +85,7 @@ download_database <- function(repo = "GregorLueg/genewalkR", branch = "main") {
 
   # Construct LFS URL
   lfs_url <- sprintf(
-    "https://media.githubusercontent.com/media/%s/%s/inst/extdata/database.duckdb",
+    "https://media.githubusercontent.com/media/%s/%s/inst/extdata/genewalk.duckdb",
     repo,
     branch
   )
@@ -83,6 +124,11 @@ get_db_connection <- function(repo = "GregorLueg/genewalkR", branch = "main") {
   # check if the DB is only a pointer - if yes, download
   if (is_lfs_pointer(db_path)) {
     message("Downloading database (150 MB)...")
+    lfs_url <- sprintf(
+      "https://media.githubusercontent.com/media/%s/%s/inst/extdata/genewalk.duckdb",
+      repo,
+      branch
+    )
     tryCatch(
       {
         download.file(lfs_url, db_path, mode = "wb", quiet = FALSE)
@@ -125,7 +171,8 @@ get_gene_info <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -153,7 +200,8 @@ get_reactome_info <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -181,7 +229,8 @@ get_gene_ontology_info <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -211,7 +260,8 @@ get_gene_to_go <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -240,7 +290,8 @@ get_gene_to_reactome <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -282,7 +333,8 @@ get_reactome_hierarchy <- function(
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -310,7 +362,8 @@ get_gene_ontology_hierarchy <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -350,7 +403,8 @@ get_interactions_string <- function(threshold = NULL, head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -378,7 +432,8 @@ get_interactions_signor <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -407,7 +462,8 @@ get_interactions_reactome <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -459,7 +515,8 @@ get_interactions_intact <- function(
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }
@@ -494,7 +551,8 @@ get_interactions_combined <- function(head_only = FALSE) {
   }
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
-    data.table::setDT()
+    data.table::setDT() %>%
+    .string_cols_to_factors()
 
   return(table)
 }

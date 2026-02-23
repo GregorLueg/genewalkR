@@ -1,101 +1,46 @@
-devtools::load_all()
+# generate a nice plotting function --------------------------------------------
 
-library(data.table)
-library(magrittr)
-library(ggplot2)
+test <- myc_gwn
 
-devtools::load_all()
+test
 
-test_data <- synthetic_genewalk_data(
-  ppi_params = params_ppi(),
-  pathway_params = params_pathway(),
-  n_communities = 3L
-)
+table(test@graph_dt$type)
 
-test <- GeneWalk(test_data$edges, list())
+object = myc_gwn
 
-# run node2vec to generate the initial embeddings
-test <- generate_initial_emb(
-  test,
-  node2vec_params = params_node2vec(
-    window_size = 2L,
-    n_epochs = 20L,
-    lr = 1e-2,
-    walks_per_node = 25L,
-    walk_length = 25L
-  )
-)
+results <- get_stats(object)
 
-# generate random permutations
-test <- generate_permuted_emb(test)
+graph_dt <- get_graph_dt(object)
 
-# calculate the test statistics for gene <> pathway pairs
-test <- calculate_genewalk_stats(
-  test,
-  gene_nodes = intersect(test_data$ground_truth$gene, rownames(test@embd)),
-  pathway_nodes = intersect(
-    test_data$pathway_metadata$pathway,
-    rownames(test@embd)
-  )
-)
 
-stats <- get_stats(test)
+node_dt <- .get_node_degree(graph_dt)
 
-ground_truth_data <- get_expected_associations(
-  synthetic_data = test_data,
-  return_negatives = TRUE
-)
+plot_dt <- results[,
+  .(
+    ratio = sum(avg_gene_fdr <= 0.1) / length(pathway),
+    pathway_connections = length(pathway)
+  ),
+  .(gene)
+]
 
-positive_examples <- merge(
-  ground_truth_data[(expected_signal)],
-  stats,
-  by = c("gene", "pathway")
-)
+plot_dt <- node_dt[plot_dt, on = "gene"][,
+  degree := fifelse(is.na(degree), 0, degree)
+]
 
-hist(
-  positive_examples$similarity,
-  xlab = "Cosine Similarity",
-  main = "Positive pathways"
-)
-hist(
-  positive_examples$avg_pval,
-  xlab = "p-value",
-  main = "Positive pathways"
-)
+p <- ggplot(data = plot_dt, mapping = aes(x = degree + 1, y = ratio)) +
+  suppressWarnings(geom_point(
+    mapping = aes(fill = ratio, text = gene, size = pathway_connections),
+    shape = 21,
+    alpha = 0.7
+  )) +
+  scale_x_log10() +
+  scale_fill_viridis_c(limits = c(0, 1), option = "viridis") +
+  ylim(0, 1) +
+  xlab("log(degree + 1)") +
+  ylab("Ratio enrichment") +
+  labs(fill = "Ratio", size = "Pathway\nconnections") +
+  theme_bw() +
+  ggtitle("Gene Walk Results")
 
-negative_examples <- merge(
-  ground_truth_data[!(expected_signal)],
-  stats,
-  by = c("gene", "pathway")
-)
-
-hist(
-  negative_examples$similarity,
-  xlab = "Cosine Similarity",
-  main = "Negative pathways"
-)
-hist(negative_examples$avg_pval, xlab = "p-value", main = "Negative pathways")
-
-# generate the internal db -----------------------------------------------------
-
-devtools::load_all()
-
-gw_factory <- GeneWalkGenerator$new()
-
-gw_factory$add_ppi(source = "combined")
-gw_factory$add_ppi(source = "intact")
-gw_factory$add_pathways()
-
-gw_factory$build()
-
-gois <- as.character(gw_factory$return_full_network_dt()[, from][1:100])
-
-gw_obj <- gw_factory$create_for_genes(genes = gois)
-
-gw_obj@graph_dt[edge_type != "gene_to_pathway"]
-
-devtools::install(".")
-
-library(genewalkR)
-
-system("otool -L $(find . -name 'genewalkR.so' | head -1)")
+ggplotly(p, tooltip = c("text", "x", "y", "size")) |>
+  layout(legend = list(y = 0.5))

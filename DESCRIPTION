@@ -1,6 +1,6 @@
 Package: genewalkR
 Title: Implements the GeneWalk approach into R
-Version: 0.0.1.0
+Version: 0.0.1.1
 Authors@R: 
     c(
     person(
@@ -15,7 +15,7 @@ Authors@R:
         role = c("ctb"))
     )
 Description: 
-    Run the GeneWalk algorithm via node2vec to identify pathway to gene relationships.
+    Run the GeneWalk algorithm via node2vec to identify gene to pathway relationships.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -27,8 +27,10 @@ Imports:
     duckdb,
     DBI,
     data.table,
-    purrr,
     igraph,
+    ggplot2,
+    plotly,
+    purrr,
     magrittr,
     rextendr,
     R6,
@@ -36,4 +38,11 @@ Imports:
     zeallot
 Depends: 
     R (>= 4.2)
-Suggests: tinytest
+Suggests: 
+    tinytest,
+    quarto,
+    knitr,
+    msigdbr
+VignetteBuilder: quarto
+LazyData: true
+URL: https://gregorlueg.github.io/genewalkR/

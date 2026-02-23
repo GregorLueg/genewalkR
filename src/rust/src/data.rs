@@ -1,16 +1,11 @@
 use extendr_api::*;
+use rand::seq::SliceRandom;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 /////////////
 // Helpers //
 /////////////
-
-/// Results for the
-///
-/// * `0` - Edge list with (from, to)
-/// * `1` - Vector of the pathway nodes
-type DagResults = (Vec<(String, String)>, Vec<PathwayNode>);
 
 /// Enum to describe the different synthetic data types
 #[derive(Debug, Clone, Default)]
@@ -37,7 +32,7 @@ pub fn parse_node2vec_data(s: &str) -> Option<Node2VecDataType> {
     match s.to_lowercase().as_str() {
         "barbell" => Some(Node2VecDataType::Barbell),
         "cavemen" => Some(Node2VecDataType::Cavemen),
-        "stochastic" => Some(Node2VecDataType::Stochastic),
+        "stochastic" | "stochastic_block" => Some(Node2VecDataType::Stochastic),
         _ => None,
     }
 }
@@ -96,22 +91,6 @@ impl Node2VecData {
             list!(node = self.nodes, cluster = self.cluster),
         )
     }
-}
-
-/// Pathway node structure
-///
-/// ### Params
-///
-/// * `id` - Name of the pathway
-/// * `subtree` - Identifier of the sub tree
-/// * `depth` - Depth of the node
-/// * `ancestors` - Name of the ancestors
-#[derive(Clone)]
-pub struct PathwayNode {
-    pub id: String,
-    pub subtree: usize,
-    pub depth: usize,
-    pub ancestors: Vec<String>,
 }
 
 //////////////
@@ -179,6 +158,7 @@ pub fn node2vec_barbell(n_nodes_per_cluster: usize) -> Node2VecData {
 pub fn node2vec_caveman(
     n_nodes_per_cluster: usize,
     n_clusters: usize,
+    p_between: f64,
     seed: usize,
 ) -> Node2VecData {
     let n_total = n_nodes_per_cluster * n_clusters;
@@ -204,7 +184,7 @@ pub fn node2vec_caveman(
     // Sparse connections between clusters
     for c1 in 0..(n_clusters - 1) {
         for c2 in (c1 + 1)..n_clusters {
-            if rng.random::<f64>() < 0.3 {
+            if rng.random::<f64>() < p_between {
                 let node1 = c1 * n_nodes_per_cluster + rng.random_range(0..n_nodes_per_cluster);
                 let node2 = c2 * n_nodes_per_cluster + rng.random_range(0..n_nodes_per_cluster);
                 from.push(node_ids[node1].clone());
@@ -277,175 +257,218 @@ pub fn node2vec_stochastic_block(
     Node2VecData::new(from, to, edge_type, node_ids, cluster)
 }
 
-//////////////////////////
-// GeneWalk pathway DAG //
-//////////////////////////
+/////////////////////////////
+// GeneWalk synthetic data //
+/////////////////////////////
 
-/// Build the pathway DAG
+/// Structure to store synthetic GeneWalk graph data for testing
 ///
-/// ### Params
+/// ### Fields
 ///
-/// * `n_pathways` - Number of pathways to generate
-/// * `pathway_depth` - The depth of the pathways
-/// * `pathway_branching` - Number of branches
-/// * `n_communities` - Number of communities
-pub fn build_pathway_dag(
-    n_pathways: usize,
-    pathway_depth: usize,
-    pathway_branching: usize,
-    n_communities: usize,
-) -> DagResults {
-    let mut pathway_edges = Vec::new();
-    let mut pathways = Vec::new();
-    let mut pathway_ancestors: FxHashMap<String, Vec<String>> = FxHashMap::default();
-
-    let n_roots = std::cmp::max(2, n_communities);
-    let mut current_id = 1;
-    let mut subtree_id = 1;
-
-    for _ in 0..n_roots {
-        if current_id > n_pathways {
-            break;
-        }
-
-        let root_name = format!("pathway_{:04}", current_id);
-        pathways.push(PathwayNode {
-            id: root_name.clone(),
-            subtree: subtree_id,
-            depth: 0,
-            ancestors: Vec::new(),
-        });
-        pathway_ancestors.insert(root_name.clone(), Vec::new());
-
-        let mut current_level = vec![root_name];
-        current_id += 1;
-
-        for depth in 1..pathway_depth {
-            if current_id > n_pathways {
-                break;
-            }
-
-            let mut next_level = Vec::new();
-
-            for parent in &current_level {
-                let n_children = fastrand::usize(
-                    std::cmp::max(1, pathway_branching - 1)..=pathway_branching + 1,
-                );
-
-                for _ in 0..n_children {
-                    if current_id > n_pathways {
-                        break;
-                    }
-
-                    let child_name = format!("pathway_{:04}", current_id);
-                    let parent_ancestors = pathway_ancestors.get(parent).unwrap();
-                    let mut child_ancestors = parent_ancestors.clone();
-                    child_ancestors.push(parent.clone());
-
-                    pathways.push(PathwayNode {
-                        id: child_name.clone(),
-                        subtree: subtree_id,
-                        depth,
-                        ancestors: child_ancestors.clone(),
-                    });
-
-                    pathway_edges.push((parent.clone(), child_name.clone()));
-                    pathway_ancestors.insert(child_name.clone(), child_ancestors.clone());
-
-                    next_level.push(child_name.clone());
-                    current_id += 1;
-
-                    // occasional second parent for DAG structure
-                    if fastrand::f64() < 0.2 && current_level.len() > 1 {
-                        let eligible: Vec<_> =
-                            current_level.iter().filter(|p| *p != parent).collect();
-
-                        if !eligible.is_empty() {
-                            let alt_parent = eligible[fastrand::usize(..eligible.len())];
-                            pathway_edges.push((alt_parent.clone(), child_name.clone()));
-
-                            let alt_ancestors = pathway_ancestors.get(alt_parent).unwrap();
-                            let mut combined: FxHashSet<String> =
-                                child_ancestors.iter().cloned().collect();
-                            combined.extend(alt_ancestors.iter().cloned());
-                            combined.insert(alt_parent.clone());
-
-                            let updated: Vec<_> = combined.into_iter().collect();
-                            pathway_ancestors.insert(child_name.clone(), updated.clone());
-
-                            if let Some(node) = pathways.iter_mut().find(|n| n.id == child_name) {
-                                node.ancestors = updated;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if next_level.is_empty() {
-                break;
-            }
-            current_level = next_level;
-        }
-        subtree_id += 1;
-    }
-
-    (pathway_edges, pathways)
+/// * `ontology_edges` - Parent-child edges within the ontology graph
+/// * `gene_ont_edges` - Edges linking genes to their ontology term annotations
+/// * `ppi_edges` - Protein-protein interaction edges between genes
+/// * `signal_genes` - Names of signal genes, annotated within a single ontology
+///   subtree
+/// * `noise_genes` - Names of noise genes, annotated across multiple ontology
+///   subtrees
+pub struct SyntheticGeneWalkData {
+    pub ontology_edges: Vec<(String, String)>,
+    pub gene_ont_edges: Vec<(String, String)>,
+    pub ppi_edges: Vec<(String, String)>,
+    pub signal_genes: Vec<String>,
+    pub noise_genes: Vec<String>,
 }
 
-/// Generate the gene to pathway associations
+/// Build a synthetic GeneWalk dataset with controlled signal and noise
 ///
 /// ### Params
 ///
-/// * `gene_ids` - Names of the genes
-/// * `gene_communities` - The indices of gene to community
-/// * `pathway_ids` - The name of the pathways
-/// * `pathways` - Slice of the pathway nodes
-/// * `community_focal_pathways` -
-pub fn build_gene_pathway_associations(
-    gene_ids: &[String],
-    gene_communities: &[i32],
-    pathway_ids: &[String],
-    pathways: &[PathwayNode],
-    community_focal_pathways: &FxHashMap<i32, Vec<String>>,
-    signal_strength: f64,
-    connections_per_gene: usize,
-) -> Vec<(String, String)> {
-    let mut edges = Vec::new();
-    let pathway_ancestor_map: FxHashMap<_, _> = pathways
-        .iter()
-        .map(|p| (p.id.clone(), p.ancestors.clone()))
-        .collect();
+/// * `n_signal_genes` - Number of signal genes, annotated within a single
+///   ontology subtree.
+/// * `n_noise_genes` - Number of noise genes, annotations spread across
+///   multiple subtrees.
+/// * `n_roots` - Number of root nodes in the ontology, each forming its own
+///   subtree.
+/// * `depth` - Depth of each ontology subtree.
+/// * `branching` - Base branching factor per node in the ontology.
+/// * `p_lateral` - Probability of a lateral edge between sibling nodes at the
+///   same depth.
+/// * `p_ppi` - Probability of a PPI edge between any two genes within the same
+///   group.
+/// * `min_annotations` - Minimum number of ontology term annotations per gene.
+/// * `max_annotations` - Maximum number of ontology term annotations per gene.
+/// * `min_noise_subtrees` - Minimum number of distinct ontology subtrees a
+///   noise gene must span.
+/// * `seed` - RNG seed for reproducibility
+///
+/// ### Returns
+///
+/// `SyntheticGeneWalkData` containing ontology edges, gene-ontology annotation
+/// edges, PPI edges, and the signal and noise gene name lists
+pub fn build_synthetic_genewalk(
+    n_signal_genes: usize,
+    n_noise_genes: usize,
+    n_roots: usize,
+    depth: usize,
+    branching: usize,
+    p_lateral: f64,
+    p_ppi: f64,
+    min_annotations: usize,
+    max_annotations: usize,
+    min_noise_subtrees: usize,
+    seed: u64,
+) -> SyntheticGeneWalkData {
+    let mut rng = StdRng::seed_from_u64(seed);
 
-    for (gene_idx, gene) in gene_ids.iter().enumerate() {
-        let gene_comm = gene_communities[gene_idx];
-        let focal_pathways = community_focal_pathways
-            .get(&gene_comm)
-            .map(|v| v.as_slice())
-            .unwrap_or(pathway_ids);
+    // build ontology: levels[subtree][depth] = node names at that depth
+    let mut levels: Vec<Vec<Vec<String>>> = Vec::new();
+    let mut ontology_edges: Vec<(String, String)> = Vec::new();
+    let mut term_id = 1usize;
 
-        let mut connected_pathways = FxHashSet::default();
+    for _ in 0..n_roots {
+        let mut subtree_levels: Vec<Vec<String>> = Vec::new();
+        let root = format!("term_{:04}", term_id);
+        term_id += 1;
+        subtree_levels.push(vec![root]);
 
-        for _ in 0..connections_per_gene {
-            let pathway = if fastrand::f64() < signal_strength && !focal_pathways.is_empty() {
-                focal_pathways[fastrand::usize(..focal_pathways.len())].clone()
-            } else {
-                pathway_ids[fastrand::usize(..pathway_ids.len())].clone()
-            };
-            connected_pathways.insert(pathway);
+        for d in 1..=depth {
+            let parents = subtree_levels[d - 1].clone();
+            let mut current_level: Vec<String> = Vec::new();
+
+            for parent in &parents {
+                let n_children = branching - 1 + rng.random_range(0..=2);
+                for _ in 0..n_children {
+                    let child = format!("term_{:04}", term_id);
+                    term_id += 1;
+                    ontology_edges.push((parent.clone(), child.clone()));
+                    current_level.push(child);
+                }
+            }
+
+            for i in 0..current_level.len() {
+                for j in (i + 1)..current_level.len() {
+                    if rng.random::<f64>() < p_lateral {
+                        ontology_edges.push((current_level[i].clone(), current_level[j].clone()));
+                    }
+                }
+            }
+
+            if !current_level.is_empty() {
+                subtree_levels.push(current_level);
+            }
         }
 
-        for pathway in connected_pathways {
-            edges.push((gene.clone(), pathway.clone()));
+        levels.push(subtree_levels);
+    }
 
-            if let Some(ancestors) = pathway_ancestor_map.get(&pathway) {
-                for ancestor in ancestors {
-                    edges.push((gene.clone(), ancestor.clone()));
-                }
+    // collect all terms per subtree
+    let all_terms_per_subtree: Vec<Vec<String>> = levels
+        .iter()
+        .map(|subtree_levels| subtree_levels.iter().flatten().cloned().collect())
+        .collect();
+
+    let all_terms: Vec<String> = all_terms_per_subtree.iter().flatten().cloned().collect();
+
+    // map each term back to its subtree index for noise gene validation
+    let mut term_to_subtree: FxHashMap<String, usize> = FxHashMap::default();
+    for (subtree_idx, terms) in all_terms_per_subtree.iter().enumerate() {
+        for term in terms {
+            term_to_subtree.insert(term.clone(), subtree_idx);
+        }
+    }
+
+    let mut gene_ont_edges: Vec<(String, String)> = Vec::new();
+    let mut ppi_edges: Vec<(String, String)> = Vec::new();
+
+    // Signal genes:
+    // - Annotations concentrated in a single subtree (subtree 0)
+    // - 5-15 annotations each (realistic GO annotation count)
+    // - PPI between signal genes reinforces community structure
+    let signal_subtree = &all_terms_per_subtree[0];
+    let mut signal_genes: Vec<String> = Vec::new();
+
+    for i in 0..n_signal_genes {
+        let gene = format!("gene_signal_{:04}", i + 1);
+        let n_ann = min_annotations + rng.random_range(0..=(max_annotations - min_annotations));
+        let mut seen = FxHashSet::default();
+
+        for _ in 0..n_ann {
+            let term = &signal_subtree[rng.random_range(0..signal_subtree.len())];
+            if seen.insert(term.clone()) {
+                gene_ont_edges.push((gene.clone(), term.clone()));
+            }
+        }
+
+        signal_genes.push(gene);
+    }
+
+    for i in 0..signal_genes.len() {
+        for j in (i + 1)..signal_genes.len() {
+            if rng.random::<f64>() < p_ppi {
+                ppi_edges.push((signal_genes[i].clone(), signal_genes[j].clone()));
             }
         }
     }
 
-    edges.sort();
-    edges.dedup();
-    edges
+    // Noise genes:
+    // - Same number of annotations as signal genes (degree-matched)
+    // - Annotations FORCED to span at least min_noise_subtrees different
+    //   subtrees
+    // - PPI edges connect noise genes across different annotation profiles
+    let n_subtrees = all_terms_per_subtree.len();
+    let effective_min_subtrees = min_noise_subtrees.min(n_subtrees);
+
+    let mut noise_genes: Vec<String> = Vec::new();
+
+    for i in 0..n_noise_genes {
+        let gene = format!("gene_noise_{:04}", i + 1);
+        let n_ann = min_annotations + rng.random_range(0..=(max_annotations - min_annotations));
+        let mut seen = FxHashSet::default();
+        let mut subtrees_used = FxHashSet::default();
+
+        let mut forced_subtrees: Vec<usize> = (0..n_subtrees).collect();
+        forced_subtrees.shuffle(&mut rng);
+        forced_subtrees.truncate(effective_min_subtrees);
+
+        for &st in &forced_subtrees {
+            let terms = &all_terms_per_subtree[st];
+            let term = &terms[rng.random_range(0..terms.len())];
+            if seen.insert(term.clone()) {
+                gene_ont_edges.push((gene.clone(), term.clone()));
+                subtrees_used.insert(st);
+            }
+        }
+
+        // Fill remaining annotations randomly across all terms
+        let remaining = n_ann.saturating_sub(seen.len());
+        for _ in 0..remaining {
+            let term = &all_terms[rng.random_range(0..all_terms.len())];
+            if seen.insert(term.clone()) {
+                gene_ont_edges.push((gene.clone(), term.clone()));
+                if let Some(&st) = term_to_subtree.get(term) {
+                    subtrees_used.insert(st);
+                }
+            }
+        }
+
+        noise_genes.push(gene);
+    }
+
+    // Noise PPI: random across all noise genes (no community structure)
+    for i in 0..noise_genes.len() {
+        for j in (i + 1)..noise_genes.len() {
+            if rng.random::<f64>() < p_ppi {
+                ppi_edges.push((noise_genes[i].clone(), noise_genes[j].clone()));
+            }
+        }
+    }
+
+    SyntheticGeneWalkData {
+        ontology_edges,
+        gene_ont_edges,
+        ppi_edges,
+        signal_genes,
+        noise_genes,
+    }
 }

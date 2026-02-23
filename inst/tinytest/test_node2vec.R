@@ -7,8 +7,10 @@ barbell_data <- node2vec_test_data(
   n_nodes_per_cluster = 20L
 )
 
-caveman_data <- node2vec_test_data(
-  test_type = "caveman"
+cavemen_data <- node2vec_test_data(
+  test_type = "cavemen",
+  n_clusters = 5L,
+  p_between = 0.5
 )
 
 stochastic_data <- node2vec_test_data(
@@ -16,6 +18,26 @@ stochastic_data <- node2vec_test_data(
 )
 
 ## tests -----------------------------------------------------------------------
+
+### check the underlying data --------------------------------------------------
+
+expect_equal(
+  current = unique(barbell_data$node_labels$cluster),
+  target = c(1, 2),
+  info = "barbell returns 2 clusters"
+)
+
+expect_equal(
+  current = unique(cavemen_data$node_labels$cluster),
+  target = 1:5,
+  info = "barbell returns 5 clusters"
+)
+
+expect_equal(
+  current = unique(stochastic_data$node_labels$cluster),
+  target = 1:3,
+  info = "barbell returns 3 clusters"
+)
 
 ### barbell graph --------------------------------------------------------------
 
@@ -40,28 +62,28 @@ expect_true(
   info = "barbell graph - between cluster similarity"
 )
 
-### caveman graph --------------------------------------------------------------
+### cavemn graph --------------------------------------------------------------
 
-caveman_res <- node2vec(
-  graph_dt = caveman_data$edges,
+cavemen_res <- node2vec(
+  graph_dt = cavemen_data$edges,
   node2vec_params = params_node2vec(n_epochs = 25L),
   .verbose = FALSE
 )
 
-caveman_metrics <- evaluate_node2vec_test(
-  embeddings = caveman_res,
-  node_labels = caveman_data$node_labels
+cavemen_metrics <- evaluate_node2vec_test(
+  embeddings = cavemen_res,
+  node_labels = cavemen_data$node_labels
 )
 
 expect_true(
-  current = caveman_metrics$within_cluster_sim >= 0.3,
-  info = "caveman graph - within cluster similarity"
+  current = cavemen_metrics$within_cluster_sim >= 0.3,
+  info = "cavemen graph - within cluster similarity"
 )
 
 expect_true(
-  current = caveman_metrics$between_cluster_sim <
-    caveman_metrics$within_cluster_sim,
-  info = "caveman graph - between cluster similarity"
+  current = cavemen_metrics$between_cluster_sim <
+    cavemen_metrics$within_cluster_sim,
+  info = "cavemen graph - between cluster similarity"
 )
 
 ### stochastic data ------------------------------------------------------------
@@ -90,16 +112,23 @@ expect_true(
 
 ### seed reproducibility -------------------------------------------------------
 
-caveman_res_2 <- node2vec(
-  graph_dt = caveman_data$edges,
-  node2vec_params = params_node2vec(n_epochs = 25L),
+# due to the race condition implemented in the gradient, I need to reduce
+# to one thread
+
+cavemen_res_1 <- node2vec(
+  graph_dt = cavemen_data$edges,
+  node2vec_params = params_node2vec(n_epochs = 25L, num_workers = 1L),
   .verbose = FALSE
 )
 
-# there should be a decent'ish mean absolute correlation despite the race
-# conditions
+cavemen_res_2 <- node2vec(
+  graph_dt = cavemen_data$edges,
+  node2vec_params = params_node2vec(n_epochs = 25L, num_workers = 1L),
+  .verbose = FALSE
+)
 
-expect_true(
-  current = mean(abs(diag(cor(caveman_res, caveman_res_2)))) >= 0.7,
-  info = "reproducibility of the seeds"
+expect_equal(
+  current = cavemen_res_1,
+  target = cavemen_res_2,
+  info = "reproducibility with n_workers is set to 1"
 )

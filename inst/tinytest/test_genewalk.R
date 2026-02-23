@@ -4,9 +4,10 @@
 
 # generate synthetic data
 gene_walk_test_data <- synthetic_genewalk_data(
-  ppi_params = params_ppi(),
-  pathway_params = params_pathway(),
-  n_communities = 3L
+  data_params = params_genewalk_data(
+    n_signal_genes = 150L,
+    n_noise_genes = 150L
+  )
 )
 
 ## tests -----------------------------------------------------------------------
@@ -14,8 +15,10 @@ gene_walk_test_data <- synthetic_genewalk_data(
 ### object generation and getters ----------------------------------------------
 
 genewalk_obj <- GeneWalk(
-  graph_dt = gene_walk_test_data$edges,
-  graph_gene_params = list()
+  graph_dt = gene_walk_test_data$full_data,
+  gene_to_pathway_dt = gene_walk_test_data$gene_to_pathways,
+  gene_ids = gene_walk_test_data$gene_ids,
+  pathway_ids = gene_walk_test_data$pathway_ids
 )
 
 expect_warning(
@@ -34,10 +37,10 @@ genewalk_obj <- generate_initial_emb(
   genewalk_obj,
   node2vec_params = params_node2vec(
     window_size = 2L,
-    n_epochs = 20L,
+    n_epochs = 5L,
     lr = 1e-2,
-    walks_per_node = 25L,
-    walk_length = 25L
+    walks_per_node = 40L,
+    walk_length = 40L
   ),
   .verbose = FALSE
 )
@@ -71,8 +74,6 @@ expect_true(
 # calculate the test statistics for gene <> pathway pairs
 genewalk_obj <- calculate_genewalk_stats(
   genewalk_obj,
-  gene_nodes = gene_walk_test_data$ground_truth$gene,
-  pathway_nodes = gene_walk_test_data$pathway_metadata$pathway,
   .verbose = FALSE
 )
 
@@ -104,31 +105,17 @@ expect_equal(
 
 ### assumption testing ---------------------------------------------------------
 
-ground_truth_data <- get_expected_associations(
-  synthetic_data = gene_walk_test_data,
-  return_negatives = TRUE
-)
+signal_genes_res <- gw_stats[grepl("signal", gene)]
 
-positive_examples <- merge(
-  ground_truth_data[(expected_signal)],
-  gw_stats,
-  by = c("gene", "pathway")
-)
+noise_genes_res <- gw_stats[grepl("noise", gene)]
 
-negative_examples <- merge(
-  ground_truth_data[!(expected_signal)],
-  gw_stats,
-  by = c("gene", "pathway")
+expect_true(
+  current = mean(signal_genes_res$similarity) >
+    mean(noise_genes_res$similarity),
+  info = "similarities of the signal genes is better"
 )
 
 expect_true(
-  current = mean(positive_examples$similarity) >
-    mean(negative_examples$similarity),
-  info = "gw stats - positive examples have higher similiarities"
-)
-
-expect_true(
-  current = mean(-log10(positive_examples$avg_pval)) >
-    mean(-log10(negative_examples$avg_pval)),
-  info = "gw stats - positive examples have lower significance"
+  current = mean(signal_genes_res$avg_pval) < mean(noise_genes_res$avg_pval),
+  info = "p-values of the signal genes is better"
 )

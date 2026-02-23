@@ -199,26 +199,37 @@ pub fn r_matrix_to_vec(mat: RMatrix<f64>) -> Vec<Vec<f32>> {
 // Quantiles //
 ///////////////
 
-/// Get the quantiles from sorted data
+/// Geometric mean and CI matching GeneWalk's log_stats
 ///
 /// ### Params
 ///
-/// * `sorted_data` - Sorted vector
-/// * `q` - The quantile position
+/// * `vals` - The p-values
 ///
 /// ### Returns
 ///
-/// The value at that quantile
-pub fn quantile(sorted_data: &[f64], q: f64) -> f64 {
-    let n = sorted_data.len();
-    let idx = q * (n - 1) as f64;
-    let lower = idx.floor() as usize;
-    let upper = idx.ceil() as usize;
-    let weight = idx - lower as f64;
+/// Tuple of (geometric mean, lower CI, upper CI)
+pub fn log_stats(vals: &[f64]) -> (f64, f64, f64) {
+    let eps = 1e-16_f64;
+    let n = vals.len() as f64;
+    let log_vals: Vec<f64> = vals.iter().map(|&v| (v + eps).ln()).collect();
+    let mean_log = log_vals.iter().sum::<f64>() / n;
+    let g_mean = (mean_log.exp() - eps).clamp(0.0, 1.0);
 
-    if lower == upper {
-        sorted_data[lower]
-    } else {
-        sorted_data[lower] * (1.0 - weight) + sorted_data[upper] * weight
+    if vals.len() <= 1 {
+        return (g_mean, eps, eps);
     }
+
+    let variance = log_vals
+        .iter()
+        .map(|&x| (x - mean_log).powi(2))
+        .sum::<f64>()
+        / (n - 1.0);
+    let g_std = variance.sqrt().exp();
+    let exponent = 1.96 / n.sqrt();
+
+    (
+        g_mean,
+        (g_mean * g_std.powf(-exponent)).clamp(0.0, 1.0),
+        (g_mean * g_std.powf(exponent)).clamp(0.0, 1.0),
+    )
 }

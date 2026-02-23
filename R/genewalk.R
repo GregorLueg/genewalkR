@@ -182,8 +182,8 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
 
   graph_dt <- S7::prop(object, "graph_dt")
 
-  # function body
-  nodes <- unique(c(graph_dt$from, graph_dt$to))
+  # CRITICAL: use sort(unique(...)) to match generate_initial_emb
+  nodes <- sort(unique(c(graph_dt$from, graph_dt$to)))
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
 
@@ -193,7 +193,7 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
     NULL
   }
 
-  # generate random embeddings
+  # generate random embeddings — now returns list of matrices
   rnd_embd <- rs_gene_walk_perm(
     from = from_idx,
     to = to_idx,
@@ -205,6 +205,12 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
     seed = seed,
     verbose = .verbose
   )
+
+  # assign rownames so we can index by gene/pathway name later
+  rnd_embd <- lapply(rnd_embd, function(mat) {
+    rownames(mat) <- nodes
+    mat
+  })
 
   S7::prop(object, "permuted_embd") <- rnd_embd
 
@@ -229,10 +235,6 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
 #'
 #' @param object The `GeneWalk` object containing actual and permuted
 #' embeddings. See [genewalkR::GeneWalk()].
-#' @param gene_nodes Character vector. Names of the gene nodes included in
-#' the analysis. Must correspond to row names in the embedding matrix.
-#' @param pathway_nodes Character vector. Names of the pathway nodes included
-#' in the analysis. Must correspond to row names in the embedding matrix.
 #' @param .verbose Logical. If `TRUE`, prints progress messages during
 #' calculation. Default is `TRUE`.
 #'
@@ -253,12 +255,10 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
 #'
 #' @references Ietswaart, et al., Genome Biol, 2021
 calculate_genewalk_stats <- S7::new_generic(
-  name = "generate_permuted_emb",
+  name = "calculate_genewalk_stats",
   dispatch_args = "object",
   fun = function(
     object,
-    gene_nodes,
-    pathway_nodes,
     .verbose = TRUE
   ) {
     S7::S7_dispatch()
@@ -273,20 +273,16 @@ calculate_genewalk_stats <- S7::new_generic(
 #' @import data.table
 S7::method(calculate_genewalk_stats, GeneWalk) <- function(
   object,
-  gene_nodes,
-  pathway_nodes,
   .verbose = TRUE
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
-  checkmate::qassert(gene_nodes, "S+")
-  checkmate::qassert(pathway_nodes, "S+")
   checkmate::qassert(.verbose, "B1")
 
   # early return
   if (length(S7::prop(object, "permuted_embd")) == 0) {
     warning(paste(
-      "No permuted cosine similarities found. Returning object as is.",
+      "No permuted embeddings found. Returning object as is.",
       "Please run generate_permuted_emb()."
     ))
 
@@ -294,19 +290,35 @@ S7::method(calculate_genewalk_stats, GeneWalk) <- function(
   }
 
   actual_embd <- S7::prop(object, "embd")
-  permuted_vals <- S7::prop(object, "permuted_embd")
+  permuted_embds <- S7::prop(object, "permuted_embd")
+  gene_ids <- S7::prop(object, "gene_ids")
+  pathway_ids <- S7::prop(object, "pathway_ids")
+  gene_to_pathways <- S7::prop(object, "gene_to_pathway_dt")
+
+  connected <- split(
+    match(gene_to_pathways$to, pathway_ids),
+    factor(match(gene_to_pathways$from, gene_ids), levels = seq_along(gene_ids))
+  )
+
+  # Row indices into the full embedding (1-based for R/Rust bridge)
+  all_nodes <- rownames(actual_embd)
+  gene_indices <- match(gene_ids, all_nodes)
+  pathway_indices <- match(pathway_ids, all_nodes)
 
   stats <- rs_gene_walk_test(
-    gene_embds = actual_embd[gene_nodes, ],
-    pathway_embds = actual_embd[pathway_nodes, ],
-    null_distribution = permuted_vals,
+    gene_embds = actual_embd[gene_ids, ],
+    pathway_embds = actual_embd[pathway_ids, ],
+    permuted_embds = permuted_embds,
+    gene_indices = gene_indices,
+    pathway_indices = pathway_indices,
+    connected_pathways = connected,
     verbose = .verbose
   )
 
   stats <- data.table::as.data.table(stats) %>%
     .[, `:=`(
-      gene = gene_nodes[gene],
-      pathway = pathway_nodes[pathway]
+      gene = gene_ids[gene],
+      pathway = pathway_ids[pathway]
     )]
 
   S7::prop(object, "stats") <- stats

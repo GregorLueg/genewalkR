@@ -1,0 +1,371 @@
+---
+title: "Running GeneWalk"
+vignette: >
+  %\VignetteIndexEntry{How to run GeneWalk}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+# Exploring Gene Walk
+
+This vignette will first show how Gene Walk behaves on synthetic data, what
+assumptions are baked in and then we will move onto using it with real data.
+If you want to understand the method in more detail, please check out 
+[Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8).
+
+## Loading in libraries
+
+```{r}
+#| label: setup
+library(genewalkR)
+library(ggplot2)
+library(data.table)
+library(magrittr)
+```
+
+## Synthetic data
+
+### Exploring the data and initialising the object
+
+Let's start with some synthetic data to understand how this works...
+The synthetic GeneWalk network is designed testing and benchmarking, with
+signal genes forming coherent, degree-matched graph neighbourhoods and noise
+genes spanning multiple ontology subtrees at random. The signal genes will have
+some VERY clear signal. Noise genes also still due to the nature of the 
+synthetic data; however, to a lesser extent.
+
+```{r}
+#| label: generate synthetic data
+gene_walk_syn_data <- synthetic_genewalk_data()
+
+str(gene_walk_syn_data)
+```
+
+The data contains everything we need to initialise a new GeneWalk:
+
+- The full_data with the term ontology, gene to gene edges and gene to terms, 
+mimicking relevant inputs.
+- The genes to pathways for testing later.
+- The gene identifiers including in the run. In this case, we have a set of 
+"signal" genes that serve as a positive control and "noise genes" that are
+randomly distributed.
+- The term/pathway identifiers.
+
+Let's initialise the class.
+
+```{r}
+#| label: initialise the class
+
+genewalk_obj <- GeneWalk(
+  graph_dt = gene_walk_syn_data$full_data,
+  gene_to_pathway_dt = gene_walk_syn_data$gene_to_pathways,
+  gene_ids = gene_walk_syn_data$gene_ids,
+  pathway_ids = gene_walk_syn_data$pathway_ids
+)
+
+genewalk_obj
+```
+
+### Running gene walk on the synthetic data
+
+This function here generates the node2vec embedding based on the network
+
+```{r}
+#| label: generate the first embeddings
+
+genewalk_obj <- generate_initial_emb(
+  genewalk_obj,
+  node2vec_params = params_node2vec(),
+  .verbose = TRUE
+)
+```
+
+We need to generate a background distribution for testing purposes. This
+will generate three random permuted networks as in the paper. These will be
+used for statistical testing.
+
+```{r}
+#| label: generate the background distribution
+
+genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = TRUE)
+```
+
+We now need to compare the similarity of the Cosine similarities between
+the gene embeddings to the pathway embeddings and check how often they are
+larger than the ones from the background embedding, giving us the p-values.
+
+```{r}
+#| label: calculate the statistics
+
+genewalk_obj <- calculate_genewalk_stats(
+  genewalk_obj,
+  .verbose = TRUE
+)
+```
+
+Now we can extract the statistics:
+
+```{r}
+#| label: get the statistics
+
+statistics <- get_stats(genewalk_obj)
+
+head(statistics)
+```
+
+The different metrics in the data 
+Let's explore the signal in the synthetic data a bit... What are we observing
+... ?
+
+```{r}
+#| label: plot the similarities - synthetic
+
+# add the labels for signal and noise
+statistics[, signal := grepl("signal", gene)][, 
+  signal := factor(signal, levels = c("TRUE", "FALSE"))
+]
+
+# plot the gene <> term similarities
+ggplot(
+  data = statistics,
+  mapping = aes(x = similarity)
+) + 
+  geom_histogram(bins = 45, fill = "lightgrey") +
+  facet_wrap(~ signal) +
+  xlab("Cosine similarity") +
+  ylab("Count") +
+  theme_bw()
+```
+
+As we can appreciate, the Cosine similarities between the genes and pathways
+in the signal data set are all much higher compared to the FALSE ones. Let's 
+look at the p-values
+
+```{r}
+#| label: plot the p-values - synthetic
+
+ggplot(
+  data = statistics,
+  mapping = aes(x = avg_pval)
+) + 
+  geom_histogram(bins = 45, fill = "lightgrey") +
+  facet_wrap(~ signal) +
+  xlab("Cosine similarity") +
+  ylab("Count") +
+  theme_bw()
+```
+
+Similar pattern. The `TRUE` signal ones are nearly all significant. Less so
+for the noisy signal. The signal in the noise data is there, but this is 
+expected due to the data. Let's look at genes passing the FDR thresholds
+
+```{r}
+#| label: check the synthetic data enrichment results 
+
+table(
+  grepl("signal", statistics$gene),
+  statistics$avg_global_fdr < 0.05
+)
+```
+
+Basically, all of our signal genes show significance associations between
+gene and pathways; less so, for the noise genes. 
+
+## Real data
+
+Let's explore real data now. The package provides a builder factory to generate
+the objects. Within the package, there is a DuckDB that contains 
+
+**Network resources**
+
+- The STRING network extracted from OpenTargets.
+- The SIGNOR network extracted from OpenTargets.
+- The Reactome gene to gene network extracted from OpenTargets.
+- The Intact network extracted from OpenTargets.
+- A combined network from the sources above, based on the approach from
+  [Barrio-Hernandez, et al.](https://www.nature.com/articles/s41588-023-01327-9).
+
+**Pathway terms**
+
+- The Gene Ontology data extracted from the OBO files from the OBO foundry
+  and OpenTargets.
+- The Reactome pathway ontology and their gene to pathway associations from
+  OpenTargets.
+
+### Using the builder factory
+
+Let's use the Gene Ontology and combined network for this example.
+
+```{r}
+#| label: initialise the factory
+
+gw_factory <- GeneWalkGenerator$new()
+
+gw_factory$add_pathways() # will add GO to the builder
+gw_factory$add_ppi(source = "combined") # will add the combined one
+gw_factory$build() # will load the data into the factory
+```
+
+The idea of the factory is to easily iterate through various bags of genes of
+interest. Now let's use the factory to look specifically at the MYC target genes 
+(provided in the package) and generate a GeneWalkNetwork for them.
+
+```{r}
+#| label: use the factory
+
+data(myc_genes)
+
+myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
+
+myc_gwn
+```
+
+### Running gene walk on actual data
+
+We can now use the same steps as above
+
+```{r}
+#| label: running gene walk on MYC
+
+data(myc_genes)
+
+myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
+
+# this will take a while
+myc_gwn <- generate_initial_emb(
+  myc_gwn,
+  node2vec_params = params_node2vec(
+    n_epochs = 5L,
+    walks_per_node = 20L,
+    walk_length = 20L
+  ),
+  .verbose = TRUE
+)
+# if you are on a many core machines, consider upping the num_workers here
+# the default is 4L, but you can up this on your machine. also, for 
+# speed purposes, the walks per node and walk length has been reduced
+# to 20L each.
+
+# this even longer... go get coffee
+myc_gwn <- generate_permuted_emb(
+  myc_gwn,
+  .verbose = TRUE
+)
+
+# let's calculate the statistics
+myc_gwn <- calculate_genewalk_stats(
+  myc_gwn,
+  .verbose = TRUE
+)
+
+# let's extract the results
+myc_gwn_res <- get_stats(myc_gwn)
+```
+
+And look at some of the genes
+
+```{r}
+#| label: check the results on the MYC genes
+
+# translate go ids to names and do the same for the gene symbols
+gene_symbol_translation <- setNames(
+  myc_genes$gene_symbol,
+  myc_genes$ensembl_gene
+)
+
+# get the go data
+go_info <- get_gene_ontology_info()
+
+go_id_translation <- setNames(
+  go_info$go_name,
+  go_info$go_id
+)
+
+myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
+  gene = gene_symbol_translation[gene],
+  pathway = go_id_translation[pathway]
+)]
+
+head(myc_gwn_res_translated, 15L)
+```
+
+### Exploring the results
+
+A simple way to visualise the initial results is to use the plot_results() 
+function. This will tell you the connectivity of the genes within your
+bag of genes (degree + 1 on the x-axis), the number of `gene <> pathway`
+connections that are significant for this specific gene and the number
+of `gene <> pathway` connections.
+
+```{r}
+#| label: plot the results
+
+plot_gw_results(myc_gwn)
+```
+
+Other options are to plot for individual genes the significantly associated
+terms.
+
+## Using your own data 
+
+What if you do not want to use the provided data ... ? In this case, you can
+use this simple wrapper class to help you. Let's show case this in terms of the
+internally stored Reactome data.
+
+```{r}
+#| label: use your own data
+
+# these are helpers to get the reactome data from the DuckDB in the
+# package
+reactome_genes <- get_gene_to_reactome()
+reactome_ppi <- get_interactions_reactome()
+reactome_hierarchy <- get_reactome_hierarchy(relationship = "parent_of")
+
+data_builder <- new_data_builder(
+  ppis = reactome_ppi,
+  gene_to_pathways = reactome_genes,
+  pathway_hierarchy = reactome_hierarchy
+)
+```
+
+If you want to now get the full graph dt including everything for verification:
+
+```{r}
+#| label: full customised table
+
+get_gw_data(data_builder) %>% head()
+```
+
+If you want to subset to your bag of genes of interest, you can run the 
+following:
+
+```{r}
+#| label: subsetting to relevant genes
+
+genes_of_interest <- reactome_genes[to == "R-HSA-1989781", from]
+
+gwr_data <- get_gw_data_filtered(data_builder, genes_of_interest)
+
+str(gwr_data)
+```
+
+The data can be easily supplied now:
+
+```{r}
+#| label: use custom data
+
+custom_gwn <- with(gwr_data, 
+  GeneWalk(
+    graph_dt = gwn, 
+    gene_to_pathway_dt = genes_to_pathways, 
+    gene_ids = represented_genes,
+    pathway_ids = represented_pathways
+  )
+)
+```
+
+From here on, you can run the whole approach on your custom network.
