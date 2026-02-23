@@ -372,7 +372,7 @@ get_gw_data_filtered.DataBuilder <- function(x, gene_ids) {
   checkmate::assertClass(x, "DataBuilder")
   checkmate::qassert(gene_ids, "S+")
 
-  ppi_red <- x$ppi[, c("from", "to")][from %in% gene_ids & to %in% gene_ids][,
+  ppi_red <- x$ppis[, c("from", "to")][from %in% gene_ids & to %in% gene_ids][,
     type := "interaction"
   ]
   genes_to_pathways <- x$gene_to_pathways[, c("from", "to")][
@@ -400,6 +400,15 @@ get_gw_data_filtered.DataBuilder <- function(x, gene_ids) {
     genes_to_pathways$to,
     pathways_hierarchy %$% c(from, to)
   ))
+
+  missing_genes <- setdiff(gene_ids, represented_genes)
+  if (length(missing_genes) > 0) {
+    warning(sprintf(
+      "%d gene(s) had no edges in the network and were excluded: %s",
+      length(missing_genes),
+      paste(missing_genes, collapse = ", ")
+    ))
+  }
 
   res <- list(
     gwn = combined_data,
@@ -564,7 +573,7 @@ GeneWalkGenerator <- R6::R6Class(
       # checks
       checkmate::checkTRUE(all(source %in% c("go", "reactome")))
       checkmate::checkTRUE(all(
-        source %in%
+        go_namespace %in%
           c(
             "biological_process",
             "molecular_function",
@@ -601,18 +610,19 @@ GeneWalkGenerator <- R6::R6Class(
     ) {
       source <- match.arg(source)
 
-      checkmate::assertChoice(
-        source,
-        c("combined", "string", "signor", "reactome", "intact")
-      )
       checkmate::qassert(string_threshold, c("0", "N1[0, 1]"))
       checkmate::qassert(intact_threshold, c("0", "N1[0, 1]"))
       checkmate::qassert(intact_physical_only, "B1")
 
       self$ppi_sources <- union(self$ppi_sources, source)
-      self$ppi_params$string_threshold <- string_threshold
-      self$ppi_params$intact_threshold <- intact_threshold
-      self$ppi_params$intact_physical_only <- intact_physical_only
+      if ("string" %in% source) {
+        self$ppi_params$string_threshold <- string_threshold
+      }
+      if ("intact" %in% source) {
+        self$ppi_params$intact_threshold <- intact_threshold
+        self$ppi_params$intact_physical_only <- intact_physical_only
+      }
+
       invisible(self)
     },
 
@@ -623,8 +633,8 @@ GeneWalkGenerator <- R6::R6Class(
       # checks
       checkmate::qassert(.verbose, "B1")
 
-      if (length(self$pathway_sources) == 0 && length(self$ppi_sources) == 0) {
-        stop("Must add at least one pathway or PPI source")
+      if (length(self$pathway_sources) == 0 | length(self$ppi_sources) == 0) {
+        stop("Must add at least one pathway source and one PPI source")
       }
 
       ppi <- private$get_ppi_edges()
@@ -730,6 +740,9 @@ GeneWalkGenerator <- R6::R6Class(
         return(data.table::data.table())
       }
       res <- data.table::rbindlist(edges, fill = TRUE)
+
+      res <- unique(res, by = c("from", "to"))
+
       res
     },
 
@@ -785,6 +798,8 @@ GeneWalkGenerator <- R6::R6Class(
         with = FALSE
       ]
 
+      res <- unique(res, by = c("from", "to"))
+
       res
     },
 
@@ -824,6 +839,8 @@ GeneWalkGenerator <- R6::R6Class(
         c("from", "to", "edge_type", "source"),
         with = FALSE
       ]
+
+      res <- unique(res, by = c("from", "to"))
 
       res
     }
