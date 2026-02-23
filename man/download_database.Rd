@@ -2,16 +2,10 @@
 % Please edit documentation in R/data.R
 \name{download_database}
 \alias{download_database}
-\title{Download actual database from Git LFS}
+\title{Download database from GitHub release}
 \usage{
-download_database(repo = "GregorLueg/genewalkR", branch = "main")
-}
-\arguments{
-\item{repo}{String. Repository in format "user/repo" (default:
-\code{"GregorLueg/genewalkR"}).}
-
-\item{branch}{String. Branch name (default: \code{"main"})}
+download_database()
 }
 \description{
-Download actual database from Git LFS
+Download database from GitHub release
 }

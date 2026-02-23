@@ -4,17 +4,11 @@
 \alias{get_db_connection}
 \title{Internal connector to the DB}
 \usage{
-get_db_connection(repo = "GregorLueg/genewalkR", branch = "main")
-}
-\arguments{
-\item{repo}{String. Repository in format "user/repo" (default:
-\code{"GregorLueg/genewalkR"}).}
-
-\item{branch}{String. Branch name (default: \code{"main"})}
+get_db_connection()
 }
 \value{
 The DuckDB connection to the internal data
 }
 \description{
-Internal connector to the DB
+Downloads the DuckDB if not available and unzips it.
 }
