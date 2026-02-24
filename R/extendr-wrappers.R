@@ -48,10 +48,11 @@ rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed
 #' @param seed Integer. Random seed.
 #' @param verbose Boolean. Controls verbosity.
 #'
-#' @returns A list of n_perm embedding matrices (each n_nodes x embd_dim).
+#' @returns A list of n_perm cosine similarities based on the connected nodes
+#' of node-degree matched random graphs.
 #'
 #' @export
-rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose)
+rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_gene_pathway_edges, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_gene_pathway_edges, n_perm, embd_dim, directed, seed, verbose)
 
 #' Calculate the test statistics
 #'
@@ -61,18 +62,15 @@ rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_
 #'
 #' @param gene_embds Matrix of n_genes x embedding dimensions.
 #' @param pathway_embds Matrix of n_pathways x embedding dimensions.
-#' @param permuted_embds List of permuted embedding matrices (n_nodes x dim).
-#' @param gene_indices Integer vector. 1-based row indices for genes in
-#'   permuted embeddings.
-#' @param pathway_indices Integer vector. 1-based row indices for pathways in
-#'   permuted embeddings.
+#' @param null_similarities List of similarities based on randomised connected
+#' networks.
 #' @param connected_pathways List. Gene to pathway connections (1-indexed).
 #' @param verbose Controls verbosity.
 #'
 #' @returns A list with per-pair statistics (see original docs).
 #'
 #' @export
-rs_gene_walk_test <- function(gene_embds, pathway_embds, permuted_embds, gene_indices, pathway_indices, connected_pathways, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, permuted_embds, gene_indices, pathway_indices, connected_pathways, verbose)
+rs_gene_walk_test <- function(gene_embds, pathway_embds, null_similarities, connected_pathways, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, null_similarities, connected_pathways, verbose)
 
 #' Cosine similarity between two vectors
 #'
@@ -100,26 +98,6 @@ rs_cosine_sim <- function(a, b) .Call(wrap__rs_cosine_sim, a, b)
 #'
 #' @export
 rs_node2vec_synthetic_data <- function(test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed) .Call(wrap__rs_node2vec_synthetic_data, test_data, n_nodes_per_cluster, n_clusters, p_within, p_between, seed)
-
-#' Generate pathway structure and gene-pathway associations
-#'
-#' @param n_pathways Integer. Number of pathways to generate.
-#' @param pathway_depth Integer. Maximum depth of pathway hierarchy.
-#' @param pathway_branching Integer. Average branching factor for pathway tree.
-#' @param n_communities Integer. Number of gene communities.
-#' @param gene_ids Character vector. Gene identifiers.
-#' @param gene_communities Integer vector. Community assignment for each gene.
-#' @param n_focal_pathways Integer. Number of focal pathways per community.
-#' @param signal_strength Numeric. Probability of connecting to focal pathways
-#'   (0-1).
-#' @param connections_per_gene Integer. Number of pathway connections per gene.
-#' @param seed Integer. Random seed.
-#'
-#' @returns A list with pathway edges, metadata, gene-pathway associations ano
-#' community to subtree parts.
-#'
-#' @export
-rs_generate_pathway_structure <- function(n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed) .Call(wrap__rs_generate_pathway_structure, n_pathways, pathway_depth, pathway_branching, n_communities, gene_ids, gene_communities, n_focal_pathways, signal_strength, connections_per_gene, seed)
 
 #' Generate synthetic GeneWalk data with controlled signal structure
 #'

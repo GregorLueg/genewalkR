@@ -5,6 +5,9 @@ pub mod utils;
 
 use extendr_api::prelude::*;
 use faer::Mat;
+use rand::prelude::IndexedRandom;
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 use std::time::Instant;
 
 use crate::data::*;
@@ -140,7 +143,8 @@ fn rs_gene_walk(
 /// @param seed Integer. Random seed.
 /// @param verbose Boolean. Controls verbosity.
 ///
-/// @returns A list of n_perm embedding matrices (each n_nodes x embd_dim).
+/// @returns A list of n_perm cosine similarities based on the connected nodes
+/// of node-degree matched random graphs.
 ///
 /// @export
 #[extendr]
@@ -150,6 +154,7 @@ fn rs_gene_walk_perm(
     to: Vec<i32>,
     weights: Option<Vec<f64>>,
     gene_walk_params: List,
+    n_gene_pathway_edges: usize,
     n_perm: usize,
     embd_dim: usize,
     directed: bool,
@@ -159,21 +164,9 @@ fn rs_gene_walk_perm(
     let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
     config.train_args.dim = embd_dim;
 
-    if verbose {
-        println!("Preparing the network edges.");
-    }
-    let start_edge_prep = Instant::now();
-
     let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
     let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
     let edges = prepare_edges(from, to, weights);
-
-    if verbose {
-        println!(
-            "Processed the edges in {:.2}s",
-            start_edge_prep.elapsed().as_secs_f64()
-        );
-    }
 
     let vocab_size = edges
         .iter()
@@ -185,47 +178,36 @@ fn rs_gene_walk_perm(
     let mut res_ls = List::new(n_perm);
 
     for perm in 0..n_perm {
-        let start_perm = Instant::now();
-
         if verbose {
-            println!("Starting permutation: {}", perm + 1);
-            println!("  Generating randomised edges and random walks.");
+            println!("Starting permutation {}/{}", perm + 1, n_perm);
         }
-
-        let start_rw = Instant::now();
 
         let perm_edges = generate_random_network(&edges, directed, (seed + perm) as u64);
         let node2vec_graph = create_graph(&perm_edges, config.p, config.q, directed);
-        let random_walks_perm =
+        let random_walks =
             node2vec_graph.generate_walks(config.walks_per_node, config.walk_length, config.seed);
 
-        if verbose {
-            println!(
-                "  Random walks on permuted data in {:.2}s",
-                start_rw.elapsed().as_secs_f64()
-            );
-            println!(
-                "  Training word2vec model on permuted network for {} epochs",
-                config.train_args.epochs
-            );
-        }
+        let embedding = train_node2vec(random_walks, vocab_size, &config, verbose);
 
-        let embd_i = train_node2vec(random_walks_perm, vocab_size, &config, verbose);
+        // sample at least a 1000 random edges
+        let sample_size = n_gene_pathway_edges.max(1000).min(perm_edges.len());
+        let mut rng = StdRng::seed_from_u64((seed + perm) as u64);
+        let sampled: Vec<_> = perm_edges.choose_multiple(&mut rng, sample_size).collect();
 
-        // return as R matrix — same shape as the real embedding
-        let nrows = embd_i.len();
-        let ncols = embd_i[0].len();
-        let mat = RMatrix::new_matrix(nrows, ncols, |r, c| embd_i[r][c] as f64);
+        let null_sims: Vec<f64> = sampled
+            .iter()
+            .filter_map(|(f, t, _)| {
+                let f = *f as usize;
+                let t = *t as usize;
+                if f < embedding.len() && t < embedding.len() {
+                    Some(cosine_similarity(&embedding[f], &embedding[t]) as f64)
+                } else {
+                    None
+                }
+            })
+            .collect();
 
-        res_ls.set_elt(perm, Robj::from(mat))?;
-
-        if verbose {
-            println!(
-                "  Permutation {} completed in {:.2}s",
-                perm + 1,
-                start_perm.elapsed().as_secs_f64()
-            );
-        }
+        res_ls.set_elt(perm, Robj::from(null_sims))?;
     }
 
     Ok(res_ls)
@@ -243,11 +225,8 @@ fn rs_gene_walk_perm(
 ///
 /// @param gene_embds Matrix of n_genes x embedding dimensions.
 /// @param pathway_embds Matrix of n_pathways x embedding dimensions.
-/// @param permuted_embds List of permuted embedding matrices (n_nodes x dim).
-/// @param gene_indices Integer vector. 1-based row indices for genes in
-/// permuted embeddings.
-/// @param pathway_indices Integer vector. 1-based row indices for pathways in
-/// permuted embeddings.
+/// @param null_similarities List of similarities based on randomised connected
+/// networks.
 /// @param connected_pathways List. Gene to pathway connections (1-indexed).
 /// @param verbose Controls verbosity.
 ///
@@ -259,9 +238,7 @@ fn rs_gene_walk_perm(
 fn rs_gene_walk_test(
     gene_embds: RMatrix<f64>,
     pathway_embds: RMatrix<f64>,
-    permuted_embds: List,
-    gene_indices: Vec<i32>,
-    pathway_indices: Vec<i32>,
+    null_similarities: List,
     connected_pathways: List,
     verbose: bool,
 ) -> List {
@@ -269,11 +246,7 @@ fn rs_gene_walk_test(
     let pathway_embds = r_matrix_to_vec(pathway_embds);
 
     let n_genes = gene_embds.len();
-    let n_perms = permuted_embds.len();
-
-    // Convert 1-based R indices to 0-based
-    let gene_idx: Vec<usize> = gene_indices.iter().map(|&x| (x - 1) as usize).collect();
-    let pathway_idx: Vec<usize> = pathway_indices.iter().map(|&x| (x - 1) as usize).collect();
+    let n_perms = null_similarities.len();
 
     let connectivity: Vec<Vec<usize>> = connected_pathways
         .iter()
@@ -286,7 +259,6 @@ fn rs_gene_walk_test(
         })
         .collect();
 
-    // observed cosine similarities (gene embeddings vs pathway embeddings)
     let cosine_sim: Mat<f64> = compute_cross_cosine(&gene_embds, &pathway_embds);
 
     if verbose {
@@ -294,36 +266,19 @@ fn rs_gene_walk_test(
         println!("Testing {} connected gene-pathway pairs", total_pairs);
     }
 
-    // build null distribution and compute p-values per permutation
     let mut raw_pvals_per_perm: Vec<Vec<Vec<f64>>> = Vec::with_capacity(n_perms);
     let mut gene_fdr_per_perm: Vec<Vec<Vec<f64>>> = Vec::with_capacity(n_perms);
     let mut global_fdr_per_perm: Vec<Vec<f64>> = Vec::with_capacity(n_perms);
 
-    for (perm_i, perm_item) in permuted_embds.iter().enumerate() {
+    for (perm_i, (_, perm_item)) in null_similarities.iter().enumerate() {
         if verbose {
             println!("Processing permutation {}/{}", perm_i + 1, n_perms);
         }
 
-        let perm_mat = r_matrix_to_vec(RMatrix::try_from(&perm_item.1).unwrap());
+        let null_vec: Vec<f64> = perm_item.as_real_vector().unwrap_or_default();
 
-        // extract gene and pathway rows from permuted embedding
-        let perm_genes: Vec<Vec<f32>> = gene_idx.iter().map(|&i| perm_mat[i].clone()).collect();
-        let perm_pathways: Vec<Vec<f32>> =
-            pathway_idx.iter().map(|&i| perm_mat[i].clone()).collect();
-
-        // full gene x pathway cross-cosine on the permuted embedding = null
-        let null_cross = compute_cross_cosine(&perm_genes, &perm_pathways);
-        let mut null_vec: Vec<f64> = Vec::with_capacity(null_cross.nrows() * null_cross.ncols());
-        for r in 0..null_cross.nrows() {
-            for c in 0..null_cross.ncols() {
-                null_vec.push(null_cross[(r, c)]);
-            }
-        }
-
-        // compute p-vals observed similarities against this permutation's null
         let pvals_mat: Mat<f64> = calculate_p_vals(&cosine_sim.as_ref(), null_vec);
 
-        // extract connected p-values per gene
         let gene_pvals: Vec<Vec<f64>> = (0..n_genes)
             .map(|gi| {
                 connectivity[gi]
@@ -333,11 +288,8 @@ fn rs_gene_walk_test(
             })
             .collect();
 
-        // global FDR over all connected pairs
         let all_connected_pvals: Vec<f64> = gene_pvals.iter().flatten().cloned().collect();
         let global_fdr_flat = calc_fdr(&all_connected_pvals);
-
-        // per-gene FDR
         let gene_fdr: Vec<Vec<f64>> = gene_pvals.iter().map(|p| calc_fdr(p)).collect();
 
         raw_pvals_per_perm.push(gene_pvals);
@@ -345,7 +297,6 @@ fn rs_gene_walk_test(
         global_fdr_per_perm.push(global_fdr_flat);
     }
 
-    // aggregate across permutations
     let mut out_gene: Vec<i32> = Vec::new();
     let mut out_pathway: Vec<i32> = Vec::new();
     let mut out_similarity: Vec<f64> = Vec::new();
@@ -359,7 +310,7 @@ fn rs_gene_walk_test(
     let mut out_gene_fdr_ci_lower: Vec<f64> = Vec::new();
     let mut out_gene_fdr_ci_upper: Vec<f64> = Vec::new();
 
-    let mut global_flat_idx = 0usize;
+    let mut global_idx = 0usize;
 
     for gene_i in 0..n_genes {
         for (local_idx, &pathway_i) in connectivity[gene_i].iter().enumerate() {
@@ -370,7 +321,7 @@ fn rs_gene_walk_test(
                 .map(|p| gene_fdr_per_perm[p][gene_i][local_idx])
                 .collect();
             let global_fdrs: Vec<f64> = (0..n_perms)
-                .map(|p| global_fdr_per_perm[p][global_flat_idx])
+                .map(|p| global_fdr_per_perm[p][global_idx])
                 .collect();
 
             let (avg_pval, pval_lo, pval_hi) = log_stats(&raw_pvals);
@@ -390,7 +341,7 @@ fn rs_gene_walk_test(
             out_gene_fdr_ci_lower.push(gene_lo);
             out_gene_fdr_ci_upper.push(gene_hi);
 
-            global_flat_idx += 1;
+            global_idx += 1;
         }
     }
 

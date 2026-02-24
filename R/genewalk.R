@@ -182,7 +182,8 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
 
   graph_dt <- S7::prop(object, "graph_dt")
 
-  # CRITICAL: use sort(unique(...)) to match generate_initial_emb
+  n_gene_pathway_edges <- nrow(graph_dt[type == "part_of"])
+
   nodes <- sort(unique(c(graph_dt$from, graph_dt$to)))
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
@@ -199,18 +200,13 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
     to = to_idx,
     weights = weights,
     gene_walk_params = S7::prop(object, "params")[["node2vec"]],
+    n_gene_pathway_edges = n_gene_pathway_edges,
     n_perm = n_perm,
     embd_dim = S7::prop(object, "params")[["node2vec"]][["embd_size"]],
     directed = S7::prop(object, "params")[["node2vec"]][["directed"]],
     seed = seed,
     verbose = .verbose
   )
-
-  # assign rownames so we can index by gene/pathway name later
-  rnd_embd <- lapply(rnd_embd, function(mat) {
-    rownames(mat) <- nodes
-    mat
-  })
 
   S7::prop(object, "permuted_embd") <- rnd_embd
 
@@ -308,9 +304,7 @@ S7::method(calculate_genewalk_stats, GeneWalk) <- function(
   stats <- rs_gene_walk_test(
     gene_embds = actual_embd[gene_ids, ],
     pathway_embds = actual_embd[pathway_ids, ],
-    permuted_embds = permuted_embds,
-    gene_indices = gene_indices,
-    pathway_indices = pathway_indices,
+    null_similarities = permuted_embds,
     connected_pathways = connected,
     verbose = .verbose
   )

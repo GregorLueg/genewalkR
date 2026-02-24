@@ -60,7 +60,7 @@ expect_true(
 ### permutation and statistical testing ----------------------------------------
 
 # generate random permutations
-genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = FALSE)
+genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = TRUE)
 
 expect_true(
   current = checkmate::testList(
@@ -74,7 +74,7 @@ expect_true(
 # calculate the test statistics for gene <> pathway pairs
 genewalk_obj <- calculate_genewalk_stats(
   genewalk_obj,
-  .verbose = FALSE
+  .verbose = TRUE
 )
 
 gw_stats <- get_stats(genewalk_obj)
@@ -107,7 +107,15 @@ expect_equal(
 
 signal_genes_res <- gw_stats[grepl("signal", gene)]
 
+summary(signal_genes_res$similarity)
+
+hist(signal_genes_res$avg_pval)
+
 noise_genes_res <- gw_stats[grepl("noise", gene)]
+
+summary(noise_genes_res$similarity)
+
+hist(noise_genes_res$avg_pval)
 
 expect_true(
   current = mean(signal_genes_res$similarity) >

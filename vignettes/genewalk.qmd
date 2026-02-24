@@ -206,7 +206,7 @@ Let's use the Gene Ontology and combined network for this example.
 gw_factory <- GeneWalkGenerator$new()
 
 gw_factory$add_pathways() # will add GO to the builder
-gw_factory$add_ppi(source = "combined") # will add the combined one
+gw_factory$add_ppi(source = "string", string_threshold = 0.5) # will add the combined one
 gw_factory$build() # will load the data into the factory
 ```
 
@@ -240,8 +240,9 @@ myc_gwn <- generate_initial_emb(
   myc_gwn,
   node2vec_params = params_node2vec(
     n_epochs = 5L,
-    walks_per_node = 20L,
-    walk_length = 20L
+    walks_per_node = 50L,
+    walk_length = 10L,
+    window_size = 1L
   ),
   .verbose = TRUE
 )

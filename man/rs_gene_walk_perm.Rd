@@ -9,6 +9,7 @@ rs_gene_walk_perm(
   to,
   weights,
   gene_walk_params,
+  n_gene_pathway_edges,
   n_perm,
   embd_dim,
   directed,
@@ -36,7 +37,8 @@ rs_gene_walk_perm(
 \item{verbose}{Boolean. Controls verbosity.}
 }
 \value{
-A list of n_perm embedding matrices (each n_nodes x embd_dim).
+A list of n_perm cosine similarities based on the connected nodes
+of node-degree matched random graphs.
 }
 \description{
 Generates degree-preserving random networks and trains node2vec

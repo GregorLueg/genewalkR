@@ -7,9 +7,7 @@
 rs_gene_walk_test(
   gene_embds,
   pathway_embds,
-  permuted_embds,
-  gene_indices,
-  pathway_indices,
+  null_similarities,
   connected_pathways,
   verbose
 )
@@ -19,13 +17,8 @@ rs_gene_walk_test(
 
 \item{pathway_embds}{Matrix of n_pathways x embedding dimensions.}
 
-\item{permuted_embds}{List of permuted embedding matrices (n_nodes x dim).}
-
-\item{gene_indices}{Integer vector. 1-based row indices for genes in
-permuted embeddings.}
-
-\item{pathway_indices}{Integer vector. 1-based row indices for pathways in
-permuted embeddings.}
+\item{null_similarities}{List of similarities based on randomised connected
+networks.}
 
 \item{connected_pathways}{List. Gene to pathway connections (1-indexed).}
 
