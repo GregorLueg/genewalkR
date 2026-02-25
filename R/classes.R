@@ -62,6 +62,8 @@ GeneWalk <- S7::new_class(
     checkmate::qassert(gene_ids, "S+")
     checkmate::qassert(pathway_ids, "S+")
 
+    edge_numbers <- graph_dt[, .(edge_no = .N), .(type)]
+
     # need to add empty objects for S7 to behave
     S7::new_object(
       S7::S7_object(),
@@ -72,7 +74,7 @@ GeneWalk <- S7::new_class(
       embd = list(),
       permuted_embd = list(),
       stats = data.table(),
-      params = list()
+      params = list(edge_distribution = edge_numbers)
     )
   }
 )
@@ -105,7 +107,7 @@ S7::method(print, GeneWalk) <- function(x, ...) {
   if (no_genes >= 3) {
     gene_ids <- gene_ids[1:3]
   }
-
+  edge_dist <- x@params$edge_distribution
   cat("GeneWalk\n")
   cat(
     "  Represented genes",
@@ -114,10 +116,17 @@ S7::method(print, GeneWalk) <- function(x, ...) {
     "\n"
   )
   cat("  Number of edges:", n_edges, "\n")
+  cat("  Edge distribution:\n")
+  for (i in seq_len(nrow(edge_dist))) {
+    cat(sprintf(
+      "    %s (%i)\n",
+      tools::toTitleCase(gsub("_", " ", edge_dist$type[i])),
+      edge_dist$edge_no[i]
+    ))
+  }
   cat("  Embedding generated:", ifelse(embd_generated, "yes", "no"), "\n")
   cat("  Permutations generated:", ifelse(perm_generated, "yes", "no"), "\n")
   cat("  Statistics calculated:", ifelse(stats_calculated, "yes", "no"), "\n")
-
   invisible(x)
 }
 

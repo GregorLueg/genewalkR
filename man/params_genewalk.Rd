@@ -35,7 +35,8 @@ params_genewalk(
 
 \item{n_negatives}{Integer. Number of negative samples. Defaults to \code{5L}.}
 
-\item{window_size}{Integer. Context window size. Defaults to \code{2L}.}
+\item{window_size}{Integer. Context window size. Defaults to \code{1L}. For
+GeneWalk you want embedding from direct neighbours.}
 
 \item{lr}{Numeric. Learning rate. Defaults to \code{1e-2}.}
 

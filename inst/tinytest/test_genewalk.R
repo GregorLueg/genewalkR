@@ -36,7 +36,7 @@ expect_warning(
 genewalk_obj <- generate_initial_emb(
   genewalk_obj,
   genewalk_params = params_genewalk(),
-  .verbose = TRUE
+  .verbose = FALSE
 )
 
 embeddings <- get_embedding(genewalk_obj)
@@ -52,7 +52,7 @@ expect_true(
 ### permutation and statistical testing ----------------------------------------
 
 # generate random permutations
-genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = TRUE)
+genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = FALSE)
 
 expect_true(
   current = checkmate::testList(
@@ -66,7 +66,7 @@ expect_true(
 # calculate the test statistics for gene <> pathway pairs
 genewalk_obj <- calculate_genewalk_stats(
   genewalk_obj,
-  .verbose = TRUE
+  .verbose = FALSE
 )
 
 gw_stats <- get_stats(genewalk_obj)

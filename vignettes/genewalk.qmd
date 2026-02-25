@@ -34,9 +34,9 @@ library(magrittr)
 Let's start with some synthetic data to understand how this works...
 The synthetic GeneWalk network is designed testing and benchmarking, with
 signal genes forming coherent, degree-matched graph neighbourhoods and noise
-genes spanning multiple ontology subtrees at random. The signal genes will have
-some VERY clear signal. Noise genes also still due to the nature of the 
-synthetic data; however, to a lesser extent.
+genes spanning multiple ontology subtrees at random. The signal ("anchor") 
+genes will have some VERY clear signal. Noise genes also still due to the nature 
+of the synthetic data; however, to a lesser extent.
 
 ```{r}
 #| label: generate synthetic data
@@ -60,6 +60,7 @@ Let's initialise the class.
 ```{r}
 #| label: initialise the class
 
+# this create the class
 genewalk_obj <- GeneWalk(
   graph_dt = gene_walk_syn_data$full_data,
   gene_to_pathway_dt = gene_walk_syn_data$gene_to_pathways,
@@ -148,8 +149,10 @@ ggplot(
 ```
 
 As we can appreciate, the Cosine similarities between the genes and pathways
-in the signal data set are all much higher compared to the FALSE ones. Let's 
-look at the p-values
+in the signal data set are all much higher compared to the FALSE ones, and we
+have a bimodal distribution for the noise genes. Some of these just by accident
+get connected into the same dense communities from the signal genes, but a large
+number of them are just noise. Let's look at the p-values
 
 ```{r}
 #| label: plot the p-values - synthetic
@@ -165,9 +168,7 @@ ggplot(
   theme_bw()
 ```
 
-Looking which genes have significant associations with their pathways, we can
-appreciate, these are nearly all of the signal genes, confirming how the
-algorithm works.
+The patterns of the Cosine similarities are reproduced here.
 
 ```{r}
 #| label: check the synthetic data enrichment results 
@@ -182,8 +183,9 @@ table(
 )
 ```
 
-Basically, all of our signal genes show significance associations between
-gene and pathways; less so, for the noise genes. 
+We can appreciate that 50% of the signal genes have a significantly higher
+cosine similarity in the embedding space with their connected pathway. For the
+random genes, it's only ~20%. But now let's move on to some real data.
 
 ## Real data
 
@@ -196,7 +198,8 @@ the objects. Within the package, there is a DuckDB that contains
 - The SIGNOR network extracted from OpenTargets.
 - The Reactome gene to gene network extracted from OpenTargets.
 - The Intact network extracted from OpenTargets.
-- The Pathway Commons interactions, see [Rodchenkov, et al.](https://academic.oup.com/nar/article/48/D1/D489/5606621).
+- The Pathway Commons interactions, see 
+  [Rodchenkov, et al.](https://academic.oup.com/nar/article/48/D1/D489/5606621).
 - A combined network from the sources above, based on the approach from
   [Barrio-Hernandez, et al.](https://www.nature.com/articles/s41588-023-01327-9).
 
@@ -209,7 +212,10 @@ the objects. Within the package, there is a DuckDB that contains
 
 ### Using the builder factory
 
-Let's use the Gene Ontology and combined network for this example.
+Let's use the Gene Ontology and combined network for this example. If you
+do this for the first time, the database will be downloaded into your cache.
+If you wish to reset the DB and re-download it (for example for a new release),
+you can use `reload_db()`. 
 
 ```{r}
 #| label: initialise the factory
@@ -240,7 +246,8 @@ myc_gwn
 ### Check the node degree
 
 For GeneWalk to optimally work, you need quite a few edges based on the 
-interaction networks. This is a helper to get the information:
+interaction networks. This is a helper to get some information on the underlying
+node degree:
 
 ```{r}
 #| label: print the node degree to console
@@ -248,13 +255,19 @@ interaction networks. This is a helper to get the information:
 check_degree_distribution(myc_gwn)
 ```
 
-We can appreciate quite a few interactions between the genes. We can proceed
-here. Should you observe a low number of interaction connections, likely, your
-gene set is too small and the approach will not work well.
+We can appreciate quite a few interactions between the genes and also decent
+number of connections in the PPPI network. We can proceed here. Should you 
+observe a low number of interaction connections, likely, your
+gene set is too small (or noisy) and the approach will not work well (or
+rather as expected with lack of signal).
 
 ### Running gene walk on actual data
 
-We can now use the same steps as above
+We can now use the same steps as above. Generate first three iterations of the
+real embedding based on different random seeds (if you wish to go fast and
+add a bit more randomness, set num_workers to ≥ 1 and leverage 
+[HogWild!-style SGD](https://papers.nips.cc/paper_files/paper/2011/hash/218a0aefd1d1a4be65601cc6ddc1520e-Abstract.html) 
+in the word2vec implementation.).
 
 ```{r}
 #| label: running gene walk on MYC
@@ -291,34 +304,24 @@ myc_gwn <- calculate_genewalk_stats(
 myc_gwn_res <- get_stats(myc_gwn)
 ```
 
-And look at some of the genes
-
-```{r}
-#| label: check the results on the MYC genes
-
-# translate go ids to names and do the same for the gene symbols
-gene_symbol_translation <- setNames(
-  myc_genes$gene_symbol,
-  myc_genes$ensembl_gene
-)
-
-# get the go data
-go_info <- get_gene_ontology_info()
-
-go_id_translation <- setNames(
-  go_info$go_name,
-  go_info$go_id
-)
-
-myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
-  gene = gene_symbol_translation[gene],
-  pathway = go_id_translation[pathway]
-)]
-
-head(myc_gwn_res_translated, 15L)
-```
 
 ### Exploring the results
+
+#### Check the embeddings 
+
+Let's compare the embeddings we generate against the NULLs
+
+```{r}
+#| label: actual embeddings
+
+plot_similarities(myc_gwn)
+```
+
+We can appreciate that we have clearly some genes with higher similarities
+to their connected GO terms compared to the three NULLs. This is expected, as
+these genes are highly studied and connected.
+
+#### Scatter plot
 
 A simple way to visualise the initial results is to use the plot_results() 
 function. This will tell you the connectivity of the genes within your
@@ -333,7 +336,109 @@ plot_gw_results(myc_gwn, fdr_treshold = 0.05)
 ```
 
 Other options are to plot for individual genes the significantly associated
-terms.
+terms (not shown).
+
+#### Actual data 
+
+```{r}
+#| label: check the results on the MYC genes
+
+# translate go ids to names and do the same for the gene symbols
+gene_symbol_translation <- setNames(
+  myc_genes$gene_symbol,
+  myc_genes$ensembl_gene
+)
+
+# get the go data
+go_info <- get_gene_ontology_info()
+
+go_id_translation <- setNames(
+  go_info$go_name
+  go_info$go_id
+)
+
+myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
+  gene = gene_symbol_translation[gene],
+  pathway = go_id_translation[pathway]
+)]
+
+head(myc_gwn_res_translated, 10L)
+```
+
+Why is so much significant here? Is this not just pathway enrichment? Well no.
+GeneWalk only tests for pre-existing edges of a gene against the pathway, given
+the context of the pathway ontology AND the interactions between the genes. It
+is more a gene prioritisation/contextualisation tool than a classical pathway
+enrichment. Nonetheless, let's check what happens with noisy data...
+
+#### Random data set
+
+```{r}
+#| label: random genes
+
+genes <- get_gene_info() %>%
+  .[biotype == "protein_coding"]
+
+set.seed(123L)
+
+random_gene_set <- sample(genes$ensembl_id, 200L)
+
+random_gwn <- gw_factory$create_for_genes(genes = random_gene_set)
+
+# we can appreciate that we only have very few interactions between the genes
+random_gwn
+```
+
+Let's run fast with as many threads as possible the rest
+
+```{r}
+#| label: random genes - run gwn
+
+# we will parallelise this over all available threads, as we do not care 
+# about determinism in the results
+no_threads <- parallel::detectCores()
+
+# this will take a while
+random_gwn <- generate_initial_emb(
+  random_gwn,
+  genewalk_params = params_genewalk(
+    walks_per_node = 25L,
+    num_workers = no_threads),
+  .verbose = TRUE
+)
+
+# this even longer... go get coffee
+random_gwn <- generate_permuted_emb(
+  random_gwn,
+  .verbose = TRUE
+)
+
+# let's calculate the statistics
+random_gwn <- calculate_genewalk_stats(
+  random_gwn,
+  .verbose = TRUE
+)
+
+random_gwn_res <- get_stats(random_gwn)
+```
+
+Let's plot the results
+
+```{r}
+#| label: random genes - similarities
+
+# that looks way worse than for the MYC genes...
+plot_similarities(random_gwn)
+```
+
+```{r}
+#| label: random genes - scatter plot
+
+# some genes still reach significance - this is likely driven by the 
+# structure provided, by the gene ontology graph, but one can appreciate
+# that for random genes, the thresholds fall apart
+plot_gw_results(random_gwn, fdr_treshold = 0.05)
+```
 
 ## Using your own data 
 
