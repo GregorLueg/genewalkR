@@ -353,7 +353,7 @@ gene_symbol_translation <- setNames(
 go_info <- get_gene_ontology_info()
 
 go_id_translation <- setNames(
-  go_info$go_name
+  go_info$go_name,
   go_info$go_id
 )
 
