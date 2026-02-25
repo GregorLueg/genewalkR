@@ -35,24 +35,16 @@ expect_warning(
 
 genewalk_obj <- generate_initial_emb(
   genewalk_obj,
-  node2vec_params = params_node2vec(
-    window_size = 2L,
-    n_epochs = 5L,
-    lr = 1e-2,
-    walks_per_node = 40L,
-    walk_length = 40L
-  ),
-  .verbose = FALSE
+  genewalk_params = params_genewalk(),
+  .verbose = TRUE
 )
 
 embeddings <- get_embedding(genewalk_obj)
 
 expect_true(
-  current = checkmate::testMatrix(
+  current = checkmate::testList(
     embeddings,
-    mode = "numeric",
-    row.names = "named",
-    col.names = "named"
+    types = "matrix"
   ),
   info = "initial embedding generation working"
 )
@@ -90,6 +82,7 @@ expect_equal(
     "gene",
     "pathway",
     "similarity",
+    "sem_sim",
     "avg_pval",
     "pval_ci_lower",
     "pval_ci_upper",
@@ -107,15 +100,7 @@ expect_equal(
 
 signal_genes_res <- gw_stats[grepl("signal", gene)]
 
-summary(signal_genes_res$similarity)
-
-hist(signal_genes_res$avg_pval)
-
 noise_genes_res <- gw_stats[grepl("noise", gene)]
-
-summary(noise_genes_res$similarity)
-
-hist(noise_genes_res$avg_pval)
 
 expect_true(
   current = mean(signal_genes_res$similarity) >

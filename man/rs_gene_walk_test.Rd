@@ -2,33 +2,40 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{rs_gene_walk_test}
 \alias{rs_gene_walk_test}
-\title{Calculate the test statistics}
+\title{Calculate GeneWalk test statistics}
 \usage{
 rs_gene_walk_test(
-  gene_embds,
-  pathway_embds,
+  gene_embds_list,
+  pathway_embds_list,
   null_similarities,
   connected_pathways,
   verbose
 )
 }
 \arguments{
-\item{gene_embds}{Matrix of n_genes x embedding dimensions.}
+\item{gene_embds_list}{List of n_graph gene embedding matrices
+(n_genes x dim).}
 
-\item{pathway_embds}{Matrix of n_pathways x embedding dimensions.}
+\item{pathway_embds_list}{List of n_graph pathway embedding matrices
+(n_pathways x dim).}
 
-\item{null_similarities}{List of similarities based on randomised connected
-networks.}
+\item{null_similarities}{List of n_perm numeric vectors (null cosine
+similarities to be pooled).}
 
-\item{connected_pathways}{List. Gene to pathway connections (1-indexed).}
+\item{connected_pathways}{List. Per-gene integer vectors of connected
+pathway indices (1-indexed).}
 
 \item{verbose}{Controls verbosity.}
 }
 \value{
-A list with per-pair statistics (see original docs).
+A list with per-pair statistics.
 }
 \description{
-Calculates test statistics for gene-pathway pairs. The null
-distribution is derived from gene-pathway cosine similarities in permuted
-embeddings (full cross-cosine, not just connected pairs).
+Pools all null distributions into one, then for each observed
+embedding rep: computes p-values, per-gene FDR, and global FDR. Finally
+aggregates across reps with geometric mean and 95\\% CI (log_stats).
+
+Matches the paper: "we repeat the above-described network representation
+learning and significance testing procedures of the GWN nreps_graph times
+and provide the mean and 95\\% confidence intervals".
 }

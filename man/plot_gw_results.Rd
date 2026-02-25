@@ -4,7 +4,7 @@
 \alias{plot_gw_results}
 \title{Plot the gene walk results}
 \usage{
-plot_gw_results(object)
+plot_gw_results(object, fdr_treshold = 0.25)
 }
 \arguments{
 \item{object}{The \code{GeneWalk} class. The stats need to be available in the

@@ -65,14 +65,17 @@ download_database <- function() {
   zip_path <- file.path(cache_dir, "genewalk.duckdb.zip")
   db_path <- file.path(cache_dir, "genewalk.duckdb")
 
-  url <- "https://github.com/GregorLueg/genewalkR/releases/download/v0.1-data/genewalk.duckdb.zip"
+  url <- "https://github.com/GregorLueg/genewalkR/releases/download/v0.2-data/genewalk.duckdb.zip"
 
   message("Downloading database...")
   tryCatch(
     {
       utils::download.file(url, zip_path, mode = "wb", quiet = FALSE)
-      utils::unzip(zip_path, exdir = cache_dir)
+      extracted <- utils::unzip(zip_path, exdir = cache_dir)
       file.remove(zip_path)
+      if (!file.exists(db_path)) {
+        file.rename(extracted[1], db_path)
+      }
       message("Download complete")
       invisible(db_path)
     },
@@ -80,6 +83,14 @@ download_database <- function() {
       stop("Failed to download database: ", e$message, call. = FALSE)
     }
   )
+}
+
+#' Clean the cache and download the DB again
+#'
+#' @export
+reload_db <- function() {
+  unlink(tools::R_user_dir("genewalkR", "cache"), recursive = TRUE)
+  download_database()
 }
 
 ## connection ------------------------------------------------------------------
@@ -480,18 +491,48 @@ get_interactions_intact <- function(
   return(table)
 }
 
+#' Get the pathway commons network
+#'
+#' @inherit pathway_commons_source details
+#'
+#' @param head_only Logical. If TRUE, returns only the first 5 rows.
+#'
+#' @returns data.table with the Pathway Commons network data.
+#'
+#' @export
+#'
+#' @importFrom magrittr `%>%`
+get_interactions_pc <- function(head_only = FALSE) {
+  checkmate::assert_flag(head_only)
+
+  con <- get_db_connection()
+  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
+
+  query <- "SELECT * FROM interactions_pc"
+  if (head_only) {
+    query <- paste(query, "LIMIT 5")
+  }
+
+  table <- DBI::dbGetQuery(conn = con, statement = query) %>%
+    data.table::setDT() %>%
+    .string_cols_to_factors()
+
+  return(table)
+}
+
 
 #' Get the Combined network
 #'
 #' @description This returns a combined network akin to the workflow from
 #' Barrio-Hernandez et al. based on high quality edges from STRING, physical
-#' interactions from Intact and the full sets from SIGNOR and Reactome
+#' interactions from Intact and the full sets from SIGNOR, Reactome and Pathway
+#' Commons interactions.
 #'
 #' @inherit opentargets_source details
 #'
 #' @param head_only Logical. If TRUE, returns only the first 5 rows.
 #'
-#' @returns data.table with the Reactome network data.
+#' @returns data.table with the combined, collapsed network data.
 #'
 #' @export
 #'

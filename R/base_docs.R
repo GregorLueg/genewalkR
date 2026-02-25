@@ -17,3 +17,13 @@ NULL
 #'
 #' @keywords internal
 NULL
+
+#' @name pathway_commons_source
+#'
+#' @title Pathway Commons Data Source
+#'
+#' @details This is version 14 of Pathway Commons. For details, check
+#' Rodchenkov, et al., Nucleic Acids Res., 2019
+#'
+#' @keywords internal
+NULL

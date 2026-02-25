@@ -1,12 +1,5 @@
 # test internal data -----------------------------------------------------------
 
-## generate the connection -----------------------------------------------------
-
-db_path <- system.file("extdata", "genewalk.duckdb", package = "genewalkR")
-con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
-
-# tests ------------------------------------------------------------------------
-
 ## main tables -----------------------------------------------------------------
 
 ### genes ----------------------------------------------------------------------
@@ -227,6 +220,21 @@ expect_true(
     must.include = c("from", "to")
   ),
   info = "correct colums for signor network"
+)
+
+pc_network <- get_interactions_pc(head_only = TRUE)
+
+expect_true(
+  checkmate::testDataTable(pc_network),
+  info = "pathway commons interactions correctly returned"
+)
+
+expect_true(
+  checkmate::testNames(
+    names(pc_network),
+    must.include = c("from", "to")
+  ),
+  info = "correct colums for pathway commons network"
 )
 
 combined_network <- get_interactions_combined(head_only = TRUE)

@@ -890,9 +890,8 @@ dependencies = [
 
 [[package]]
 name = "node2vec-rs"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "531b9cf4676bd9383a74b6305450d27cdd0c242d393b2914d05e6aa7b7549913"
+version = "0.1.6"
+source = "git+https://github.com/GregorLueg/node2vec-rs.git?branch=fix-train-cpu#c017516d6840137e89510d4dba4b42c944856e8a"
 dependencies = [
  "clap",
  "csv",

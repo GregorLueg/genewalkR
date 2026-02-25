@@ -2,7 +2,7 @@
 % Please edit documentation in R/classes.R
 \name{get_embedding}
 \alias{get_embedding}
-\title{Get the embedding}
+\title{Get the list of embeddings}
 \usage{
 get_embedding(object)
 }
@@ -10,8 +10,8 @@ get_embedding(object)
 \item{object}{The \code{GeneWalk} class, please see \code{\link[=GeneWalk]{GeneWalk()}}.}
 }
 \value{
-If found, returns the embedding
+If found, returns the embedding list.
 }
 \description{
-Get the embedding
+Get the list of embeddings
 }

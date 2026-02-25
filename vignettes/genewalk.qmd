@@ -72,14 +72,20 @@ genewalk_obj
 
 ### Running gene walk on the synthetic data
 
-This function here generates the node2vec embedding based on the network
+This function here generates the node2vec embedding based on the network. To
+avoid instability issues due to the [Hogwild!-type SGD](https://papers.nips.cc/paper_files/paper/2011/hash/218a0aefd1d1a4be65601cc6ddc1520e-Abstract.html) 
+used, we limit the threads to `1L` here via `params_genewalk()`. If you want to
+do fast testing (for parameter optimisation), you can increase this to more.
+Initially, we generate `n_graph` initial representations. The authors of the
+original work default to `3L` here.
 
 ```{r}
 #| label: generate the first embeddings
 
 genewalk_obj <- generate_initial_emb(
   genewalk_obj,
-  node2vec_params = params_node2vec(),
+  n_graph = 3L,
+  genewalk_params = params_genewalk(),
   .verbose = TRUE
 )
 ```
@@ -125,7 +131,7 @@ Let's explore the signal in the synthetic data a bit... What are we observing
 #| label: plot the similarities - synthetic
 
 # add the labels for signal and noise
-statistics[, signal := grepl("signal", gene)][, 
+statistics[, signal := grepl("anchor", gene)][, 
   signal := factor(signal, levels = c("TRUE", "FALSE"))
 ]
 
@@ -154,21 +160,25 @@ ggplot(
 ) + 
   geom_histogram(bins = 45, fill = "lightgrey") +
   facet_wrap(~ signal) +
-  xlab("Cosine similarity") +
+  xlab("p-val") +
   ylab("Count") +
   theme_bw()
 ```
 
-Similar pattern. The `TRUE` signal ones are nearly all significant. Less so
-for the noisy signal. The signal in the noise data is there, but this is 
-expected due to the data. Let's look at genes passing the FDR thresholds
+Looking which genes have significant associations with their pathways, we can
+appreciate, these are nearly all of the signal genes, confirming how the
+algorithm works.
 
 ```{r}
 #| label: check the synthetic data enrichment results 
 
+# majority of the signal comes from the "anchor" genes
+# due to the contrived nature of the data, we still get some
+# signal from the noise genes (also very small subgraph)
+
 table(
-  grepl("signal", statistics$gene),
-  statistics$avg_global_fdr < 0.05
+  grepl("anchor", statistics$gene),
+  statistics$avg_gene_fdr < 0.1
 )
 ```
 
@@ -186,6 +196,7 @@ the objects. Within the package, there is a DuckDB that contains
 - The SIGNOR network extracted from OpenTargets.
 - The Reactome gene to gene network extracted from OpenTargets.
 - The Intact network extracted from OpenTargets.
+- The Pathway Commons interactions, see [Rodchenkov, et al.](https://academic.oup.com/nar/article/48/D1/D489/5606621).
 - A combined network from the sources above, based on the approach from
   [Barrio-Hernandez, et al.](https://www.nature.com/articles/s41588-023-01327-9).
 
@@ -206,13 +217,15 @@ Let's use the Gene Ontology and combined network for this example.
 gw_factory <- GeneWalkGenerator$new()
 
 gw_factory$add_pathways() # will add GO to the builder
-gw_factory$add_ppi(source = "string", string_threshold = 0.5) # will add the combined one
+gw_factory$add_ppi(source = "combined") # will add the combined one
 gw_factory$build() # will load the data into the factory
 ```
 
 The idea of the factory is to easily iterate through various bags of genes of
 interest. Now let's use the factory to look specifically at the MYC target genes 
-(provided in the package) and generate a GeneWalkNetwork for them.
+(provided in the package and extracted from the Hallmarks MYC V1 gene set, see
+[Liberzon et al.](https://pubmed.ncbi.nlm.nih.gov/26771021/)) and generate a 
+GeneWalkNetwork for them.
 
 ```{r}
 #| label: use the factory
@@ -224,6 +237,21 @@ myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
 myc_gwn
 ```
 
+### Check the node degree
+
+For GeneWalk to optimally work, you need quite a few edges based on the 
+interaction networks. This is a helper to get the information:
+
+```{r}
+#| label: print the node degree to console
+
+check_degree_distribution(myc_gwn)
+```
+
+We can appreciate quite a few interactions between the genes. We can proceed
+here. Should you observe a low number of interaction connections, likely, your
+gene set is too small and the approach will not work well.
+
 ### Running gene walk on actual data
 
 We can now use the same steps as above
@@ -231,25 +259,21 @@ We can now use the same steps as above
 ```{r}
 #| label: running gene walk on MYC
 
-data(myc_genes)
-
-myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
-
 # this will take a while
 myc_gwn <- generate_initial_emb(
   myc_gwn,
-  node2vec_params = params_node2vec(
-    n_epochs = 5L,
-    walks_per_node = 50L,
-    walk_length = 10L,
-    window_size = 1L
-  ),
+  genewalk_params = params_genewalk(walks_per_node = 25L),
   .verbose = TRUE
 )
-# if you are on a many core machines, consider upping the num_workers here
-# the default is 4L, but you can up this on your machine. also, for 
-# speed purposes, the walks per node and walk length has been reduced
-# to 20L each.
+
+# we are reducing the number of walks here... the original paper used 100L
+# walks per node with walk_length = 10L. you can play around with the parameters
+# here. a potential approach is to test different parameters with 
+# num_workers ≥ 1 and check the stability of the resulting similarities and
+# p-values given your parameters. setting num_workers ≥ 1 will use Hogwild!
+# type SGD which cannot guarantee determinism. however, overall structure
+# should be similar. these are parameters you will have to explore while
+# running the algorithm.
 
 # this even longer... go get coffee
 myc_gwn <- generate_permuted_emb(
@@ -305,7 +329,7 @@ of `gene <> pathway` connections.
 ```{r}
 #| label: plot the results
 
-plot_gw_results(myc_gwn)
+plot_gw_results(myc_gwn, fdr_treshold = 0.05)
 ```
 
 Other options are to plot for individual genes the significantly associated

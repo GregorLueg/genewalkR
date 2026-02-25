@@ -67,11 +67,12 @@ node2vec <- function(
     to = to_idx,
     weights = weights,
     gene_walk_params = node2vec_params,
+    n_graph = 1L,
     embd_dim = embd_dim,
     directed = directed,
     seed = seed,
     verbose = .verbose
-  )
+  )[[1]]
 
   rownames(embd) <- nodes
   colnames(embd) <- sprintf("emb_dim_%i", 1:embd_dim)

@@ -10,11 +10,12 @@
 #' @useDynLib genewalkR, .registration = TRUE
 NULL
 
-#' Generate GeneWalk node embeddings
+#' Generate GeneWalk node embeddings (multiple reps)
 #'
-#' @description Uses a SIMD-accelerated CPU implementation of word2vec
-#' with negative sampling to learn node representations from biased
-#' random walks (node2vec).
+#' @description Trains node2vec on the original GeneWalk network `n_graph`
+#' times with different random seeds, returning a list of embedding matrices.
+#' This provides the variance across embedding reps needed for the final
+#' log_stats aggregation.
 #'
 #' @param from Integer vector. Node indices for edge origins.
 #' @param to Integer vector. Node indices for edge destinations.
@@ -22,55 +23,64 @@ NULL
 #' @param gene_walk_params Named list. Training parameters (p, q,
 #'   walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
 #'   window_size, lr, dim).
+#' @param n_graph Integer. Number of independent embedding reps.
 #' @param embd_dim Integer. Embedding dimension.
 #' @param directed Boolean. Treat graph as directed.
-#' @param seed Integer. Random seed.
+#' @param seed Integer. Random seed (incremented per rep).
 #' @param verbose Boolean. Controls verbosity.
 #'
-#' @return A numeric matrix of n_nodes x embedding dimensions.
+#' @return A list of n_graph numeric matrices, each n_nodes x embedding dim.
 #'
 #' @export
-rs_gene_walk <- function(from, to, weights, gene_walk_params, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk, from, to, weights, gene_walk_params, embd_dim, directed, seed, verbose)
+rs_gene_walk <- function(from, to, weights, gene_walk_params, n_graph, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk, from, to, weights, gene_walk_params, n_graph, embd_dim, directed, seed, verbose)
 
-#' Generate permuted embeddings for null distribution
+#' Generate null distributions from degree-matched random networks
 #'
-#' @description Generates degree-preserving random networks and trains node2vec
-#' on each, returning the raw embedding matrices for downstream statistical
-#' testing.
+#' @description For each permutation, generates a random graph via the
+#' configuration model (matching the original degree distribution), trains
+#' node2vec on it, then collects cosine similarities between each node and
+#' its unique neighbours in the random graph. This matches the original Python
+#' GeneWalk procedure.
 #'
 #' @param from Integer vector. Node indices for edge origins.
 #' @param to Integer vector. Node indices for edge destinations.
 #' @param weights Optional numeric vector. Edge weights, defaults to 1.0.
 #' @param gene_walk_params Named list. Training parameters.
-#' @param n_perm Integer. Number of permutations.
+#' @param n_perm Integer. Number of null permutations.
 #' @param embd_dim Integer. Embedding dimension.
 #' @param directed Boolean. Treat graph as directed.
 #' @param seed Integer. Random seed.
 #' @param verbose Boolean. Controls verbosity.
 #'
-#' @returns A list of n_perm cosine similarities based on the connected nodes
-#' of node-degree matched random graphs.
+#' @returns A list of n_perm numeric vectors of null cosine similarities.
 #'
 #' @export
-rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_gene_pathway_edges, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_gene_pathway_edges, n_perm, embd_dim, directed, seed, verbose)
+rs_gene_walk_perm <- function(from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose) .Call(wrap__rs_gene_walk_perm, from, to, weights, gene_walk_params, n_perm, embd_dim, directed, seed, verbose)
 
-#' Calculate the test statistics
+#' Calculate GeneWalk test statistics
 #'
-#' @description Calculates test statistics for gene-pathway pairs. The null
-#' distribution is derived from gene-pathway cosine similarities in permuted
-#' embeddings (full cross-cosine, not just connected pairs).
+#' @description Pools all null distributions into one, then for each observed
+#' embedding rep: computes p-values, per-gene FDR, and global FDR. Finally
+#' aggregates across reps with geometric mean and 95\% CI (log_stats).
 #'
-#' @param gene_embds Matrix of n_genes x embedding dimensions.
-#' @param pathway_embds Matrix of n_pathways x embedding dimensions.
-#' @param null_similarities List of similarities based on randomised connected
-#' networks.
-#' @param connected_pathways List. Gene to pathway connections (1-indexed).
+#' Matches the paper: "we repeat the above-described network representation
+#' learning and significance testing procedures of the GWN nreps_graph times
+#' and provide the mean and 95\% confidence intervals".
+#'
+#' @param gene_embds_list List of n_graph gene embedding matrices
+#'   (n_genes x dim).
+#' @param pathway_embds_list List of n_graph pathway embedding matrices
+#'   (n_pathways x dim).
+#' @param null_similarities List of n_perm numeric vectors (null cosine
+#'   similarities to be pooled).
+#' @param connected_pathways List. Per-gene integer vectors of connected
+#'   pathway indices (1-indexed).
 #' @param verbose Controls verbosity.
 #'
-#' @returns A list with per-pair statistics (see original docs).
+#' @returns A list with per-pair statistics.
 #'
 #' @export
-rs_gene_walk_test <- function(gene_embds, pathway_embds, null_similarities, connected_pathways, verbose) .Call(wrap__rs_gene_walk_test, gene_embds, pathway_embds, null_similarities, connected_pathways, verbose)
+rs_gene_walk_test <- function(gene_embds_list, pathway_embds_list, null_similarities, connected_pathways, verbose) .Call(wrap__rs_gene_walk_test, gene_embds_list, pathway_embds_list, null_similarities, connected_pathways, verbose)
 
 #' Cosine similarity between two vectors
 #'

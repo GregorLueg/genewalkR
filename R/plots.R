@@ -46,7 +46,8 @@ plot_gw_results <- S7::new_generic(
   name = "plot_gw_results",
   dispatch_args = "object",
   fun = function(
-    object
+    object,
+    fdr_treshold = 0.25
   ) {
     S7::S7_dispatch()
   }
@@ -56,10 +57,12 @@ plot_gw_results <- S7::new_generic(
 #'
 #' @import ggplot2
 S7::method(plot_gw_results, GeneWalk) <- function(
-  object
+  object,
+  fdr_treshold = 0.25
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
+  checkmate::qassert(fdr_treshold, "N1[0, 1]")
 
   # early return
   if (suppressWarnings(nrow(get_stats(object)) == 0)) {
@@ -79,7 +82,7 @@ S7::method(plot_gw_results, GeneWalk) <- function(
 
   plot_dt <- results[,
     .(
-      ratio = sum(avg_gene_fdr <= 0.1) / length(pathway),
+      ratio = sum(avg_gene_fdr <= fdr_treshold) / length(pathway),
       pathway_connections = length(pathway)
     ),
     .(gene)

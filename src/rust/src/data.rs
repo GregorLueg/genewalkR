@@ -306,6 +306,7 @@ pub struct SyntheticGeneWalkData {
 ///
 /// `SyntheticGeneWalkData` containing ontology edges, gene-ontology annotation
 /// edges, PPI edges, and the signal and noise gene name lists
+#[allow(clippy::too_many_arguments)]
 pub fn build_synthetic_genewalk(
     n_signal_genes: usize,
     n_noise_genes: usize,
@@ -381,10 +382,9 @@ pub fn build_synthetic_genewalk(
     let mut gene_ont_edges: Vec<(String, String)> = Vec::new();
     let mut ppi_edges: Vec<(String, String)> = Vec::new();
 
-    // Signal genes:
-    // - Annotations concentrated in a single subtree (subtree 0)
-    // - 5-15 annotations each (realistic GO annotation count)
-    // - PPI between signal genes reinforces community structure
+    // ---------------------------------------------------------
+    // 1. SIGNAL GENES: Concentrated strictly in Subtree 0
+    // ---------------------------------------------------------
     let signal_subtree = &all_terms_per_subtree[0];
     let mut signal_genes: Vec<String> = Vec::new();
 
@@ -403,6 +403,7 @@ pub fn build_synthetic_genewalk(
         signal_genes.push(gene);
     }
 
+    // Dense PPIs for the signal community
     for i in 0..signal_genes.len() {
         for j in (i + 1)..signal_genes.len() {
             if rng.random::<f64>() < p_ppi {
@@ -411,21 +412,56 @@ pub fn build_synthetic_genewalk(
         }
     }
 
-    // Noise genes:
-    // - Same number of annotations as signal genes (degree-matched)
-    // - Annotations FORCED to span at least min_noise_subtrees different
-    //   subtrees
-    // - PPI edges connect noise genes across different annotation profiles
+    // ---------------------------------------------------------
+    // 2. BACKGROUND ANCHOR GENES: Prevent isolate/degree-1 terms
+    // ---------------------------------------------------------
+    // We distribute a pool of anchor genes equal to `n_signal_genes`
+    // across the remaining subtrees so they don't blow up the graph size.
+    if n_roots > 1 {
+        let anchors_per_st = (n_signal_genes / (n_roots - 1)).max(2);
+
+        #[allow(clippy::needless_range_loop)]
+        for st in 1..n_roots {
+            let st_terms = &all_terms_per_subtree[st];
+            let mut local_anchors = Vec::new();
+
+            for i in 0..anchors_per_st {
+                let gene = format!("gene_anchor_{}_{:04}", st, i + 1);
+                let n_ann =
+                    min_annotations + rng.random_range(0..=(max_annotations - min_annotations));
+                let mut seen = FxHashSet::default();
+
+                for _ in 0..n_ann {
+                    let term = &st_terms[rng.random_range(0..st_terms.len())];
+                    if seen.insert(term.clone()) {
+                        gene_ont_edges.push((gene.clone(), term.clone()));
+                    }
+                }
+                local_anchors.push(gene);
+            }
+
+            // PPIs for local anchors
+            for i in 0..local_anchors.len() {
+                for j in (i + 1)..local_anchors.len() {
+                    if rng.random::<f64>() < p_ppi {
+                        ppi_edges.push((local_anchors[i].clone(), local_anchors[j].clone()));
+                    }
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 3. NOISE GENES: Spread randomly across multiple subtrees
+    // ---------------------------------------------------------
     let n_subtrees = all_terms_per_subtree.len();
     let effective_min_subtrees = min_noise_subtrees.min(n_subtrees);
-
     let mut noise_genes: Vec<String> = Vec::new();
 
     for i in 0..n_noise_genes {
         let gene = format!("gene_noise_{:04}", i + 1);
         let n_ann = min_annotations + rng.random_range(0..=(max_annotations - min_annotations));
         let mut seen = FxHashSet::default();
-        let mut subtrees_used = FxHashSet::default();
 
         let mut forced_subtrees: Vec<usize> = (0..n_subtrees).collect();
         forced_subtrees.shuffle(&mut rng);
@@ -436,7 +472,6 @@ pub fn build_synthetic_genewalk(
             let term = &terms[rng.random_range(0..terms.len())];
             if seen.insert(term.clone()) {
                 gene_ont_edges.push((gene.clone(), term.clone()));
-                subtrees_used.insert(st);
             }
         }
 
@@ -446,16 +481,13 @@ pub fn build_synthetic_genewalk(
             let term = &all_terms[rng.random_range(0..all_terms.len())];
             if seen.insert(term.clone()) {
                 gene_ont_edges.push((gene.clone(), term.clone()));
-                if let Some(&st) = term_to_subtree.get(term) {
-                    subtrees_used.insert(st);
-                }
             }
         }
 
         noise_genes.push(gene);
     }
 
-    // Noise PPI: random across all noise genes (no community structure)
+    // Random PPIs across noise genes (no community structure)
     for i in 0..noise_genes.len() {
         for j in (i + 1)..noise_genes.len() {
             if rng.random::<f64>() < p_ppi {
