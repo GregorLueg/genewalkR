@@ -10,12 +10,13 @@ get_interactions_combined(head_only = FALSE)
 \item{head_only}{Logical. If TRUE, returns only the first 5 rows.}
 }
 \value{
-data.table with the Reactome network data.
+data.table with the combined, collapsed network data.
 }
 \description{
 This returns a combined network akin to the workflow from
 Barrio-Hernandez et al. based on high quality edges from STRING, physical
-interactions from Intact and the full sets from SIGNOR and Reactome
+interactions from Intact and the full sets from SIGNOR, Reactome and Pathway
+Commons interactions.
 }
 \details{
 The data is extracted from the OpenTargets release \code{25.12}

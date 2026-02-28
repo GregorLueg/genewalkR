@@ -38,10 +38,12 @@ reference:
     contents:
       - GeneWalk
       - GeneWalkGenerator
+      - check_degree_distribution
       - generate_initial_emb
       - generate_permuted_emb
       - calculate_genewalk_stats
       - plot_gw_results
+      - plot_similarities
   - title: "Node2Vec"
     desc: "Run Node2Vec"
     contents:
@@ -61,6 +63,7 @@ reference:
   - title: "Data sources"
     desc: "How to download and interact with the internal DB."
     contents:
+      - reload_db
       - download_database
       - get_db_connection
       - get_interactions_combined
@@ -68,6 +71,7 @@ reference:
       - get_interactions_reactome
       - get_interactions_signor
       - get_interactions_string
+      - get_interactions_pc
       - get_gene_ontology_info
       - get_gene_ontology_hierarchy
       - get_reactome_info
@@ -83,8 +87,9 @@ reference:
   - title: "Params"
     desc: "Wrapper functions around core parameters"
     contents:
-      - params_genewalk_data
+      - params_genewalk
       - params_node2vec
+      - params_genewalk_data
   - title: "Rust wrappers"
     desc: "Everything rusty - only use this if you know what you are doing..."
     contents:
@@ -93,7 +98,6 @@ reference:
       - rs_gene_walk
       - rs_gene_walk_perm
       - rs_gene_walk_test
-      - rs_generate_pathway_structure
       - rs_node2vec_synthetic_data
   - title: "Internal"
     desc: "Internal helper functions"

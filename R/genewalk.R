@@ -1,5 +1,55 @@
 # genewalkR main functions -----------------------------------------------------
 
+## check degrees ---------------------------------------------------------------
+
+#' Check the degree across different node types
+#'
+#' @description
+#' Shows the degrees of the different edge types in the GeneWalk network. Lack
+#' of PPI interactions for example will make it difficult for the method to
+#' identify patterns.
+#'
+#' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
+#'
+#' @export
+check_degree_distribution <- S7::new_generic(
+  name = "check_degree_distribution",
+  dispatch_args = "object",
+  fun = function(
+    object
+  ) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method check_degree_distribution GeneWalk
+#'
+#' @export
+S7::method(check_degree_distribution, GeneWalk) <- function(object) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
+
+  edge_types <- c("hierarchy", "interaction", "part_of")
+
+  for (edge_type in edge_types) {
+    edges <- object@graph_dt[type == edge_type]
+
+    if (nrow(edges) == 0) {
+      message(sprintf("\n%s: no edges found", edge_type))
+      next
+    }
+
+    degrees <- igraph::degree(
+      igraph::graph_from_data_frame(d = edges, directed = FALSE)
+    )
+
+    message(sprintf("\n--- %s ---", edge_type))
+    print(summary(degrees))
+  }
+
+  invisible(object)
+}
+
 ## initial embedding generation ------------------------------------------------
 
 #' Generate the initial graph embedding
@@ -15,7 +65,8 @@
 #' @param object The `GeneWalk` class, please see [genewalkR::GeneWalk()].
 #' @param embd_dim Integer. Size of the embedding dimensions to create. Defaults
 #' to `8L` in line with the authors recommendations.
-#' @param node2vec_params Named list. Contains the node2vec parameters. The
+#' @param n_graph Integer. How many initial graphs to create. Defaults to `3L`.
+#' @param genewalk_params Named list. Contains the node2vec parameters. The
 #' list has the following elements:
 #' \itemize{
 #'  \item p - Numeric. Return parameter for biased random walks. Defaults to
@@ -23,11 +74,10 @@
 #'  \item q - Numeric. In-out parameter for biased random walks. Defaults to
 #'  `1.0.`.
 #'  \item walks_per_node - Integer. Number of random walks per node. Defaults to
-#'  ` 40L.`.
-#'  \item walk_length - Integer. Length of each random walk. Defaults to `40L`.
-#'  \item num_workers - Number of worker threads during batching. Defaults to
-#'  `4L`. To note: during graph generation, Rust will use via the Rayon backend
-#'  all available threads.
+#'  ` 100L`.
+#'  \item walk_length - Integer. Length of each random walk. Defaults to `10L`.
+#'  \item num_workers - Number of worker threads during to use during SGD
+#'  updates. For determism, defaults to `1L`.
 #'  \item batch_size - Integer. Batch size for training. Defaults to `256L`.
 #'  \item n_epochs - Integer. Number of training epochs. Defaults to `15L`.
 #'  \item n_negatives - Integer. Number of negative samples. Defaults to `5L`.
@@ -50,7 +100,8 @@ generate_initial_emb <- S7::new_generic(
   fun = function(
     object,
     embd_dim = 8L,
-    node2vec_params = params_node2vec(),
+    n_graph = 3L,
+    genewalk_params = params_genewalk(),
     directed = FALSE,
     seed = 42L,
     .verbose = TRUE
@@ -65,14 +116,17 @@ generate_initial_emb <- S7::new_generic(
 S7::method(generate_initial_emb, GeneWalk) <- function(
   object,
   embd_dim = 8L,
-  node2vec_params = params_node2vec(),
+  n_graph = 3L,
+  genewalk_params = params_genewalk(),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
-  assertNode2VecParam(node2vec_params)
+  assertNode2VecParam(genewalk_params)
+  checkmate::qassert(embd_dim, "I1[1,)")
+  checkmate::qassert(n_graph, "I1[1,)")
   checkmate::qassert(directed, "B1")
   checkmate::qassert(.verbose, "B1")
 
@@ -90,25 +144,29 @@ S7::method(generate_initial_emb, GeneWalk) <- function(
   }
 
   # generate the embedding
-  embd <- rs_gene_walk(
+  embd_ls <- rs_gene_walk(
     from = from_idx,
     to = to_idx,
     weights = weights,
-    gene_walk_params = node2vec_params,
+    gene_walk_params = genewalk_params,
+    n_graph = n_graph,
     embd_dim = embd_dim,
     directed = directed,
     seed = seed,
     verbose = .verbose
   )
 
-  rownames(embd) <- nodes
-  colnames(embd) <- sprintf("emb_dim_%i", 1:embd_dim)
+  embd_ls <- purrr::map(embd_ls, \(m) {
+    rownames(m) <- nodes
+    colnames(m) <- sprintf("emb_dim_%i", 1:embd_dim)
+    m
+  })
 
-  full_params <- node2vec_params
+  full_params <- genewalk_params
   full_params[["embd_size"]] <- embd_dim
   full_params[["directed"]] <- directed
 
-  S7::prop(object, "embd") <- embd
+  S7::prop(object, "embd") <- embd_ls
   S7::prop(object, "params")[["node2vec"]] <- full_params
 
   return(object)
@@ -182,7 +240,6 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
 
   graph_dt <- S7::prop(object, "graph_dt")
 
-  # CRITICAL: use sort(unique(...)) to match generate_initial_emb
   nodes <- sort(unique(c(graph_dt$from, graph_dt$to)))
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
@@ -205,12 +262,6 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
     seed = seed,
     verbose = .verbose
   )
-
-  # assign rownames so we can index by gene/pathway name later
-  rnd_embd <- lapply(rnd_embd, function(mat) {
-    rownames(mat) <- nodes
-    mat
-  })
 
   S7::prop(object, "permuted_embd") <- rnd_embd
 
@@ -289,7 +340,7 @@ S7::method(calculate_genewalk_stats, GeneWalk) <- function(
     return(object)
   }
 
-  actual_embd <- S7::prop(object, "embd")
+  actual_embds <- S7::prop(object, "embd")
   permuted_embds <- S7::prop(object, "permuted_embd")
   gene_ids <- S7::prop(object, "gene_ids")
   pathway_ids <- S7::prop(object, "pathway_ids")
@@ -301,16 +352,22 @@ S7::method(calculate_genewalk_stats, GeneWalk) <- function(
   )
 
   # Row indices into the full embedding (1-based for R/Rust bridge)
-  all_nodes <- rownames(actual_embd)
+  all_nodes <- rownames(actual_embds[[1]])
   gene_indices <- match(gene_ids, all_nodes)
   pathway_indices <- match(pathway_ids, all_nodes)
 
+  gene_embds_ls <- purrr::map(actual_embds, \(m) {
+    m[gene_ids, ]
+  })
+
+  pathway_embds_ls <- purrr::map(actual_embds, \(m) {
+    m[pathway_indices, ]
+  })
+
   stats <- rs_gene_walk_test(
-    gene_embds = actual_embd[gene_ids, ],
-    pathway_embds = actual_embd[pathway_ids, ],
-    permuted_embds = permuted_embds,
-    gene_indices = gene_indices,
-    pathway_indices = pathway_indices,
+    gene_embds_list = gene_embds_ls,
+    pathway_embds_list = pathway_embds_ls,
+    null_similarities = permuted_embds,
     connected_pathways = connected,
     verbose = .verbose
   )

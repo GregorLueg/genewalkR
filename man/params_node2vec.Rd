@@ -9,12 +9,12 @@ params_node2vec(
   q = 1,
   walks_per_node = 40L,
   walk_length = 40L,
-  num_workers = 4L,
   batch_size = 256L,
   n_epochs = 20L,
   n_negatives = 5L,
   window_size = 2L,
-  lr = 0.01
+  lr = 0.01,
+  num_workers = NULL
 )
 }
 \arguments{
@@ -29,8 +29,6 @@ params_node2vec(
 
 \item{walk_length}{Integer. Length of each random walk. Defaults to \code{40L}.}
 
-\item{num_workers}{Integer. Number of worker threads. Defaults to \code{4L}.}
-
 \item{batch_size}{Integer. Batch size for training. Defaults to \code{256L}.}
 
 \item{n_epochs}{Integer. Number of training epochs. Defaults to \code{20L}.}
@@ -40,10 +38,14 @@ params_node2vec(
 \item{window_size}{Integer. Context window size. Defaults to \code{2L}.}
 
 \item{lr}{Numeric. Learning rate. Defaults to \code{1e-2}.}
+
+\item{num_workers}{Optional integer. If kept to \code{NULL}, it will default
+to \verb{available cores - 2 (min 1)}.}
 }
 \value{
 A list with the node2vec parameters.
 }
 \description{
-Wrapper function for the node2vec parameters
+These are general node2vec parameters, designed for speed. They will default
+to \verb{available cores - 2 (min 1)}.
 }

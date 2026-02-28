@@ -4,11 +4,14 @@
 \alias{plot_gw_results}
 \title{Plot the gene walk results}
 \usage{
-plot_gw_results(object)
+plot_gw_results(object, fdr_treshold = 0.25)
 }
 \arguments{
 \item{object}{The \code{GeneWalk} class. The stats need to be available in the
 object.}
+
+\item{fdr_treshold}{Numeric. The FDR approach you wish to apply. GeneWalk
+is quite stringent, so, setting this to lower values can make sense.}
 }
 \value{
 ggplot2 object with the plot for the gene

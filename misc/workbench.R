@@ -1,46 +1,40 @@
-# generate a nice plotting function --------------------------------------------
+# plots ------------------------------------------------------------------------
 
-test <- myc_gwn
+obj <- myc_gwn
 
-test
+rm(obj)
 
-table(test@graph_dt$type)
+hist(myc_gwn@stats$similarity, breaks = 30)
 
-object = myc_gwn
+hist(myc_gwn@permuted_embd[[1]], breaks = 30)
 
-results <- get_stats(object)
+hist(myc_gwn@permuted_embd[[2]], breaks = 30)
 
-graph_dt <- get_graph_dt(object)
+hist(myc_gwn@permuted_embd[[3]], breaks = 30)
+
+summary(myc_gwn@stats$similarity)
+
+summary(myc_gwn@permuted_embd[[3]])
 
 
-node_dt <- .get_node_degree(graph_dt)
+object <- myc_gwn
 
-plot_dt <- results[,
-  .(
-    ratio = sum(avg_gene_fdr <= 0.1) / length(pathway),
-    pathway_connections = length(pathway)
-  ),
-  .(gene)
-]
 
-plot_dt <- node_dt[plot_dt, on = "gene"][,
-  degree := fifelse(is.na(degree), 0, degree)
-]
+random_embeddings <- purrr::imap(object@permuted_embd, \(x, i) {
+  data.table::data.table(similarity = x, sample = sprintf("perm_%i", i))
+}) %>%
+  append(
+    .,
+    list(data.table::data.table(
+      similarity = object@stats$similarity,
+      sample = "actual"
+    ))
+  ) %>%
+  data.table::rbindlist()
 
-p <- ggplot(data = plot_dt, mapping = aes(x = degree + 1, y = ratio)) +
-  suppressWarnings(geom_point(
-    mapping = aes(fill = ratio, text = gene, size = pathway_connections),
-    shape = 21,
-    alpha = 0.7
-  )) +
-  scale_x_log10() +
-  scale_fill_viridis_c(limits = c(0, 1), option = "viridis") +
-  ylim(0, 1) +
-  xlab("log(degree + 1)") +
-  ylab("Ratio enrichment") +
-  labs(fill = "Ratio", size = "Pathway\nconnections") +
-  theme_bw() +
-  ggtitle("Gene Walk Results")
-
-ggplotly(p, tooltip = c("text", "x", "y", "size")) |>
-  layout(legend = list(y = 0.5))
+ggplot(data = random_embeddings, mapping = aes(x = similarity)) +
+  facet_wrap(~sample, scales = "free") +
+  geom_histogram(aes(y = after_stat(density)), bins = 50) +
+  xlab("Cosine similarity") +
+  ylab("Density") +
+  theme_bw()

@@ -88,6 +88,11 @@ impl GeneWalkConfig {
             .map(|v| v.is_true())
             .unwrap_or(false);
 
+        let sample = param_list
+            .get("sample")
+            .and_then(|v| v.as_real())
+            .unwrap_or(1e-3) as f32;
+
         GeneWalkConfig {
             walks_per_node,
             walk_length,
@@ -103,6 +108,7 @@ impl GeneWalkConfig {
                 lr_update_rate: 10_000,
                 n_threads: num_workers,
                 verbose,
+                sample,
             },
         }
     }
@@ -131,13 +137,11 @@ pub fn train_node2vec(
     let mut args = config.train_args.clone();
     args.verbose = verbose;
 
-    let (input_mat, output_mat) =
-        train_node2vec_cpu(walks, vocab_size, args, neg_table, config.seed);
+    let (mut input_mat, _) = train_node2vec_cpu(walks, vocab_size, args, neg_table, config.seed);
 
-    let mut combined = input_mat.average_with(&output_mat);
-    combined.norm_self();
+    input_mat.norm_self();
 
-    (0..combined.n_rows())
-        .map(|i| combined.row_as_slice(i).to_vec())
+    (0..input_mat.n_rows())
+        .map(|i| input_mat.row_as_slice(i).to_vec())
         .collect()
 }

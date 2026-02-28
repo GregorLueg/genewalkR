@@ -43,6 +43,26 @@ download_data <- function(target_path) {
   system(cmd)
 }
 
+#' Helper function to download the pathway commons data
+#'
+#' @param target_path String. Where do download the data
+#'
+#' @returns Downloads the necessary files to target_path.
+download_pathway_commons <- function(
+  target_path,
+  url = "https://download.baderlab.org/PathwayCommons/PC2/v14/pc-hgnc.txt.gz"
+) {
+  checkmate::qassert(target_path, "S1")
+  checkmate::qassert(url, "S1")
+
+  dir_data <- file.path(target_path, "pc")
+  dir.create(dir_data, showWarnings = FALSE, recursive = TRUE)
+
+  destfile <- file.path(dir_data, "pc-hgnc.txt.gz")
+  download.file(url, destfile, mode = "wb")
+  invisible(destfile)
+}
+
 ## parsing ---------------------------------------------------------------------
 
 #' Parse OBO file to list of data.tables
@@ -551,22 +571,66 @@ get_intact_interaction <- function(dir_data) {
   unique(intact_interactions)
 }
 
-#' Combine
+#' Pull out the Pathway Commons interaction from the data
 #'
 #' @param dir_data String. The directory in which you downloaded the data
+#'
+#' @returns The data.table with the PC interaction
+get_pc_interactions <- function(dir_data) {
+  # checks
+  checkmate::assertDirectoryExists(dir_data)
+
+  con <- dbConnect(duckdb(), dbdir = ":memory:")
+
+  gene_data <- dbGetQuery(
+    conn = con,
+    statement = sprintf(
+      "SELECT DISTINCT id AS ensembl_id, approvedSymbol AS symbol, biotype
+      FROM read_parquet('%s')",
+      file.path(dir_data, "targets/*.parquet")
+    )
+  )
+
+  gene_translator <- setNames(gene_data$ensembl_id, gene_data$symbol)
+
+  pc_data <- dbGetQuery(
+    conn = con,
+    statement = sprintf(
+      "SELECT DISTINCT PARTICIPANT_A AS from, PARTICIPANT_B AS to, INTERACTION_TYPE as type
+      FROM read_csv('%s', sep = '\t', ignore_errors = true)",
+      file.path(dir_data, "pc/pc-hgnc.txt.gz")
+    )
+  ) %>%
+    setDT() %>%
+    .[, `:=`(from = gene_translator[from], to = gene_translator[to])] %>%
+    .[!is.na(from) & !is.na(to)] %>%
+    unique()
+
+  pc_data
+}
+
+#' Combine
+#'
+#' @param interactions_string data.table. STRING interactions.
+#' @param interactions_signor data.table. SIGNOR interactions.
+#' @param interactions_reactome data.table. Reactome interactions.
+#' @param interactions_intact data.table. Intact interactions.
+#' @param interactions_pc data.table. Pathway commons interactions.
 #'
 #' @returns The data.table with the Intact interaction
 generate_combined_network <- function(
   interactions_string,
   interactions_signor,
   interactions_reactome,
-  interactions_intact
+  interactions_intact,
+  interactions_pc
 ) {
   # checks
   checkmate::assertDataTable(interactions_string)
   checkmate::assertDataTable(interactions_signor)
   checkmate::assertDataTable(interactions_reactome)
   checkmate::assertDataTable(interactions_intact)
+  checkmate::assertDataTable(interactions_pc)
 
   # generate a combined network
   combined_network <- rbindlist(
@@ -578,6 +642,9 @@ generate_combined_network <- function(
       copy(interactions_reactome)[, c("from", "to")][, source := "reactome"],
       copy(interactions_intact)[(physical_association), c("from", "to")][,
         `:=`(source = "intact")
+      ],
+      copy(interactions_pc)[, c("from", "to")][,
+        `:=`(source = "pc")
       ]
     )
   )[, in_source := TRUE] %>%
@@ -603,8 +670,10 @@ generate_combined_network <- function(
 
 if (download_all_data) {
   download_data(target_path = dir_data)
+  download_pathway_commons(target_path = dir_data)
 }
 
+list.files(dir_data)
 
 ## individual tables -----------------------------------------------------------
 
@@ -632,11 +701,13 @@ interactions_string <- get_string_interactions(dir_data = dir_data)
 interactions_signor <- get_signor_interactions(dir_data = dir_data)
 interactions_reactome <- get_reactome_interactions(dir_data = dir_data)
 interactions_intact <- get_intact_interaction(dir_data = dir_data)
+interactions_pc <- get_pc_interactions(dir_data = dir_data)
 interactions_combined <- generate_combined_network(
   interactions_string = interactions_string,
   interactions_signor = interactions_signor,
   interactions_reactome = interactions_reactome,
-  interactions_intact = interactions_intact
+  interactions_intact = interactions_intact,
+  interactions_pc = interactions_pc
 )
 
 # generate the internal db -----------------------------------------------------
@@ -644,12 +715,12 @@ interactions_combined <- generate_combined_network(
 ## provide a path and clean up the db ------------------------------------------
 
 dir.create(
-  file.path(here::here(), "inst/extdata/"),
+  file.path(dir_data, "duckdb"),
   recursive = TRUE,
   showWarnings = FALSE
 )
 
-db_path <- file.path(here::here(), "inst/extdata/genewalk.duckdb")
+db_path <- file.path(dir_data, "duckdb/genewalk.duckdb")
 
 if (checkmate::testFileExists(db_path)) {
   unlink(db_path, force = TRUE)
@@ -673,6 +744,7 @@ table_list <- list(
   interactions_signor = interactions_signor,
   interactions_reactome = interactions_reactome,
   interactions_intact = interactions_intact,
+  interactions_pc = interactions_pc,
   interactions_combined = interactions_combined
 )
 
@@ -700,3 +772,7 @@ DBI::dbExecute(con, "CHECKPOINT")
 DBI::dbExecute(con, "VACUUM")
 
 DBI::dbDisconnect(con, shutdown = TRUE)
+
+db_path_zip = sprintf("%s.zip", db_path)
+
+zip(path.expand(db_path_zip), path.expand(db_path))

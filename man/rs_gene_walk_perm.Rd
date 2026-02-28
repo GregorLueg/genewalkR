@@ -2,7 +2,7 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{rs_gene_walk_perm}
 \alias{rs_gene_walk_perm}
-\title{Generate permuted embeddings for null distribution}
+\title{Generate null distributions from degree-matched random networks}
 \usage{
 rs_gene_walk_perm(
   from,
@@ -25,7 +25,7 @@ rs_gene_walk_perm(
 
 \item{gene_walk_params}{Named list. Training parameters.}
 
-\item{n_perm}{Integer. Number of permutations.}
+\item{n_perm}{Integer. Number of null permutations.}
 
 \item{embd_dim}{Integer. Embedding dimension.}
 
@@ -36,10 +36,12 @@ rs_gene_walk_perm(
 \item{verbose}{Boolean. Controls verbosity.}
 }
 \value{
-A list of n_perm embedding matrices (each n_nodes x embd_dim).
+A list of n_perm numeric vectors of null cosine similarities.
 }
 \description{
-Generates degree-preserving random networks and trains node2vec
-on each, returning the raw embedding matrices for downstream statistical
-testing.
+For each permutation, generates a random graph via the
+configuration model (matching the original degree distribution), trains
+node2vec on it, then collects cosine similarities between each node and
+its unique neighbours in the random graph. This matches the original Python
+GeneWalk procedure.
 }

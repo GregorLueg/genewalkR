@@ -7,7 +7,8 @@
 generate_initial_emb(
   object,
   embd_dim = 8L,
-  node2vec_params = params_node2vec(),
+  n_graph = 3L,
+  genewalk_params = params_genewalk(),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
@@ -19,7 +20,9 @@ generate_initial_emb(
 \item{embd_dim}{Integer. Size of the embedding dimensions to create. Defaults
 to \code{8L} in line with the authors recommendations.}
 
-\item{node2vec_params}{Named list. Contains the node2vec parameters. The
+\item{n_graph}{Integer. How many initial graphs to create. Defaults to \code{3L}.}
+
+\item{genewalk_params}{Named list. Contains the node2vec parameters. The
 list has the following elements:
 \itemize{
 \item p - Numeric. Return parameter for biased random walks. Defaults to
@@ -27,11 +30,10 @@ list has the following elements:
 \item q - Numeric. In-out parameter for biased random walks. Defaults to
 \verb{1.0.}.
 \item walks_per_node - Integer. Number of random walks per node. Defaults to
-\verb{ 40L.}.
-\item walk_length - Integer. Length of each random walk. Defaults to \code{40L}.
-\item num_workers - Number of worker threads during batching. Defaults to
-\code{4L}. To note: during graph generation, Rust will use via the Rayon backend
-all available threads.
+\code{ 100L}.
+\item walk_length - Integer. Length of each random walk. Defaults to \code{10L}.
+\item num_workers - Number of worker threads during to use during SGD
+updates. For determism, defaults to \code{1L}.
 \item batch_size - Integer. Batch size for training. Defaults to \code{256L}.
 \item n_epochs - Integer. Number of training epochs. Defaults to \code{15L}.
 \item n_negatives - Integer. Number of negative samples. Defaults to \code{5L}.

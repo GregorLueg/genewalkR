@@ -2,13 +2,14 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{rs_gene_walk}
 \alias{rs_gene_walk}
-\title{Generate GeneWalk node embeddings}
+\title{Generate GeneWalk node embeddings (multiple reps)}
 \usage{
 rs_gene_walk(
   from,
   to,
   weights,
   gene_walk_params,
+  n_graph,
   embd_dim,
   directed,
   seed,
@@ -26,19 +27,22 @@ rs_gene_walk(
 walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
 window_size, lr, dim).}
 
+\item{n_graph}{Integer. Number of independent embedding reps.}
+
 \item{embd_dim}{Integer. Embedding dimension.}
 
 \item{directed}{Boolean. Treat graph as directed.}
 
-\item{seed}{Integer. Random seed.}
+\item{seed}{Integer. Random seed (incremented per rep).}
 
 \item{verbose}{Boolean. Controls verbosity.}
 }
 \value{
-A numeric matrix of n_nodes x embedding dimensions.
+A list of n_graph numeric matrices, each n_nodes x embedding dim.
 }
 \description{
-Uses a SIMD-accelerated CPU implementation of word2vec
-with negative sampling to learn node representations from biased
-random walks (node2vec).
+Trains node2vec on the original GeneWalk network \code{n_graph}
+times with different random seeds, returning a list of embedding matrices.
+This provides the variance across embedding reps needed for the final
+log_stats aggregation.
 }

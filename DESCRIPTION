@@ -1,6 +1,6 @@
 Package: genewalkR
 Title: Implements the GeneWalk approach into R
-Version: 0.0.1.2
+Version: 0.0.1.3
 Authors@R: 
     c(
     person(
