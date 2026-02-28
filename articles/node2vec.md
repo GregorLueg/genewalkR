@@ -75,7 +75,7 @@ str(params_node2vec())
 #>  $ q             : num 1
 #>  $ walks_per_node: int 40
 #>  $ walk_length   : int 40
-#>  $ num_workers   : int 4
+#>  $ num_workers   : int 2
 #>  $ batch_size    : int 256
 #>  $ n_epochs      : int 20
 #>  $ n_negatives   : int 5

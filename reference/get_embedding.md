@@ -1,6 +1,6 @@
-# Get the embedding
+# Get the list of embeddings
 
-Get the embedding
+Get the list of embeddings
 
 ## Usage
 
@@ -17,4 +17,4 @@ get_embedding(object)
 
 ## Value
 
-If found, returns the embedding
+If found, returns the embedding list.

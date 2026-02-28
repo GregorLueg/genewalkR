@@ -17,7 +17,7 @@ et al."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,8 @@ et al.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">generate_initial_emb</span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
 <span>  embd_dim <span class="op">=</span> <span class="fl">8L</span>,</span>
-<span>  node2vec_params <span class="op">=</span> <span class="fu"><a href="params_node2vec.html">params_node2vec</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  n_graph <span class="op">=</span> <span class="fl">3L</span>,</span>
+<span>  genewalk_params <span class="op">=</span> <span class="fu"><a href="params_genewalk.html">params_genewalk</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  directed <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">42L</span>,</span>
 <span>  .verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -81,18 +82,21 @@ et al.</p>
 to <code>8L</code> in line with the authors recommendations.</p></dd>
 
 
-<dt id="arg-node-vec-params">node2vec_params<a class="anchor" aria-label="anchor" href="#arg-node-vec-params"></a></dt>
+<dt id="arg-n-graph">n_graph<a class="anchor" aria-label="anchor" href="#arg-n-graph"></a></dt>
+<dd><p>Integer. How many initial graphs to create. Defaults to <code>3L</code>.</p></dd>
+
+
+<dt id="arg-genewalk-params">genewalk_params<a class="anchor" aria-label="anchor" href="#arg-genewalk-params"></a></dt>
 <dd><p>Named list. Contains the node2vec parameters. The
 list has the following elements:</p><ul><li><p>p - Numeric. Return parameter for biased random walks. Defaults to
 <code>1.0</code>.</p></li>
 <li><p>q - Numeric. In-out parameter for biased random walks. Defaults to
 <code>1.0.</code>.</p></li>
 <li><p>walks_per_node - Integer. Number of random walks per node. Defaults to
-<code> 40L.</code>.</p></li>
-<li><p>walk_length - Integer. Length of each random walk. Defaults to <code>40L</code>.</p></li>
-<li><p>num_workers - Number of worker threads during batching. Defaults to
-<code>4L</code>. To note: during graph generation, Rust will use via the Rayon backend
-all available threads.</p></li>
+<code> 100L</code>.</p></li>
+<li><p>walk_length - Integer. Length of each random walk. Defaults to <code>10L</code>.</p></li>
+<li><p>num_workers - Number of worker threads during to use during SGD
+updates. For determism, defaults to <code>1L</code>.</p></li>
 <li><p>batch_size - Integer. Batch size for training. Defaults to <code>256L</code>.</p></li>
 <li><p>n_epochs - Integer. Number of training epochs. Defaults to <code>15L</code>.</p></li>
 <li><p>n_negatives - Integer. Number of negative samples. Defaults to <code>5L</code>.</p></li>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,6 +61,13 @@
 
         <dt>
 
+          <code><a href="check_degree_distribution.html">check_degree_distribution()</a></code>
+
+        </dt>
+        <dd>Check the degree across different node types</dd>
+
+        <dt>
+
           <code><a href="generate_initial_emb.html">generate_initial_emb()</a></code>
 
         </dt>
@@ -86,6 +93,13 @@
 
         </dt>
         <dd>Plot the gene walk results</dd>
+
+        <dt>
+
+          <code><a href="plot_similarities.html">plot_similarities()</a></code>
+
+        </dt>
+        <dd>Plot similarity distributions</dd>
       </dl></div><div class="section level2">
       <h2 id="node-vec">Node2Vec<a class="anchor" aria-label="anchor" href="#node-vec"></a></h2>
 
@@ -152,7 +166,7 @@
           <code><a href="get_embedding.html">get_embedding()</a></code>
 
         </dt>
-        <dd>Get the embedding</dd>
+        <dd>Get the list of embeddings</dd>
 
         <dt>
 
@@ -185,6 +199,13 @@
 
 
       <dl><dt>
+
+          <code><a href="reload_db.html">reload_db()</a></code>
+
+        </dt>
+        <dd>Clean the cache and download the DB again</dd>
+
+        <dt>
 
           <code><a href="download_database.html">download_database()</a></code>
 
@@ -232,6 +253,13 @@
 
         </dt>
         <dd>Get the STRING network</dd>
+
+        <dt>
+
+          <code><a href="get_interactions_pc.html">get_interactions_pc()</a></code>
+
+        </dt>
+        <dd>Get the pathway commons network</dd>
 
         <dt>
 
@@ -323,10 +351,10 @@
 
       <dl><dt>
 
-          <code><a href="params_genewalk_data.html">params_genewalk_data()</a></code>
+          <code><a href="params_genewalk.html">params_genewalk()</a></code>
 
         </dt>
-        <dd>GeneWalk synthetic data params</dd>
+        <dd>Wrapper function for the GeneWalk-specific node2vec parameters</dd>
 
         <dt>
 
@@ -334,6 +362,13 @@
 
         </dt>
         <dd>Wrapper function for the node2vec parameters</dd>
+
+        <dt>
+
+          <code><a href="params_genewalk_data.html">params_genewalk_data()</a></code>
+
+        </dt>
+        <dd>GeneWalk synthetic data params</dd>
       </dl></div><div class="section level2">
       <h2 id="rust-wrappers">Rust wrappers<a class="anchor" aria-label="anchor" href="#rust-wrappers"></a></h2>
 
@@ -363,28 +398,21 @@
           <code><a href="rs_gene_walk.html">rs_gene_walk()</a></code>
 
         </dt>
-        <dd>Generate GeneWalk node embeddings</dd>
+        <dd>Generate GeneWalk node embeddings (multiple reps)</dd>
 
         <dt>
 
           <code><a href="rs_gene_walk_perm.html">rs_gene_walk_perm()</a></code>
 
         </dt>
-        <dd>Generate permuted embeddings for null distribution</dd>
+        <dd>Generate null distributions from degree-matched random networks</dd>
 
         <dt>
 
           <code><a href="rs_gene_walk_test.html">rs_gene_walk_test()</a></code>
 
         </dt>
-        <dd>Calculate the test statistics</dd>
-
-        <dt>
-
-          <code><a href="rs_generate_pathway_structure.html">rs_generate_pathway_structure()</a></code>
-
-        </dt>
-        <dd>Generate pathway structure and gene-pathway associations</dd>
+        <dd>Calculate GeneWalk test statistics</dd>
 
         <dt>
 

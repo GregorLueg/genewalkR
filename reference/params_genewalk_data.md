@@ -6,8 +6,8 @@ GeneWalk synthetic data params
 
 ``` r
 params_genewalk_data(
-  n_signal_genes = 300L,
-  n_noise_genes = 300L,
+  n_signal_genes = 150L,
+  n_noise_genes = 150L,
   n_roots = 10L,
   depth = 3L,
   branching = 3L,
@@ -15,7 +15,7 @@ params_genewalk_data(
   p_ppi = 0.05,
   min_annotations = 10L,
   max_annotations = 25L,
-  min_noise_subtrees = 10L
+  min_noise_subtrees = 15L
 )
 ```
 

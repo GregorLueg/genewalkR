@@ -1,6 +1,7 @@
 # Wrapper function for the node2vec parameters
 
-Wrapper function for the node2vec parameters
+These are general node2vec parameters, designed for speed. They will
+default to `available cores - 2 (min 1)`.
 
 ## Usage
 
@@ -10,12 +11,12 @@ params_node2vec(
   q = 1,
   walks_per_node = 40L,
   walk_length = 40L,
-  num_workers = 4L,
   batch_size = 256L,
   n_epochs = 20L,
   n_negatives = 5L,
   window_size = 2L,
-  lr = 0.01
+  lr = 0.01,
+  num_workers = NULL
 )
 ```
 
@@ -37,10 +38,6 @@ params_node2vec(
 
   Integer. Length of each random walk. Defaults to `40L`.
 
-- num_workers:
-
-  Integer. Number of worker threads. Defaults to `4L`.
-
 - batch_size:
 
   Integer. Batch size for training. Defaults to `256L`.
@@ -60,6 +57,11 @@ params_node2vec(
 - lr:
 
   Numeric. Learning rate. Defaults to `1e-2`.
+
+- num_workers:
+
+  Optional integer. If kept to `NULL`, it will default to
+  `available cores - 2 (min 1)`.
 
 ## Value
 

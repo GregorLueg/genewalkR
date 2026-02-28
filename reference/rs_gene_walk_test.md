@@ -1,18 +1,20 @@
-# Calculate the test statistics
+# Calculate GeneWalk test statistics
 
-Calculates test statistics for gene-pathway pairs. The null distribution
-is derived from gene-pathway cosine similarities in permuted embeddings
-(full cross-cosine, not just connected pairs).
+Pools all null distributions into one, then for each observed embedding
+rep: computes p-values, per-gene FDR, and global FDR. Finally aggregates
+across reps with geometric mean and 95\\
+
+Matches the paper: "we repeat the above-described network representation
+learning and significance testing procedures of the GWN nreps_graph
+times and provide the mean and 95\\
 
 ## Usage
 
 ``` r
 rs_gene_walk_test(
-  gene_embds,
-  pathway_embds,
-  permuted_embds,
-  gene_indices,
-  pathway_indices,
+  gene_embds_list,
+  pathway_embds_list,
+  null_similarities,
   connected_pathways,
   verbose
 )
@@ -20,30 +22,23 @@ rs_gene_walk_test(
 
 ## Arguments
 
-- gene_embds:
+- gene_embds_list:
 
-  Matrix of n_genes x embedding dimensions.
+  List of n_graph gene embedding matrices (n_genes x dim).
 
-- pathway_embds:
+- pathway_embds_list:
 
-  Matrix of n_pathways x embedding dimensions.
+  List of n_graph pathway embedding matrices (n_pathways x dim).
 
-- permuted_embds:
+- null_similarities:
 
-  List of permuted embedding matrices (n_nodes x dim).
-
-- gene_indices:
-
-  Integer vector. 1-based row indices for genes in permuted embeddings.
-
-- pathway_indices:
-
-  Integer vector. 1-based row indices for pathways in permuted
-  embeddings.
+  List of n_perm numeric vectors (null cosine similarities to be
+  pooled).
 
 - connected_pathways:
 
-  List. Gene to pathway connections (1-indexed).
+  List. Per-gene integer vectors of connected pathway indices
+  (1-indexed).
 
 - verbose:
 
@@ -51,4 +46,4 @@ rs_gene_walk_test(
 
 ## Value
 
-A list with per-pair statistics (see original docs).
+A list with per-pair statistics.

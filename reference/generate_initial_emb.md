@@ -13,7 +13,8 @@ details, please refer to Ietswaart, et al.
 generate_initial_emb(
   object,
   embd_dim = 8L,
-  node2vec_params = params_node2vec(),
+  n_graph = 3L,
+  genewalk_params = params_genewalk(),
   directed = FALSE,
   seed = 42L,
   .verbose = TRUE
@@ -32,7 +33,11 @@ generate_initial_emb(
   Integer. Size of the embedding dimensions to create. Defaults to `8L`
   in line with the authors recommendations.
 
-- node2vec_params:
+- n_graph:
+
+  Integer. How many initial graphs to create. Defaults to `3L`.
+
+- genewalk_params:
 
   Named list. Contains the node2vec parameters. The list has the
   following elements:
@@ -44,14 +49,13 @@ generate_initial_emb(
     `1.0.`.
 
   - walks_per_node - Integer. Number of random walks per node. Defaults
-    to ` 40L.`.
+    to ` 100L`.
 
   - walk_length - Integer. Length of each random walk. Defaults to
-    `40L`.
+    `10L`.
 
-  - num_workers - Number of worker threads during batching. Defaults to
-    `4L`. To note: during graph generation, Rust will use via the Rayon
-    backend all available threads.
+  - num_workers - Number of worker threads during to use during SGD
+    updates. For determism, defaults to `1L`.
 
   - batch_size - Integer. Batch size for training. Defaults to `256L`.
 

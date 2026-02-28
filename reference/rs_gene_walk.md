@@ -1,8 +1,9 @@
-# Generate GeneWalk node embeddings
+# Generate GeneWalk node embeddings (multiple reps)
 
-Uses a SIMD-accelerated CPU implementation of word2vec with negative
-sampling to learn node representations from biased random walks
-(node2vec).
+Trains node2vec on the original GeneWalk network `n_graph` times with
+different random seeds, returning a list of embedding matrices. This
+provides the variance across embedding reps needed for the final
+log_stats aggregation.
 
 ## Usage
 
@@ -12,6 +13,7 @@ rs_gene_walk(
   to,
   weights,
   gene_walk_params,
+  n_graph,
   embd_dim,
   directed,
   seed,
@@ -38,6 +40,10 @@ rs_gene_walk(
   Named list. Training parameters (p, q, walks_per_node, walk_length,
   num_workers, n_epochs, num_negatives, window_size, lr, dim).
 
+- n_graph:
+
+  Integer. Number of independent embedding reps.
+
 - embd_dim:
 
   Integer. Embedding dimension.
@@ -48,7 +54,7 @@ rs_gene_walk(
 
 - seed:
 
-  Integer. Random seed.
+  Integer. Random seed (incremented per rep).
 
 - verbose:
 
@@ -56,4 +62,4 @@ rs_gene_walk(
 
 ## Value
 
-A numeric matrix of n_nodes x embedding dimensions.
+A list of n_graph numeric matrices, each n_nodes x embedding dim.

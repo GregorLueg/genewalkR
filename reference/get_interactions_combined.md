@@ -2,8 +2,8 @@
 
 This returns a combined network akin to the workflow from
 Barrio-Hernandez et al. based on high quality edges from STRING,
-physical interactions from Intact and the full sets from SIGNOR and
-Reactome
+physical interactions from Intact and the full sets from SIGNOR,
+Reactome and Pathway Commons interactions.
 
 ## Usage
 
@@ -19,7 +19,7 @@ get_interactions_combined(head_only = FALSE)
 
 ## Value
 
-data.table with the Reactome network data.
+data.table with the combined, collapsed network data.
 
 ## Details
 
