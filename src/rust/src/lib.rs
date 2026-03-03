@@ -1,8 +1,12 @@
+#![allow(clippy::needless_range_loop)]
+
 pub mod data;
 pub mod embedding;
 pub mod graph;
 pub mod utils;
 
+use bixverse_rs::assert_same_dims;
+use bixverse_rs::prelude::*;
 use extendr_api::prelude::*;
 use faer::Mat;
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -15,12 +19,89 @@ use crate::utils::*;
 
 extendr_module! {
     mod genewalkR;
+    fn rs_node2vec;
     fn rs_gene_walk;
     fn rs_gene_walk_perm;
     fn rs_gene_walk_test;
     fn rs_cosine_sim;
     fn rs_node2vec_synthetic_data;
     fn rs_build_synthetic_genewalk;
+    fn rs_differential_graph_data;
+    fn rs_procrustes_align;
+}
+
+///////////////////////
+// Node2vec function //
+///////////////////////
+
+/// Generate a node2vec embeddings
+///
+/// @description Trains node2vec on the original provided graph.
+///
+/// @param from Integer vector. Node indices for edge origins.
+/// @param to Integer vector. Node indices for edge destinations.
+/// @param weights Optional numeric vector. Edge weights, defaults to 1.0.
+/// @param node2vec_params Named list. Training parameters (p, q,
+///   walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
+///   window_size, lr, dim).
+/// @param embd_dim Integer. Embedding dimension.
+/// @param directed Boolean. Treat graph as directed.
+/// @param seed Integer. Random seed (incremented per rep).
+/// @param verbose Boolean. Controls verbosity.
+///
+/// @return An embedding of dimension n_nodes x embedding dim.
+///
+/// @export
+#[extendr]
+#[allow(clippy::too_many_arguments)]
+fn rs_node2vec(
+    from: Vec<i32>,
+    to: Vec<i32>,
+    weights: Option<Vec<f64>>,
+    node2vec_params: List,
+    embd_dim: usize,
+    directed: bool,
+    seed: usize,
+    verbose: bool,
+) -> RArray<f64, [usize; 2]> {
+    let mut config = GeneWalkConfig::from_r_list(node2vec_params, seed);
+    config.train_args.dim = embd_dim;
+
+    if verbose {
+        println!("Preparing the network edges.");
+    }
+    let start_edge_prep = Instant::now();
+
+    let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
+    let to = to.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
+    let edges = prepare_edges(from, to, weights, directed);
+
+    let vocab_size = edges
+        .iter()
+        .flat_map(|(from, to, _)| [*from, *to])
+        .max()
+        .map(|max_id| max_id as usize + 1)
+        .unwrap_or(0);
+
+    if verbose {
+        println!(
+            "Processed {} edges ({} nodes) in {:.2}s",
+            edges.len(),
+            vocab_size,
+            start_edge_prep.elapsed().as_secs_f64()
+        );
+    }
+
+    let node2vec_graph = create_graph(&edges, config.p, config.q, directed);
+
+    let random_walks =
+        node2vec_graph.generate_walks(config.walks_per_node, config.walk_length, seed);
+    let embedding = train_node2vec(random_walks, vocab_size, &config, verbose);
+
+    let nrows = embedding.len();
+    let ncols = embedding[0].len();
+
+    RMatrix::new_matrix(nrows, ncols, |r, c| embedding[r][c] as f64)
 }
 
 /////////////////////////
@@ -589,6 +670,101 @@ fn rs_build_synthetic_genewalk(
     )
 }
 
+/////////////////////////////
+// Differential graph pair //
+/////////////////////////////
+
+/// Generate a synthetic differential graph pair for testing context-aware node
+/// embeddings
+///
+/// Produces two graphs sharing the same backbone but differing in defined
+/// regions. Community 1 is a stable negative control, identical across both
+/// graphs. Community 2 contains a hub node demoted to a peripheral node in
+/// graph 2. Two bridge nodes span communities 2 and 3 in graph 1 but are
+/// fully embedded within community 3 in graph 2. Exclusive nodes appear in
+/// only one graph.
+///
+/// @param n_stable Integer. Number of nodes in the stable negative-control
+///   community.
+/// @param n_comm2 Integer. Number of regular nodes in community 2, excluding
+///   the hub.
+/// @param n_comm3 Integer. Number of nodes in community 3, excluding bridge
+///   nodes.
+/// @param n_exclusive Integer. Number of exclusive nodes in each graph.
+///
+/// @return A named list with:
+/// `g1_edges` (from, to), `g1_nodes` (node, cluster),
+///   `g2_edges` (from, to), `g2_nodes` (node, cluster), `data_info`
+///   (shared_nodes, is_differential, g1_only, g2_only).
+///
+/// @export
+#[extendr]
+fn rs_differential_graph_data(
+    n_stable: usize,
+    n_comm2: usize,
+    n_comm3: usize,
+    n_exclusive: usize,
+) -> List {
+    let diff_graph = differential_graph_synthetic(n_stable, n_comm2, n_comm3, n_exclusive);
+
+    let r_lists: RDifferentialGraphData = diff_graph.generate_lists();
+
+    list![
+        g1_edges = r_lists.0,
+        g1_nodes = r_lists.1,
+        g2_edges = r_lists.2,
+        g2_nodes = r_lists.3,
+        data_info = r_lists.4
+    ]
+}
+
+///////////////
+// Alignment //
+///////////////
+
+/// Orthogonal Procrustes alignment and cosine similarity scoring
+///
+/// Aligns `embd1` onto `embd2` via orthogonal Procrustes (SVD) and returns
+/// cosine similarities per node. Both matrices must have identical dimensions
+/// and matching row order, i.e. row i in `embd1` corresponds to row i in
+/// `embd2`.
+///
+/// @param embd1 Numeric matrix. k x d embedding matrix for graph 1.
+/// @param embd2 Numeric matrix. k x d embedding matrix for graph 2.
+///
+/// @return Named list with `aligned` (k x d matrix, `embd1` rotated onto
+/// `embd2`) and `cosine_similarities` (numeric vector of length k).
+///
+/// @export
+#[extendr]
+fn rs_procrustes_align(embd1: RMatrix<f64>, embd2: RMatrix<f64>) -> List {
+    assert_same_dims!(embd1, embd2);
+
+    let k = embd1.nrows();
+    let d = embd1.ncols();
+
+    let s1 = r_matrix_to_faer(&embd1);
+    let s2 = r_matrix_to_faer(&embd2);
+
+    let m = s1.transpose() * s2;
+    let svd = m.thin_svd().unwrap();
+    let w = svd.U() * svd.V().transpose();
+
+    let aligned = s1 * w;
+
+    let cosine_sims: Vec<f64> = (0..k)
+        .map(|i| {
+            let a: Vec<f64> = (0..d).map(|c| aligned[(i, c)]).collect();
+            let b: Vec<f64> = (0..d).map(|c| s2[(i, c)]).collect();
+            cosine_similarity(&a, &b) as f64
+        })
+        .collect();
+
+    let aligned_r = faer_to_r_matrix(aligned.as_ref());
+
+    list!(aligned = aligned_r, cosine_similarities = cosine_sims,)
+}
+
 ///////////
 // Tests //
 ///////////
@@ -650,10 +826,6 @@ mod tests {
         }
         roots.len()
     }
-
-    // -------------------------------------------------------
-    // Configuration model: structural invariants
-    // -------------------------------------------------------
 
     #[test]
     fn config_model_no_self_loops() {
@@ -833,10 +1005,6 @@ mod tests {
         );
     }
 
-    // -------------------------------------------------------
-    // Adjacency builder
-    // -------------------------------------------------------
-
     #[test]
     fn adjacency_excludes_self_loops() {
         let edges = vec![(0, 0, 1.0), (0, 1, 1.0), (1, 2, 1.0)];
@@ -868,10 +1036,6 @@ mod tests {
         assert_eq!(adj.get(&1).unwrap().len(), 2); // connected to 0, 2
         assert_eq!(adj.get(&3).unwrap().len(), 1); // connected to 0 only
     }
-
-    // -------------------------------------------------------
-    // Null distribution: sanity checks
-    // -------------------------------------------------------
 
     #[test]
     fn null_similarities_are_bounded() {
@@ -921,10 +1085,6 @@ mod tests {
             2 * edges.len()
         );
     }
-
-    // -------------------------------------------------------
-    // P-value calculation sanity
-    // -------------------------------------------------------
 
     #[test]
     fn pval_of_max_null_is_near_zero() {

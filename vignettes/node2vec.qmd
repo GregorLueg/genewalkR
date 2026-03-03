@@ -12,7 +12,7 @@ knitr:
 
 # Running node2vec
 
-## Loading in libraries
+## Setup
 
 ```{r}
 #| label: setup

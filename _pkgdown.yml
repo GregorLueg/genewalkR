@@ -13,7 +13,7 @@ template:
 
 home:
   title: "genewalkR"
-  description: "GeneWalk analysis in R with Rust-powered random walks"
+  description: "node2vec-based analyses over biological networks in R powered by Rust."
 
 navbar:
   structure:
@@ -29,11 +29,15 @@ articles:
   - title: "Vignettes"
     navbar: ~
     contents:
-      - genewalk
       - node2vec
+      - genewalk
 
 reference:
-  - title: "Core workflow"
+  - title: "Node2Vec"
+    desc: "Run Node2Vec"
+    contents:
+      - node2vec
+  - title: "GeneWalk workflow"
     desc: "Main classes and methods to run GeneWalk"
     contents:
       - GeneWalk
@@ -44,10 +48,6 @@ reference:
       - calculate_genewalk_stats
       - plot_gw_results
       - plot_similarities
-  - title: "Node2Vec"
-    desc: "Run Node2Vec"
-    contents:
-      - node2vec
   - title: "Helpers and getters"
     desc: "Various getters and helper classes"
     contents:
@@ -99,16 +99,3 @@ reference:
       - rs_gene_walk_perm
       - rs_gene_walk_test
       - rs_node2vec_synthetic_data
-  - title: "Internal"
-    desc: "Internal helper functions"
-    contents:
-      - assertGeneWalkDataParams
-      - assertGeneWalkDataTable
-      - assertGeneWalkGraphDt
-      - assertNode2VecParam
-      - checkGeneWalkDataParams
-      - checkGeneWalkDataTable
-      - checkGeneWalkGraphDt
-      - checkNode2VecParams
-      - gene_ontology_source
-      - opentargets_source

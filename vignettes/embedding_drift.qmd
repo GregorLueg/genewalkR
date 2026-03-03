@@ -1,0 +1,194 @@
+---
+title: "Embedding Drift via node2vec"
+vignette: >
+  %\VignetteIndexEntry{Embedding Drift via node2vec}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+# Context-aware differential embedding with node2vec
+
+## Setup
+
+```{r}
+#| label: setup
+library(genewalkR)
+library(data.table)
+library(magrittr)
+library(ggplot2)
+library(igraph)
+```
+
+## Background
+
+Node2vec generates vector representations of nodes in a graph by running biased
+random walks that sample the local neighbourhood of each node, then training a
+skip-gram model over the resulting sequences. Nodes that appear in similar
+contexts across the graph will have similar embedding vectors. For a full
+description of the algorithm, see [Grover & Leskovec](https://arxiv.org/abs/1607.00653).
+
+When we train node2vec on two different graphs independently, the resulting
+embedding spaces are not directly comparable — the model initialises weights
+randomly, so the same node can land anywhere in the vector space across runs.
+To make the embeddings comparable, we apply an orthogonal Procrustes alignment
+that rotates one embedding matrix onto the other using only nodes shared between
+both graphs.
+
+Once aligned, the cosine similarity between a node's vector in graph 1 and its
+vector in graph 2 measures how much its local context has changed between the
+two graphs. A similarity close to 1 means the node sits in a similar
+neighbourhood in both graphs. A lower similarity signals that the topology
+around that node has shifted.
+
+Nodes that appear in only one graph are assigned sentinel values: `-1.1` for
+nodes exclusive to graph 1 and `+1.1` for nodes exclusive to graph 2. These
+fall outside the valid cosine similarity range of `[-1, 1]` and indicate
+absence rather than a computed similarity.
+
+## Synthetic data
+
+To illustrate the method we use a synthetic graph pair with a known ground
+truth. The two graphs share a common backbone of three communities but differ
+in defined regions:
+
+- **Community 1** is a stable negative control, topologically identical across
+  both graphs.
+- **Community 2** contains a hub node that is fully connected within the
+  community in graph 1 but demoted to a single peripheral edge in graph 2.
+- Two **bridge nodes** span communities 2 and 3 in graph 1 but are fully
+  embedded within community 3 in graph 2.
+- A small set of **exclusive nodes** appears in only one graph.
+
+We know in advance which nodes should show context drift and which should not,
+making this a useful benchmark for the method.
+```{r}
+#| label: generate synthetic data
+test_data <- differential_graph_test_data(
+  n_stable    = 50L,
+  n_comm2     = 50L,
+  n_comm3     = 50L,
+  n_exclusive = 5L
+)
+
+# data_info holds the ground truth
+head(test_data$data_info)
+```
+
+### Visualising the two graphs
+
+Let's look at both graphs and highlight which nodes are expected to drift.
+```{r}
+#| label: igraph visualisation
+#| fig-width: 12
+#| fig-height: 6
+
+make_graph <- function(edges, nodes, info) {
+  g <- igraph::graph_from_data_frame(d = edges, directed = FALSE)
+  node_names <- igraph::V(g)$name
+  status <- info[match(node_names, info$node), "node_status"]
+  differential <- info[match(node_names, info$node), "is_differential"]
+  igraph::V(g)$color <- dplyr::case_when(
+    is.na(differential)         ~ "grey80",   # exclusive nodes
+    differential & status == "shared" ~ "#E74C3C",  # known differential
+    .default =  "#3498DB"   # stable
+  )
+  g
+}
+
+g1 <- make_graph(test_data$g1_edges, test_data$g1_nodes, test_data$data_info)
+g2 <- make_graph(test_data$g2_edges, test_data$g2_nodes, test_data$data_info)
+
+par(mfrow = c(1, 2))
+plot(g1, vertex.label = NA, main = "Graph 1", vertex.size = 6)
+plot(g2, vertex.label = NA, main = "Graph 2", vertex.size = 6)
+par(mfrow = c(1, 1))
+```
+
+Nodes in red are those expected to show context drift. You can see the hub node
+loses most of its connections in graph 2, and the bridge nodes shift from
+spanning communities 2 and 3 to being embedded entirely within community 3.
+
+## Running EmbedDrift
+
+### Initialising the object
+
+`EmbedDrift` takes the two edge tables and holds all intermediate results.
+```{r}
+#| label: initialise object
+obj <- EmbedDrift(
+  graph_dt_1 = test_data$g1_edges,
+  graph_dt_2 = test_data$g2_edges
+)
+
+print(obj)
+```
+
+### Generating embeddings
+
+We train node2vec independently on both graphs using identical hyperparameters.
+Graph 1 serves as the reference for subsequent alignment. Given the small size
+of this synthetic graph, a low embedding dimension of `8` is appropriate — 
+using a larger dimension would over-parameterise relative to the number of nodes
+and compress the signal we are trying to detect.
+```{r}
+#| label: generate embeddings
+obj <- generate_initial_embeddings(
+  object         = obj,
+  embd_dim       = 8L,
+  node2vec_params = params_node2vec(window_size = 2L),
+  .verbose       = TRUE
+)
+
+print(obj)
+```
+
+### Calculating drift
+
+`calculate_drift()` aligns the two embedding matrices via Procrustes and
+computes per-node cosine similarities.
+```{r}
+#| label: calculate drift
+obj <- calculate_drift(object = obj)
+
+stats <- get_stats(obj)
+stats
+```
+
+The results are ordered by cosine similarity ascending, so the nodes with the
+greatest context drift appear first. Let's add the ground truth labels and see
+whether the known differential nodes rank lower than the stable ones.
+```{r}
+#| label: evaluate results
+results <- merge(
+  stats,
+  test_data$data_info[, .(node, is_differential)],
+  by = "node"
+)
+
+results[node_status == "shared"] |>
+  ggplot(aes(x = is_differential, y = cosine_similarity, fill = is_differential)) +
+  geom_boxplot(width = 0.4, show.legend = FALSE) +
+  geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
+  scale_fill_manual(values = c("FALSE" = "#3498DB", "TRUE" = "#E74C3C")) +
+  scale_x_discrete(labels = c("FALSE" = "Stable", "TRUE" = "Differential")) +
+  labs(
+    x = NULL,
+    y = "Cosine similarity",
+    title = "Context drift by ground truth label"
+  ) +
+  theme_minimal()
+```
+
+Nodes with known topological changes (hub and bridge nodes) consistently show
+lower cosine similarity than the stable community 1 nodes, confirming the
+method recovers the planted signal. The exclusive nodes carry sentinel values
+and are excluded from this comparison.
+```{r}
+#| label: sentinel values
+# exclusive nodes carry fixed sentinel values
+results[node_status != "shared", .(node, cosine_similarity, node_status)]
+```

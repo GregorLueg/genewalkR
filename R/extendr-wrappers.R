@@ -10,6 +10,26 @@
 #' @useDynLib genewalkR, .registration = TRUE
 NULL
 
+#' Generate a node2vec embeddings
+#'
+#' @description Trains node2vec on the original provided graph.
+#'
+#' @param from Integer vector. Node indices for edge origins.
+#' @param to Integer vector. Node indices for edge destinations.
+#' @param weights Optional numeric vector. Edge weights, defaults to 1.0.
+#' @param node2vec_params Named list. Training parameters (p, q,
+#'   walks_per_node, walk_length, num_workers, n_epochs, num_negatives,
+#'   window_size, lr, dim).
+#' @param embd_dim Integer. Embedding dimension.
+#' @param directed Boolean. Treat graph as directed.
+#' @param seed Integer. Random seed (incremented per rep).
+#' @param verbose Boolean. Controls verbosity.
+#'
+#' @return An embedding of dimension n_nodes x embedding dim.
+#'
+#' @export
+rs_node2vec <- function(from, to, weights, node2vec_params, embd_dim, directed, seed, verbose) .Call(wrap__rs_node2vec, from, to, weights, node2vec_params, embd_dim, directed, seed, verbose)
+
 #' Generate GeneWalk node embeddings (multiple reps)
 #'
 #' @description Trains node2vec on the original GeneWalk network `n_graph`
@@ -131,6 +151,48 @@ rs_node2vec_synthetic_data <- function(test_data, n_nodes_per_cluster, n_cluster
 #'
 #' @export
 rs_build_synthetic_genewalk <- function(n_signal_genes, n_noise_genes, n_roots, depth, branching, p_lateral, p_ppi, min_annotations, max_annotations, min_noise_subtrees, seed) .Call(wrap__rs_build_synthetic_genewalk, n_signal_genes, n_noise_genes, n_roots, depth, branching, p_lateral, p_ppi, min_annotations, max_annotations, min_noise_subtrees, seed)
+
+#' Generate a synthetic differential graph pair for testing context-aware node
+#' embeddings
+#'
+#' Produces two graphs sharing the same backbone but differing in defined
+#' regions. Community 1 is a stable negative control, identical across both
+#' graphs. Community 2 contains a hub node demoted to a peripheral node in
+#' graph 2. Two bridge nodes span communities 2 and 3 in graph 1 but are
+#' fully embedded within community 3 in graph 2. Exclusive nodes appear in
+#' only one graph.
+#'
+#' @param n_stable Integer. Number of nodes in the stable negative-control
+#'   community.
+#' @param n_comm2 Integer. Number of regular nodes in community 2, excluding
+#'   the hub.
+#' @param n_comm3 Integer. Number of nodes in community 3, excluding bridge
+#'   nodes.
+#' @param n_exclusive Integer. Number of exclusive nodes in each graph.
+#'
+#' @return A named list with:
+#' `g1_edges` (from, to), `g1_nodes` (node, cluster),
+#'   `g2_edges` (from, to), `g2_nodes` (node, cluster), `data_info`
+#'   (shared_nodes, is_differential, g1_only, g2_only).
+#'
+#' @export
+rs_differential_graph_data <- function(n_stable, n_comm2, n_comm3, n_exclusive) .Call(wrap__rs_differential_graph_data, n_stable, n_comm2, n_comm3, n_exclusive)
+
+#' Orthogonal Procrustes alignment and cosine similarity scoring
+#'
+#' Aligns `embd1` onto `embd2` via orthogonal Procrustes (SVD) and returns
+#' cosine similarities per node. Both matrices must have identical dimensions
+#' and matching row order, i.e. row i in `embd1` corresponds to row i in
+#' `embd2`.
+#'
+#' @param embd1 Numeric matrix. k x d embedding matrix for graph 1.
+#' @param embd2 Numeric matrix. k x d embedding matrix for graph 2.
+#'
+#' @return Named list with `aligned` (k x d matrix, `embd1` rotated onto
+#' `embd2`) and `cosine_similarities` (numeric vector of length k).
+#'
+#' @export
+rs_procrustes_align <- function(embd1, embd2) .Call(wrap__rs_procrustes_align, embd1, embd2)
 
 
 # nolint end

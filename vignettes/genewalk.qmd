@@ -17,7 +17,7 @@ assumptions are baked in and then we will move onto using it with real data.
 If you want to understand the method in more detail, please check out 
 [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8).
 
-## Loading in libraries
+## Setup
 
 ```{r}
 #| label: setup
