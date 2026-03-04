@@ -1,8 +1,8 @@
+use ann_search_rs::prelude::*;
 use extendr_api::RMatrix;
 use faer::{Mat, MatRef};
 use num_traits::Float;
 use rayon::prelude::*;
-use std::ops::AddAssign;
 
 /////////////////////////
 // Similarity measures //
@@ -22,49 +22,14 @@ use std::ops::AddAssign;
 ///
 /// Cosine similarity between the two
 #[inline(always)]
-pub fn cosine_similarity<T: Float + AddAssign>(a: &[T], b: &[T]) -> T {
+pub fn cosine_similarity<T: Float + SimdDistance>(a: &[T], b: &[T]) -> T {
     debug_assert_eq!(a.len(), b.len());
 
-    let mut dot = T::zero();
-    let mut norm_a = T::zero();
-    let mut norm_b = T::zero();
+    let dot = T::dot_simd(a, b);
+    let norm_a = T::calculate_l2_norm(a);
+    let norm_b = T::calculate_l2_norm(b);
 
-    let len = a.len();
-    let chunks = len / 4;
-    let remainder = len % 4;
-
-    // usual 4 at once
-    for i in 0..chunks {
-        let idx = i * 4;
-        unsafe {
-            let a0 = *a.get_unchecked(idx);
-            let a1 = *a.get_unchecked(idx + 1);
-            let a2 = *a.get_unchecked(idx + 2);
-            let a3 = *a.get_unchecked(idx + 3);
-
-            let b0 = *b.get_unchecked(idx);
-            let b1 = *b.get_unchecked(idx + 1);
-            let b2 = *b.get_unchecked(idx + 2);
-            let b3 = *b.get_unchecked(idx + 3);
-
-            dot += a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3;
-            norm_a += a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3;
-            norm_b += b0 * b0 + b1 * b1 + b2 * b2 + b3 * b3;
-        }
-    }
-
-    // remainders
-    for i in (len - remainder)..len {
-        unsafe {
-            let ai = *a.get_unchecked(i);
-            let bi = *b.get_unchecked(i);
-            dot += ai * bi;
-            norm_a += ai * ai;
-            norm_b += bi * bi;
-        }
-    }
-
-    dot / (norm_a.sqrt() * norm_b.sqrt())
+    dot / (norm_a * norm_b)
 }
 
 /// Cosine distances across gene and pathway embeddings
@@ -195,9 +160,9 @@ pub fn r_matrix_to_vec(mat: RMatrix<f64>) -> Vec<Vec<f32>> {
         .collect()
 }
 
-///////////////
-// Quantiles //
-///////////////
+////////////////
+// Statistics //
+////////////////
 
 /// Geometric mean and CI matching GeneWalk's log_stats
 ///

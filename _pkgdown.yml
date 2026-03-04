@@ -31,6 +31,7 @@ articles:
     contents:
       - node2vec
       - genewalk
+      - embedding_drift
 
 reference:
   - title: "Node2Vec"
@@ -48,15 +49,24 @@ reference:
       - calculate_genewalk_stats
       - plot_gw_results
       - plot_similarities
+  - title: "Gene / Embedding drift"
+    desc: "Main classes and methods to run a gene/embedding drift"
+    contents:
+      - EmbedDrift
+      - generate_initial_embeddings
+      - calculate_drift
   - title: "Helpers and getters"
     desc: "Various getters and helper classes"
     contents:
       - get_stats
       - get_graph_dt
+      - get_graph_dts
       - get_gw_data
       - get_gw_data_filtered
       - get_gene_pathway_dt
       - get_embedding
+      - get_embeddings
+      - get_aligned_embd
       - get_gene_info
       - n_nodes
       - new_data_builder
@@ -80,6 +90,7 @@ reference:
       - get_gene_to_reactome
   - title: "(Synthetic) Data & testing"
     contents:
+      - differential_graph_test_data
       - synthetic_genewalk_data
       - node2vec_test_data
       - evaluate_node2vec_test
@@ -93,9 +104,12 @@ reference:
   - title: "Rust wrappers"
     desc: "Everything rusty - only use this if you know what you are doing..."
     contents:
-      - rs_build_synthetic_genewalk
+      - rs_node2vec
       - rs_cosine_sim
       - rs_gene_walk
       - rs_gene_walk_perm
       - rs_gene_walk_test
+      - rs_procrustes_align
+      - rs_build_synthetic_genewalk
       - rs_node2vec_synthetic_data
+      - rs_differential_graph_data

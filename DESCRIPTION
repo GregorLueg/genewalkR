@@ -1,5 +1,5 @@
 Package: genewalkR
-Title: Implements the GeneWalk approach into R
+Title: Node2vec-based computational algorithms in R
 Version: 0.0.1.4
 Authors@R: 
     c(
@@ -15,7 +15,7 @@ Authors@R:
         role = c("ctb"))
     )
 Description: 
-    node2vec-based analyses over biological networks in R powered by Rust.
+    node2vec-based analyses over biological networks in R powered by Rust. Includes GeneWalkR and co-expression gene drift detection methods.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -677,6 +677,10 @@ pub fn differential_graph_synthetic(
     let comm3: Vec<String> = (0..n_comm3).map(|i| format!("comm3_{:03}", i)).collect();
     let bridge_1 = "bridge_001".to_string();
     let bridge_2 = "bridge_002".to_string();
+    // stable cross-community linkers: connected to both comm2 and comm3 in both graphs
+    // these are negative controls for inter-community nodes
+    let linker_1 = "linker_001".to_string();
+    let linker_2 = "linker_002".to_string();
     let g1_excl: Vec<String> = (0..n_exclusive)
         .map(|i| format!("g1_only_{:03}", i))
         .collect();
@@ -693,23 +697,54 @@ pub fn differential_graph_synthetic(
     add_clique(&mut from_g1, &mut to_g1, &stable);
     add_clique(&mut from_g2, &mut to_g2, &stable);
 
-    // community 2: regular clique nodes
+    // community 2: regular clique
     add_clique(&mut from_g1, &mut to_g1, &comm2);
     add_clique(&mut from_g2, &mut to_g2, &comm2);
 
-    // hub: fully connected within community 2 in G1, peripheral (one edge) in G2
+    // community 3: stable clique
+    add_clique(&mut from_g1, &mut to_g1, &comm3);
+    add_clique(&mut from_g2, &mut to_g2, &comm3);
+
+    // sparse inter-community background edges (identical in both graphs)
+    // stable <-> comm2: every other stable node connects to first comm2 node
+    for i in (0..n_stable.min(4)).step_by(2) {
+        from_g1.push(stable[i].clone());
+        to_g1.push(comm2[0].clone());
+        from_g2.push(stable[i].clone());
+        to_g2.push(comm2[0].clone());
+    }
+    // stable <-> comm3
+    for i in (0..n_stable.min(4)).step_by(2) {
+        from_g1.push(stable[i].clone());
+        to_g1.push(comm3[0].clone());
+        from_g2.push(stable[i].clone());
+        to_g2.push(comm3[0].clone());
+    }
+    // comm2 <-> comm3: a handful of edges connecting the two communities
+    let n_cross = (n_comm2 / 3).max(1).min(n_comm2);
+    for i in 0..n_cross {
+        from_g1.push(comm2[i].clone());
+        to_g1.push(comm3[i % n_comm3].clone());
+        from_g2.push(comm2[i].clone());
+        to_g2.push(comm3[i % n_comm3].clone());
+    }
+
+    // hub: fully connected within comm2 in G1
+    // in G2 hub is demoted from comm2 and gains connections in comm3 (context shift)
     for node in &comm2 {
         from_g1.push(hub.clone());
         to_g1.push(node.clone());
     }
+    // G2: one residual comm2 edge + majority comm3 edges
     if let Some(first) = comm2.first() {
         from_g2.push(hub.clone());
         to_g2.push(first.clone());
     }
-
-    // community 3: stable clique, identical in both graphs
-    add_clique(&mut from_g1, &mut to_g1, &comm3);
-    add_clique(&mut from_g2, &mut to_g2, &comm3);
+    let n_hub_comm3 = (n_comm3 / 2).max(1);
+    for i in 0..n_hub_comm3 {
+        from_g2.push(hub.clone());
+        to_g2.push(comm3[i].clone());
+    }
 
     // bridge nodes in G1: span community 2 (including hub) and community 3
     let n_bridge_comm2 = (n_comm2 / 2).max(1).min(n_comm2);
@@ -739,6 +774,24 @@ pub fn differential_graph_synthetic(
     from_g2.push(bridge_1.clone());
     to_g2.push(bridge_2.clone());
 
+    // linker nodes: stable cross-community nodes, identical in both graphs
+    // connected to a subset of comm2 and comm3 — these are negative controls
+    let n_linker_each = (n_comm2 / 3).max(1).min(n_comm2);
+    for linker in &[&linker_1, &linker_2] {
+        for i in 0..n_linker_each {
+            from_g1.push((*linker).clone());
+            to_g1.push(comm2[i].clone());
+            from_g2.push((*linker).clone());
+            to_g2.push(comm2[i].clone());
+        }
+        for i in 0..n_linker_each.min(n_comm3) {
+            from_g1.push((*linker).clone());
+            to_g1.push(comm3[i].clone());
+            from_g2.push((*linker).clone());
+            to_g2.push(comm3[i].clone());
+        }
+    }
+
     // exclusive peripheral nodes
     for node in &g1_excl {
         from_g1.push(node.clone());
@@ -749,9 +802,12 @@ pub fn differential_graph_synthetic(
         to_g2.push(comm2.first().unwrap_or(&hub).clone());
     }
 
-    // shared nodes and ground truth, ordered: stable → comm2 → hub → comm3 → bridges
+    // shared nodes and ground truth
+    // order: stable → linkers → comm2 → hub → comm3 → bridges
     let mut shared_nodes: Vec<String> = Vec::new();
     shared_nodes.extend(stable.iter().cloned());
+    shared_nodes.push(linker_1.clone());
+    shared_nodes.push(linker_2.clone());
     shared_nodes.extend(comm2.iter().cloned());
     shared_nodes.push(hub.clone());
     shared_nodes.extend(comm3.iter().cloned());
@@ -760,16 +816,18 @@ pub fn differential_graph_synthetic(
 
     let mut is_differential: Vec<bool> = Vec::new();
     is_differential.extend(vec![false; n_stable]);
+    is_differential.extend(vec![false; 2]); // linkers are stable
     is_differential.extend(vec![false; n_comm2]);
     is_differential.push(true); // hub
     is_differential.extend(vec![false; n_comm3]);
     is_differential.push(true); // bridge_1
     is_differential.push(true); // bridge_2
 
-    // node lists with cluster assignments; exclusive nodes get cluster 0
+    // node lists; exclusive nodes get cluster 0, linkers get cluster 4
     let mut nodes_g1 = shared_nodes.clone();
     let mut cluster_g1: Vec<usize> = Vec::new();
     cluster_g1.extend(vec![1; n_stable]);
+    cluster_g1.extend(vec![4; 2]); // linkers
     cluster_g1.extend(vec![2; n_comm2 + 1]); // +1 for hub
     cluster_g1.extend(vec![3; n_comm3 + 2]); // +2 for bridges
     nodes_g1.extend(g1_excl.iter().cloned());
@@ -778,6 +836,7 @@ pub fn differential_graph_synthetic(
     let mut nodes_g2 = shared_nodes.clone();
     let mut cluster_g2: Vec<usize> = Vec::new();
     cluster_g2.extend(vec![1; n_stable]);
+    cluster_g2.extend(vec![4; 2]);
     cluster_g2.extend(vec![2; n_comm2 + 1]);
     cluster_g2.extend(vec![3; n_comm3 + 2]);
     nodes_g2.extend(g2_excl.iter().cloned());

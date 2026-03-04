@@ -24,6 +24,7 @@ lto = "thin"
 codegen-units = 1
 
 [dependencies]
+ann-search-rs = "0.2.4"
 bixverse-rs = "0.1.2"
 extendr-api = '0.8.1'
 faer = "0.23.2"
