@@ -1,3 +1,7 @@
+//! Utility functions such as cosine similarities, etc.
+
+#![warn(missing_docs)]
+
 use ann_search_rs::prelude::*;
 use extendr_api::RMatrix;
 use faer::{Mat, MatRef};
@@ -99,43 +103,6 @@ pub fn calculate_p_vals(
         .collect();
 
     Mat::from_fn(n_genes, n_pathways, |r, c| pvals[r * n_pathways + c])
-}
-
-/// Calculate the FDR
-///
-/// ### Params
-///
-/// * `pvals` - P-values for which to calculate the FDR
-///
-/// ### Returns
-///
-/// The calculated FDRs
-pub fn calc_fdr(pvals: &[f64]) -> Vec<f64> {
-    let n = pvals.len();
-    if n == 0 {
-        return vec![];
-    }
-
-    let n_f64 = n as f64;
-    let mut indexed_pval: Vec<(usize, f64)> =
-        pvals.iter().enumerate().map(|(i, &x)| (i, x)).collect();
-
-    indexed_pval
-        .sort_unstable_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
-
-    let mut adj_pvals = vec![0.0; n];
-    let mut current_min = ((n_f64 / n as f64) * indexed_pval[n - 1].1).min(1.0);
-    adj_pvals[indexed_pval[n - 1].0] = current_min;
-
-    for i in (0..n - 1).rev() {
-        let adj_val = ((n_f64 / (i + 1) as f64) * indexed_pval[i].1)
-            .min(current_min)
-            .min(1.0);
-        current_min = adj_val;
-        adj_pvals[indexed_pval[i].0] = adj_val;
-    }
-
-    adj_pvals
 }
 
 ///////////////

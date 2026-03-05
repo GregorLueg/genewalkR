@@ -1,3 +1,7 @@
+//! Generation of synthetic data to do sanity checks and (assumption) testing.
+
+#![warn(missing_docs)]
+
 use extendr_api::*;
 use rand::seq::SliceRandom;
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -262,21 +266,16 @@ pub fn node2vec_stochastic_block(
 /////////////////////////////
 
 /// Structure to store synthetic GeneWalk graph data for testing
-///
-/// ### Fields
-///
-/// * `ontology_edges` - Parent-child edges within the ontology graph
-/// * `gene_ont_edges` - Edges linking genes to their ontology term annotations
-/// * `ppi_edges` - Protein-protein interaction edges between genes
-/// * `signal_genes` - Names of signal genes, annotated within a single ontology
-///   subtree
-/// * `noise_genes` - Names of noise genes, annotated across multiple ontology
-///   subtrees
 pub struct SyntheticGeneWalkData {
+    /// Parent-child edges within the ontology graph
     pub ontology_edges: Vec<(String, String)>,
+    /// Edges linking genes to their ontology term annotations
     pub gene_ont_edges: Vec<(String, String)>,
+    /// Protein-protein interaction edges between genes
     pub ppi_edges: Vec<(String, String)>,
+    /// Names of signal genes, annotated within a single ontology subtree
     pub signal_genes: Vec<String>,
+    /// Names of noise genes, annotated across multiple ontology subtrees
     pub noise_genes: Vec<String>,
 }
 
@@ -677,6 +676,7 @@ pub fn differential_graph_synthetic(
     let comm3: Vec<String> = (0..n_comm3).map(|i| format!("comm3_{:03}", i)).collect();
     let bridge_1 = "bridge_001".to_string();
     let bridge_2 = "bridge_002".to_string();
+
     // stable cross-community linkers: connected to both comm2 and comm3 in both graphs
     // these are negative controls for inter-community nodes
     let linker_1 = "linker_001".to_string();

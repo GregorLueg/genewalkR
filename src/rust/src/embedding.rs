@@ -1,3 +1,7 @@
+//! Generating a node2vec embedding module
+
+#![warn(missing_docs)]
+
 use node2vec_rs::prelude::*;
 
 ////////////
@@ -7,21 +11,18 @@ use node2vec_rs::prelude::*;
 /// Configuration for GeneWalk training
 ///
 /// Holds both random walk parameters and CPU training parameters.
-///
-/// ### Fields
-///
-/// * `walks_per_node` - Number of random walks per node
-/// * `walk_length` - Length of each random walk
-/// * `p` - Return parameter for node2vec
-/// * `q` - In-out parameter for node2vec
-/// * `seed` - Random seed for reproducibility
-/// * `train_args` - CPU training arguments
 pub struct GeneWalkConfig {
+    /// Number of random walks per node
     pub walks_per_node: usize,
+    /// Length of each random walk
     pub walk_length: usize,
+    /// Return parameter for node2vec
     pub p: f32,
+    /// In-out parameter for node2vec
     pub q: f32,
+    /// Random seed for reproducibility
     pub seed: usize,
+    /// CPU training arguments
     pub train_args: CpuTrainArgs,
 }
 

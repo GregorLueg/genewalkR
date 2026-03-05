@@ -6,6 +6,7 @@ pub mod graph;
 pub mod utils;
 
 use bixverse_rs::assert_same_dims;
+use bixverse_rs::core::math::stats::calc_fdr;
 use bixverse_rs::prelude::*;
 use extendr_api::prelude::*;
 use faer::Mat;
