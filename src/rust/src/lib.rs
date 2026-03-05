@@ -432,10 +432,17 @@ fn rs_gene_walk_test(
 
         // global FDR: across all connected pairs
         let all_connected_pvals: Vec<f64> = gene_pvals.iter().flatten().cloned().collect();
-        let global_fdr_flat = calc_fdr(&all_connected_pvals);
 
-        // per-gene FDR
-        let gene_fdr: Vec<Vec<f64>> = gene_pvals.iter().map(|p| calc_fdr(p)).collect();
+        let global_fdr_flat = if all_connected_pvals.is_empty() {
+            vec![]
+        } else {
+            calc_fdr(&all_connected_pvals)
+        };
+
+        let gene_fdr: Vec<Vec<f64>> = gene_pvals
+            .iter()
+            .map(|p| if p.is_empty() { vec![] } else { calc_fdr(p) })
+            .collect();
 
         raw_pvals_per_rep.push(gene_pvals);
         gene_fdr_per_rep.push(gene_fdr);
