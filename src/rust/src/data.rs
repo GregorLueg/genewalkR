@@ -1,3 +1,7 @@
+//! Generation of synthetic data to do sanity checks and (assumption) testing.
+
+#![warn(missing_docs)]
+
 use extendr_api::*;
 use rand::seq::SliceRandom;
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -262,21 +266,16 @@ pub fn node2vec_stochastic_block(
 /////////////////////////////
 
 /// Structure to store synthetic GeneWalk graph data for testing
-///
-/// ### Fields
-///
-/// * `ontology_edges` - Parent-child edges within the ontology graph
-/// * `gene_ont_edges` - Edges linking genes to their ontology term annotations
-/// * `ppi_edges` - Protein-protein interaction edges between genes
-/// * `signal_genes` - Names of signal genes, annotated within a single ontology
-///   subtree
-/// * `noise_genes` - Names of noise genes, annotated across multiple ontology
-///   subtrees
 pub struct SyntheticGeneWalkData {
+    /// Parent-child edges within the ontology graph
     pub ontology_edges: Vec<(String, String)>,
+    /// Edges linking genes to their ontology term annotations
     pub gene_ont_edges: Vec<(String, String)>,
+    /// Protein-protein interaction edges between genes
     pub ppi_edges: Vec<(String, String)>,
+    /// Names of signal genes, annotated within a single ontology subtree
     pub signal_genes: Vec<String>,
+    /// Names of noise genes, annotated across multiple ontology subtrees
     pub noise_genes: Vec<String>,
 }
 
@@ -382,9 +381,7 @@ pub fn build_synthetic_genewalk(
     let mut gene_ont_edges: Vec<(String, String)> = Vec::new();
     let mut ppi_edges: Vec<(String, String)> = Vec::new();
 
-    // ---------------------------------------------------------
-    // 1. SIGNAL GENES: Concentrated strictly in Subtree 0
-    // ---------------------------------------------------------
+    // signal genes -> concentrated strictly in Subtree 0
     let signal_subtree = &all_terms_per_subtree[0];
     let mut signal_genes: Vec<String> = Vec::new();
 
@@ -403,7 +400,7 @@ pub fn build_synthetic_genewalk(
         signal_genes.push(gene);
     }
 
-    // Dense PPIs for the signal community
+    // dense PPIs for the signal community
     for i in 0..signal_genes.len() {
         for j in (i + 1)..signal_genes.len() {
             if rng.random::<f64>() < p_ppi {
@@ -412,10 +409,7 @@ pub fn build_synthetic_genewalk(
         }
     }
 
-    // ---------------------------------------------------------
-    // 2. BACKGROUND ANCHOR GENES: Prevent isolate/degree-1 terms
-    // ---------------------------------------------------------
-    // We distribute a pool of anchor genes equal to `n_signal_genes`
+    // we distribute a pool of anchor genes equal to `n_signal_genes`
     // across the remaining subtrees so they don't blow up the graph size.
     if n_roots > 1 {
         let anchors_per_st = (n_signal_genes / (n_roots - 1)).max(2);
@@ -451,9 +445,7 @@ pub fn build_synthetic_genewalk(
         }
     }
 
-    // ---------------------------------------------------------
-    // 3. NOISE GENES: Spread randomly across multiple subtrees
-    // ---------------------------------------------------------
+    // noise genes -> spread randomly across multiple subtrees
     let n_subtrees = all_terms_per_subtree.len();
     let effective_min_subtrees = min_noise_subtrees.min(n_subtrees);
     let mut noise_genes: Vec<String> = Vec::new();
@@ -475,7 +467,7 @@ pub fn build_synthetic_genewalk(
             }
         }
 
-        // Fill remaining annotations randomly across all terms
+        // fill remaining annotations randomly across all terms
         let remaining = n_ann.saturating_sub(seen.len());
         for _ in 0..remaining {
             let term = &all_terms[rng.random_range(0..all_terms.len())];
@@ -487,7 +479,7 @@ pub fn build_synthetic_genewalk(
         noise_genes.push(gene);
     }
 
-    // Random PPIs across noise genes (no community structure)
+    // random PPIs across noise genes (no community structure)
     for i in 0..noise_genes.len() {
         for j in (i + 1)..noise_genes.len() {
             if rng.random::<f64>() < p_ppi {
@@ -503,4 +495,365 @@ pub fn build_synthetic_genewalk(
         signal_genes,
         noise_genes,
     }
+}
+
+////////////////////////
+// Differential graph //
+////////////////////////
+
+/// A pair of graphs for differential node embedding analysis
+///
+/// Holds two graphs that are largely topologically identical but differ in
+/// defined regions, together with ground truth labels for which shared nodes
+/// are expected to show context drift between graphs.
+///
+/// ### Fields
+///
+/// * `from_g1` - Edge origins in graph 1
+/// * `to_g1` - Edge destinations in graph 1
+/// * `from_g2` - Edge origins in graph 2
+/// * `to_g2` - Edge destinations in graph 2
+/// * `nodes_g1` - All node names in graph 1
+/// * `cluster_g1` - Cluster membership for each node in graph 1
+/// * `nodes_g2` - All node names in graph 2
+/// * `cluster_g2` - Cluster membership for each node in graph 2
+/// * `shared_nodes` - Nodes present in both graphs, defines the index for
+///   `is_differential`
+/// * `is_differential` - Ground truth flag indexed to `shared_nodes`; true
+///   where topology changes
+/// * `g1_only` - Nodes exclusive to graph 1
+/// * `g2_only` - Nodes exclusive to graph 2
+pub struct DifferentialGraphData {
+    from_g1: Vec<String>,
+    to_g1: Vec<String>,
+    from_g2: Vec<String>,
+    to_g2: Vec<String>,
+    nodes_g1: Vec<String>,
+    cluster_g1: Vec<usize>,
+    nodes_g2: Vec<String>,
+    cluster_g2: Vec<usize>,
+    shared_nodes: Vec<String>,
+    is_differential: Vec<bool>,
+    g1_only: Vec<String>,
+    g2_only: Vec<String>,
+}
+
+/// R differential graph data
+///
+/// ### Fields
+///
+/// * `0` - from, to edges for G1
+/// * `1` - nodes of G1 and their community membership
+/// * `2` - from, to edges for G2
+/// * `3` - nodes of G2 and their community membership
+/// * `4` - shared data with the shared nodes, which ones are different and
+///   which ones are unique per graph
+pub type RDifferentialGraphData = (List, List, List, List, List);
+
+impl DifferentialGraphData {
+    /// Create a new instance
+    ///
+    /// ### Params
+    ///
+    /// * `from_g1` - Edge origins in graph 1
+    /// * `to_g1` - Edge destinations in graph 1
+    /// * `from_g2` - Edge origins in graph 2
+    /// * `to_g2` - Edge destinations in graph 2
+    /// * `nodes_g1` - All node names in graph 1
+    /// * `cluster_g1` - Cluster membership for graph 1 nodes
+    /// * `nodes_g2` - All node names in graph 2
+    /// * `cluster_g2` - Cluster membership for graph 2 nodes
+    /// * `shared_nodes` - Intersection of both node sets
+    /// * `is_differential` - Ground truth indexed to `shared_nodes`
+    /// * `g1_only` - Nodes exclusive to graph 1
+    /// * `g2_only` - Nodes exclusive to graph 2
+    ///
+    /// ### Returns
+    ///
+    /// New `DifferentialGraphData` instance
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        from_g1: Vec<String>,
+        to_g1: Vec<String>,
+        from_g2: Vec<String>,
+        to_g2: Vec<String>,
+        nodes_g1: Vec<String>,
+        cluster_g1: Vec<usize>,
+        nodes_g2: Vec<String>,
+        cluster_g2: Vec<usize>,
+        shared_nodes: Vec<String>,
+        is_differential: Vec<bool>,
+        g1_only: Vec<String>,
+        g2_only: Vec<String>,
+    ) -> Self {
+        Self {
+            from_g1,
+            to_g1,
+            from_g2,
+            to_g2,
+            nodes_g1,
+            cluster_g1,
+            nodes_g2,
+            cluster_g2,
+            shared_nodes,
+            is_differential,
+            g1_only,
+            g2_only,
+        }
+    }
+
+    /// Generate R lists from the differential graph data
+    ///
+    /// ### Returns
+    ///
+    /// Tuple of `(edges_g1, nodes_g1, edges_g2, nodes_g2, ground_truth)` where
+    /// each element is a named R list. `ground_truth` contains `shared_nodes`,
+    /// `is_differential`, `g1_only`, and `g2_only`.
+    pub fn generate_lists(self) -> RDifferentialGraphData {
+        (
+            list!(from = self.from_g1, to = self.to_g1),
+            list!(node = self.nodes_g1, cluster = self.cluster_g1),
+            list!(from = self.from_g2, to = self.to_g2),
+            list!(node = self.nodes_g2, cluster = self.cluster_g2),
+            list!(
+                shared_nodes = self.shared_nodes,
+                is_differential = self.is_differential,
+                g1_only = self.g1_only,
+                g2_only = self.g2_only,
+            ),
+        )
+    }
+}
+
+/// Add all pairwise edges for a clique to the edge lists
+///
+/// ### Params
+///
+/// * `from` - Edge origin list to append to
+/// * `to` - Edge destination list to append to
+/// * `nodes` - Nodes forming the clique
+fn add_clique(from: &mut Vec<String>, to: &mut Vec<String>, nodes: &[String]) {
+    for i in 0..nodes.len() {
+        for j in (i + 1)..nodes.len() {
+            from.push(nodes[i].clone());
+            to.push(nodes[j].clone());
+        }
+    }
+}
+
+/// Generate a synthetic differential graph pair for testing context-aware node
+/// embeddings
+///
+/// Produces two graphs with three communities. Community 1 is a negative
+/// control and is topologically identical across both graphs. Community 2
+/// contains a hub node that is demoted to a peripheral node in graph 2. Two
+/// bridge nodes span community 2 and community 3 in graph 1, but are fully
+/// embedded within community 3 in graph 2. A set of exclusive nodes appears in
+/// only one graph.
+///
+/// Cluster assignments: 0 = exclusive, 1 = stable community, 2 = community 2,
+/// 3 = community 3.
+///
+/// ### Params
+///
+/// * `n_stable` - Number of nodes in the stable negative-control community
+/// * `n_comm2` - Number of regular nodes in community 2, excluding the hub
+/// * `n_comm3` - Number of nodes in community 3, excluding bridge nodes
+/// * `n_exclusive` - Number of G1-only and G2-only peripheral nodes each
+///
+/// ### Returns
+///
+/// `DifferentialGraphData`
+pub fn differential_graph_synthetic(
+    n_stable: usize,
+    n_comm2: usize,
+    n_comm3: usize,
+    n_exclusive: usize,
+) -> DifferentialGraphData {
+    let stable: Vec<String> = (0..n_stable).map(|i| format!("stable_{:03}", i)).collect();
+    let comm2: Vec<String> = (0..n_comm2).map(|i| format!("comm2_{:03}", i)).collect();
+    let hub = "hub_gene".to_string();
+    let comm3: Vec<String> = (0..n_comm3).map(|i| format!("comm3_{:03}", i)).collect();
+    let bridge_1 = "bridge_001".to_string();
+    let bridge_2 = "bridge_002".to_string();
+
+    // stable cross-community linkers: connected to both comm2 and comm3 in both graphs
+    // these are negative controls for inter-community nodes
+    let linker_1 = "linker_001".to_string();
+    let linker_2 = "linker_002".to_string();
+    let g1_excl: Vec<String> = (0..n_exclusive)
+        .map(|i| format!("g1_only_{:03}", i))
+        .collect();
+    let g2_excl: Vec<String> = (0..n_exclusive)
+        .map(|i| format!("g2_only_{:03}", i))
+        .collect();
+
+    let mut from_g1: Vec<String> = Vec::new();
+    let mut to_g1: Vec<String> = Vec::new();
+    let mut from_g2: Vec<String> = Vec::new();
+    let mut to_g2: Vec<String> = Vec::new();
+
+    // community 1: stable clique, identical in both graphs
+    add_clique(&mut from_g1, &mut to_g1, &stable);
+    add_clique(&mut from_g2, &mut to_g2, &stable);
+
+    // community 2: regular clique
+    add_clique(&mut from_g1, &mut to_g1, &comm2);
+    add_clique(&mut from_g2, &mut to_g2, &comm2);
+
+    // community 3: stable clique
+    add_clique(&mut from_g1, &mut to_g1, &comm3);
+    add_clique(&mut from_g2, &mut to_g2, &comm3);
+
+    // sparse inter-community background edges (identical in both graphs)
+    // stable <-> comm2: every other stable node connects to first comm2 node
+    for i in (0..n_stable.min(4)).step_by(2) {
+        from_g1.push(stable[i].clone());
+        to_g1.push(comm2[0].clone());
+        from_g2.push(stable[i].clone());
+        to_g2.push(comm2[0].clone());
+    }
+    // stable <-> comm3
+    for i in (0..n_stable.min(4)).step_by(2) {
+        from_g1.push(stable[i].clone());
+        to_g1.push(comm3[0].clone());
+        from_g2.push(stable[i].clone());
+        to_g2.push(comm3[0].clone());
+    }
+    // comm2 <-> comm3: a handful of edges connecting the two communities
+    let n_cross = (n_comm2 / 3).max(1).min(n_comm2);
+    for i in 0..n_cross {
+        from_g1.push(comm2[i].clone());
+        to_g1.push(comm3[i % n_comm3].clone());
+        from_g2.push(comm2[i].clone());
+        to_g2.push(comm3[i % n_comm3].clone());
+    }
+
+    // hub: fully connected within comm2 in G1
+    // in G2 hub is demoted from comm2 and gains connections in comm3 (context shift)
+    for node in &comm2 {
+        from_g1.push(hub.clone());
+        to_g1.push(node.clone());
+    }
+    // G2: one residual comm2 edge + majority comm3 edges
+    if let Some(first) = comm2.first() {
+        from_g2.push(hub.clone());
+        to_g2.push(first.clone());
+    }
+    let n_hub_comm3 = (n_comm3 / 2).max(1);
+    for i in 0..n_hub_comm3 {
+        from_g2.push(hub.clone());
+        to_g2.push(comm3[i].clone());
+    }
+
+    // bridge nodes in G1: span community 2 (including hub) and community 3
+    let n_bridge_comm2 = (n_comm2 / 2).max(1).min(n_comm2);
+    let n_bridge_comm3 = (n_comm3 / 2).max(1).min(n_comm3);
+    for bridge in &[&bridge_1, &bridge_2] {
+        for i in 0..n_bridge_comm2 {
+            from_g1.push((*bridge).clone());
+            to_g1.push(comm2[i].clone());
+        }
+        from_g1.push((*bridge).clone());
+        to_g1.push(hub.clone());
+        for i in 0..n_bridge_comm3 {
+            from_g1.push((*bridge).clone());
+            to_g1.push(comm3[i].clone());
+        }
+    }
+    from_g1.push(bridge_1.clone());
+    to_g1.push(bridge_2.clone());
+
+    // bridge nodes in G2: fully embedded within community 3
+    for bridge in &[&bridge_1, &bridge_2] {
+        for node in &comm3 {
+            from_g2.push((*bridge).clone());
+            to_g2.push(node.clone());
+        }
+    }
+    from_g2.push(bridge_1.clone());
+    to_g2.push(bridge_2.clone());
+
+    // linker nodes: stable cross-community nodes, identical in both graphs
+    // connected to a subset of comm2 and comm3 — these are negative controls
+    let n_linker_each = (n_comm2 / 3).max(1).min(n_comm2);
+    for linker in &[&linker_1, &linker_2] {
+        for i in 0..n_linker_each {
+            from_g1.push((*linker).clone());
+            to_g1.push(comm2[i].clone());
+            from_g2.push((*linker).clone());
+            to_g2.push(comm2[i].clone());
+        }
+        for i in 0..n_linker_each.min(n_comm3) {
+            from_g1.push((*linker).clone());
+            to_g1.push(comm3[i].clone());
+            from_g2.push((*linker).clone());
+            to_g2.push(comm3[i].clone());
+        }
+    }
+
+    // exclusive peripheral nodes
+    for node in &g1_excl {
+        from_g1.push(node.clone());
+        to_g1.push(stable[0].clone());
+    }
+    for node in &g2_excl {
+        from_g2.push(node.clone());
+        to_g2.push(comm2.first().unwrap_or(&hub).clone());
+    }
+
+    // shared nodes and ground truth
+    // order: stable → linkers → comm2 → hub → comm3 → bridges
+    let mut shared_nodes: Vec<String> = Vec::new();
+    shared_nodes.extend(stable.iter().cloned());
+    shared_nodes.push(linker_1.clone());
+    shared_nodes.push(linker_2.clone());
+    shared_nodes.extend(comm2.iter().cloned());
+    shared_nodes.push(hub.clone());
+    shared_nodes.extend(comm3.iter().cloned());
+    shared_nodes.push(bridge_1.clone());
+    shared_nodes.push(bridge_2.clone());
+
+    let mut is_differential: Vec<bool> = Vec::new();
+    is_differential.extend(vec![false; n_stable]);
+    is_differential.extend(vec![false; 2]); // linkers are stable
+    is_differential.extend(vec![false; n_comm2]);
+    is_differential.push(true); // hub
+    is_differential.extend(vec![false; n_comm3]);
+    is_differential.push(true); // bridge_1
+    is_differential.push(true); // bridge_2
+
+    // node lists; exclusive nodes get cluster 0, linkers get cluster 4
+    let mut nodes_g1 = shared_nodes.clone();
+    let mut cluster_g1: Vec<usize> = Vec::new();
+    cluster_g1.extend(vec![1; n_stable]);
+    cluster_g1.extend(vec![4; 2]); // linkers
+    cluster_g1.extend(vec![2; n_comm2 + 1]); // +1 for hub
+    cluster_g1.extend(vec![3; n_comm3 + 2]); // +2 for bridges
+    nodes_g1.extend(g1_excl.iter().cloned());
+    cluster_g1.extend(vec![0; n_exclusive]);
+
+    let mut nodes_g2 = shared_nodes.clone();
+    let mut cluster_g2: Vec<usize> = Vec::new();
+    cluster_g2.extend(vec![1; n_stable]);
+    cluster_g2.extend(vec![4; 2]);
+    cluster_g2.extend(vec![2; n_comm2 + 1]);
+    cluster_g2.extend(vec![3; n_comm3 + 2]);
+    nodes_g2.extend(g2_excl.iter().cloned());
+    cluster_g2.extend(vec![0; n_exclusive]);
+
+    DifferentialGraphData::new(
+        from_g1,
+        to_g1,
+        from_g2,
+        to_g2,
+        nodes_g1,
+        cluster_g1,
+        nodes_g2,
+        cluster_g2,
+        shared_nodes,
+        is_differential,
+        g1_excl,
+        g2_excl,
+    )
 }
