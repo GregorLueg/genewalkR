@@ -33,7 +33,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ runner.os == 'Windows' && 'stable-x86_64-pc-windows-gnu' || 'stable' }}
+          toolchain: ${{ runner.os == 'Windows' && '1.89.0-x86_64-pc-windows-gnu' || '1.89.0' }}
       
       - name: Cache Rust dependencies
         uses: actions/cache@v3
