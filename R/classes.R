@@ -132,24 +132,6 @@ S7::method(print, GeneWalk) <- function(x, ...) {
 
 #### getters -------------------------------------------------------------------
 
-#' Get the statistical results
-#'
-#' @param object The `GeneWalk` class, please see
-#' [genewalkR::GeneWalk()].
-#'
-#' @returns If found, the GeneWalk statistics results
-#'
-#' @export
-get_stats <- S7::new_generic(
-  name = "get_stats",
-  dispatch_args = "object",
-  fun = function(
-    object
-  ) {
-    S7::S7_dispatch()
-  }
-)
-
 #' @method get_stats GeneWalk
 #'
 #' @export
@@ -852,3 +834,264 @@ GeneWalkGenerator <- R6::R6Class(
     }
   )
 )
+
+## embed drift -----------------------------------------------------------------
+
+#' EmbedDrift
+#'
+#' @description
+#' S7 class for context-aware differential node embedding analysis between
+#' two graphs. Holds both input graphs, their embeddings, the Procrustes-aligned
+#' embedding, and the resulting cosine similarity statistics.
+#'
+#' @section Properties:
+#' \describe{
+#'   \item{graph_dt_1}{A data.frame containing the edges of graph 1. Must have
+#'     columns `from`, `to`, and optionally `weight`.}
+#'   \item{graph_dt_2}{A data.frame containing the edges of graph 2. Must have
+#'     columns `from`, `to`, and optionally `weight`.}
+#'   \item{embd_1}{Numeric matrix. Node embedding for graph 1, rows are nodes.}
+#'   \item{embd_2}{Numeric matrix. Node embedding for graph 2, rows are nodes.}
+#'   \item{aligned_embd}{Numeric matrix. Procrustes-aligned embedding of graph 1
+#'     onto graph 2, restricted to shared nodes.}
+#'   \item{stats}{A data.frame holding per-node cosine similarity scores and
+#'     node metadata after running the differential analysis.}
+#'   \item{params}{Named list of parameters used during embedding and alignment.}
+#' }
+#'
+#' @param graph_dt_1 A data.frame with columns `from`, `to`, and optionally
+#' `weight` representing the first graph.
+#' @param graph_dt_2 A data.frame with columns `from`, `to`, and optionally
+#' `weight` representing the second graph.
+#'
+#' @return An initialised `EmbedDrift` object.
+#'
+#' @export
+EmbedDrift <- S7::new_class(
+  name = "EmbedDrift",
+  properties = list(
+    graph_dt_1 = S7::class_data.frame,
+    graph_dt_2 = S7::class_data.frame,
+    embd_1 = S7::class_numeric,
+    embd_2 = S7::class_numeric,
+    aligned_embd = S7::class_numeric,
+    stats = S7::class_data.frame,
+    params = S7::class_list
+  ),
+  constructor = function(graph_dt_1, graph_dt_2) {
+    # checks
+    checkmate::assertDataFrame(graph_dt_1, min.rows = 1)
+    checkmate::assertDataFrame(graph_dt_2, min.rows = 1)
+    checkmate::assertNames(names(graph_dt_1), must.include = c("from", "to"))
+    checkmate::assertNames(names(graph_dt_2), must.include = c("from", "to"))
+
+    # object
+    S7::new_object(
+      S7::S7_object(),
+      graph_dt_1 = graph_dt_1,
+      graph_dt_2 = graph_dt_2,
+      embd_1 = numeric(0),
+      embd_2 = numeric(0),
+      aligned_embd = numeric(0),
+      stats = data.table::data.table(),
+      params = list()
+    )
+  }
+)
+
+### methods --------------------------------------------------------------------
+
+#' Get node embeddings
+#'
+#' @param object An `EmbedDrift` object, see [EmbedDrift()].
+#' @param which Integer. Which embedding to return: `1`, `2`, or `NULL` for
+#' both as a named list. Defaults to `NULL`.
+#'
+#' @return A matrix, or a named list with elements `embd_1` and `embd_2`.
+#'
+#' @export
+get_embeddings <- S7::new_generic(
+  name = "get_embeddings",
+  dispatch_args = "object",
+  fun = function(object, which = NULL) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_embeddings EmbedDrift
+#'
+#' @export
+S7::method(get_embeddings, EmbedDrift) <- function(object, which = NULL) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, EmbedDrift))
+  checkmate::assertChoice(which, choices = c(1L, 2L), null.ok = TRUE)
+
+  # get the data
+  embd_1 <- S7::prop(object, "embd_1")
+  embd_2 <- S7::prop(object, "embd_2")
+
+  # early return
+  if (length(embd_1) == 0 && length(embd_2) == 0) {
+    warning(paste(
+      "Embeddings are empty. Has the embedding step been run?",
+      "Returning NULL"
+    ))
+    return(NULL)
+  }
+
+  if (is.null(which)) {
+    return(list(embd_1 = embd_1, embd_2 = embd_2))
+  }
+
+  if (which == 1L) {
+    return(embd_1)
+  }
+  return(embd_2)
+}
+
+#' Get graph edge tables
+#'
+#' @param object An `EmbedDrift` object, see [EmbedDrift()].
+#' @param which Integer. Which graph table to return: `1`, `2`, or `NULL` for
+#' both as a named list. Defaults to `NULL`.
+#'
+#' @return A data.frame, or a named list with elements `graph_dt_1` and
+#' `graph_dt_2`.
+#'
+#' @export
+get_graph_dts <- S7::new_generic(
+  name = "get_graph_dts",
+  dispatch_args = "object",
+  fun = function(object, which = NULL) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_graph_dts EmbedDrift
+#'
+#' @export
+S7::method(get_graph_dts, EmbedDrift) <- function(object, which = NULL) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, EmbedDrift))
+  checkmate::assertChoice(which, choices = c(1L, 2L), null.ok = TRUE)
+
+  # get the graph_dts
+  g1 <- S7::prop(object, "graph_dt_1")
+  g2 <- S7::prop(object, "graph_dt_2")
+
+  if (is.null(which)) {
+    return(list(graph_dt_1 = g1, graph_dt_2 = g2))
+  }
+
+  if (which == 1L) {
+    return(g1)
+  }
+  return(g2)
+}
+
+#' Get the aligned embedding
+#'
+#' @param object An `EmbedDrift` object, see [EmbedDrift()].
+#'
+#' @return A numeric matrix of the Procrustes-aligned embedding of graph 1
+#' onto graph 2, restricted to shared nodes.
+#'
+#' @export
+get_aligned_embd <- S7::new_generic(
+  name = "get_aligned_embd",
+  dispatch_args = "object",
+  fun = function(object) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_aligned_embd EmbedDrift
+#'
+#' @export
+S7::method(get_aligned_embd, EmbedDrift) <- function(object) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, EmbedDrift))
+  aligned <- S7::prop(object, "aligned_embd")
+
+  # early return
+  if (length(aligned) == 0) {
+    warning(
+      paste(
+        "Aligned embedding is empty. Has the differential analysis been run?",
+        "Returning NULL"
+      )
+    )
+    return(NULL)
+  }
+
+  return(aligned)
+}
+
+#' @method get_stats EmbedDrift
+#'
+#' @export
+S7::method(get_stats, EmbedDrift) <- function(object) {
+  # checks
+  checkmate::assertTRUE(S7::S7_inherits(object, EmbedDrift))
+
+  stats <- S7::prop(object, "stats")
+
+  # early return
+  if (nrow(stats) == 0) {
+    warning(paste(
+      "Stats are empty. Has the differential analysis been run?",
+      "Returning empty data.table"
+    ))
+    return(data.table::data.table())
+  }
+
+  return(stats)
+}
+
+#### primitives ----------------------------------------------------------------
+
+#' @name print.EmbedDrift
+#' @title print Method for EmbedDrift object
+#'
+#' @description
+#' Print an EmbedDrift object.
+#'
+#' @param x An object of class `EmbedDrift`.
+#' @param ... Additional arguments (currently not used).
+#'
+#' @returns Invisibly returns `x`.
+#'
+#' @method print EmbedDrift
+#'
+#' @keywords internal
+S7::method(print, EmbedDrift) <- function(x, ...) {
+  n_edges_1 <- nrow(S7::prop(x, "graph_dt_1"))
+  n_edges_2 <- nrow(S7::prop(x, "graph_dt_2"))
+  embd_generated <- length(S7::prop(x, "embd_1")) > 0 &&
+    length(S7::prop(x, "embd_2")) > 0
+  aligned <- length(S7::prop(x, "aligned_embd")) > 0
+  stats_done <- nrow(S7::prop(x, "stats")) > 0
+
+  nodes_g1 <- unique(c(
+    S7::prop(x, "graph_dt_1")$from,
+    S7::prop(x, "graph_dt_1")$to
+  ))
+  nodes_g2 <- unique(c(
+    S7::prop(x, "graph_dt_2")$from,
+    S7::prop(x, "graph_dt_2")$to
+  ))
+  n_shared <- length(intersect(nodes_g1, nodes_g2))
+  n_g1_only <- length(setdiff(nodes_g1, nodes_g2))
+  n_g2_only <- length(setdiff(nodes_g2, nodes_g1))
+
+  cat("EmbedDrift\n")
+  cat("  Graph 1:", n_edges_1, "edges |", length(nodes_g1), "nodes\n")
+  cat("  Graph 2:", n_edges_2, "edges |", length(nodes_g2), "nodes\n")
+  cat("  Shared nodes:", n_shared, "\n")
+  cat("  Graph 1 exclusive:", n_g1_only, "\n")
+  cat("  Graph 2 exclusive:", n_g2_only, "\n")
+  cat("  Embeddings generated:", ifelse(embd_generated, "yes", "no"), "\n")
+  cat("  Procrustes alignment done:", ifelse(aligned, "yes", "no"), "\n")
+  cat("  Statistics calculated:", ifelse(stats_done, "yes", "no"), "\n")
+  invisible(x)
+}

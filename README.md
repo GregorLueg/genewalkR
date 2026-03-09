@@ -1,20 +1,26 @@
 # genewalkR package
 
-![r_package](https://img.shields.io/badge/R_package-0.0.1.3-orange) 
+![r_package](https://img.shields.io/badge/R_package-0.0.1.4-orange) 
 [![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![pkgdown](https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github)](https://gregorlueg.github.io/genewalkR/)
 
 <img src="man/figures/genewalkR_logo.png" width="128" height="128" alt="genewalk logo">
 
 ## Description
 
-This package implements the GeneWalk approach from 
-[Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)
-(see GitHub [here](https://github.com/churchmanlab/genewalk)) into R
-leveraging Rust under the hood to generate rapidly the random walks and run
-the word2vec model for the generation of the embeddings. It uses a highly 
-optimised, fast implementation, leveraging SIMD-acceleration and multi-threading, 
-see [node2vec-rs](https://github.com/GregorLueg/node2vec-rs).
+This package implements various computational biology methods that use 
+[node2vec](https://arxiv.org/abs/1607.00653) under the hood. It leverages the
+rextendr interface into Rust to make these methods **VERY** fast. For now, we 
+have the following methods implemented:
+
+- General node2vec to generate embeddings, please see this [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
+- The GeneWalk approach from [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8) (see GitHub [here](https://github.com/churchmanlab/genewalk)).
+If you want to use this, please check out this [vignette](https://gregorlueg.github.io/genewalkR/articles/genewalk.html).
+- A Gene context drift type approach akin to [Jassim et al.](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7). Specifically the part around running node2vec onto two
+networks, followed by Procruste alignment and identifying node embeddings that
+differ between the two networks. Details can be found in this 
+[vignette](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html).
 
 ## Installation
 
@@ -57,7 +63,7 @@ remotes::install_github("GregorLueg/genewalkR")
 
 Please refer to the [website](https://gregorlueg.github.io/genewalkR/) of the
 package to check out how to use this. Vignettes and function definitions are
-provided there.
+provided there. If you run into issues, please use GitHub issues.
 
 ## License
 

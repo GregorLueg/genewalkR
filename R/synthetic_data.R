@@ -212,3 +212,88 @@ synthetic_genewalk_data <- function(
     pathway_ids = pathways
   )
 }
+
+## diff cor graphs -------------------------------------------------------------
+
+#' Generate Synthetic Differential Graph Data
+#'
+#' @description
+#' Creates a pair of graphs with known topological differences to verify
+#' context-aware differential embedding analysis. The two graphs share a common
+#' backbone but differ in defined regions:
+#'
+#' \itemize{
+#'   \item Community 1 is a stable negative control, identical across both
+#'   graphs.
+#'   \item Community 2 contains a hub node demoted to a peripheral node in
+#'   graph 2.
+#'   \item Two bridge nodes span communities 2 and 3 in graph 1 but are fully
+#'   embedded within community 3 in graph 2.
+#'   \item A set of exclusive nodes appears in only one graph.
+#' }
+#'
+#' @param n_stable Integer. Number of nodes in the stable negative-control
+#' community.
+#' @param n_comm2 Integer. Number of regular nodes in community 2, excluding
+#' the hub.
+#' @param n_comm3 Integer. Number of nodes in community 3, excluding bridge
+#' nodes.
+#' @param n_exclusive Integer. Number of exclusive nodes per graph.
+#'
+#' @return A named list containing:
+#' \itemize{
+#'   \item g1_edges - data.table with columns `from`, `to` for graph 1.
+#'   \item g1_nodes - data.table with columns `node`, `cluster` for graph 1.
+#'   \item g2_edges - data.table with columns `from`, `to` for graph 2.
+#'   \item g2_nodes - data.table with columns `node`, `cluster` for graph 2.
+#'   \item data_info - data.table with columns `node`, `is_differential`,
+#'   `node_status` (`"shared"`, `"g1_only"`, `"g2_only"`).
+#' }
+#'
+#' @export
+differential_graph_test_data <- function(
+  n_stable = 50L,
+  n_comm2 = 50L,
+  n_comm3 = 50L,
+  n_exclusive = 5L
+) {
+  # checks
+  checkmate::qassert(n_stable, "I1[2,)")
+  checkmate::qassert(n_comm2, "I1[2,)")
+  checkmate::qassert(n_comm3, "I1[2,)")
+  checkmate::qassert(n_exclusive, "I1[0,)")
+
+  raw <- rs_differential_graph_data(
+    n_stable = n_stable,
+    n_comm2 = n_comm2,
+    n_comm3 = n_comm3,
+    n_exclusive = n_exclusive
+  )
+
+  info <- data.table::data.table(
+    node = raw$data_info$shared_nodes,
+    is_differential = raw$data_info$is_differential,
+    node_status = "shared"
+  )
+  info <- data.table::rbindlist(list(
+    info,
+    data.table::data.table(
+      node = raw$data_info$g1_only,
+      is_differential = TRUE,
+      node_status = "g1_only"
+    ),
+    data.table::data.table(
+      node = raw$data_info$g2_only,
+      is_differential = TRUE,
+      node_status = "g2_only"
+    )
+  ))
+
+  list(
+    g1_edges = data.table::setDT(raw$g1_edges),
+    g1_nodes = data.table::setDT(raw$g1_nodes),
+    g2_edges = data.table::setDT(raw$g2_edges),
+    g2_nodes = data.table::setDT(raw$g2_nodes),
+    data_info = info
+  )
+}

@@ -62,17 +62,16 @@ node2vec <- function(
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
 
-  embd <- rs_gene_walk(
+  embd <- rs_node2vec(
     from = from_idx,
     to = to_idx,
     weights = weights,
-    gene_walk_params = node2vec_params,
-    n_graph = 1L,
+    node2vec_params = node2vec_params,
     embd_dim = embd_dim,
     directed = directed,
     seed = seed,
     verbose = .verbose
-  )[[1]]
+  )
 
   rownames(embd) <- nodes
   colnames(embd) <- sprintf("emb_dim_%i", 1:embd_dim)

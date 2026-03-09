@@ -1,3 +1,5 @@
+//! Helpers for the generations of the underlying graph
+
 use node2vec_rs::graph::{compute_transition_prob, Node2VecGraph};
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
