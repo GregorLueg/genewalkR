@@ -1,21 +1,32 @@
 # genewalkR package
 
-![r_package](https://img.shields.io/badge/R_package-0.0.1.3-orange)[![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
+![r_package](https://img.shields.io/badge/R_package-0.0.1.4-orange)[![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![pkgdown](https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github)](https://gregorlueg.github.io/genewalkR/)
 
 ![genewalk logo](reference/figures/genewalkR_logo.png)
 
 ## Description
 
-This package implements the GeneWalk approach from [Ietswaart et
-al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)
-(see GitHub [here](https://github.com/churchmanlab/genewalk)) into R
-leveraging Rust under the hood to generate rapidly the random walks and
-run the word2vec model for the generation of the embeddings. It uses a
-highly optimised, fast implementation, leveraging SIMD-acceleration and
-multi-threading, see
-[node2vec-rs](https://github.com/GregorLueg/node2vec-rs).
+This package implements various computational biology methods that use
+[node2vec](https://arxiv.org/abs/1607.00653) under the hood. It
+leverages the rextendr interface into Rust to make these methods
+**VERY** fast. For now, we have the following methods implemented:
+
+- General node2vec to generate embeddings, please see this
+  [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
+- The GeneWalk approach from [Ietswaart et
+  al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)
+  (see GitHub [here](https://github.com/churchmanlab/genewalk)). If you
+  want to use this, please check out this
+  [vignette](https://gregorlueg.github.io/genewalkR/articles/genewalk.html).
+- A Gene context drift type approach akin to [Jassim et
+  al.](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7).
+  Specifically the part around running node2vec onto two networks,
+  followed by Procruste alignment and identifying node embeddings that
+  differ between the two networks. Details can be found in this
+  [vignette](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html).
 
 ## Installation
 
@@ -62,7 +73,8 @@ remotes::install_github("GregorLueg/genewalkR")
 
 Please refer to the [website](https://gregorlueg.github.io/genewalkR/)
 of the package to check out how to use this. Vignettes and function
-definitions are provided there.
+definitions are provided there. If you run into issues, please use
+GitHub issues.
 
 ## License
 
@@ -89,7 +101,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # Package index
 
-## Core workflow
+## Node2Vec
+
+Run Node2Vec
+
+- [`node2vec()`](https://gregorlueg.github.io/genewalkR/reference/node2vec.md)
+  : Node2Vec
+
+## GeneWalk workflow
 
 Main classes and methods to run GeneWalk
 
@@ -110,12 +129,16 @@ Main classes and methods to run GeneWalk
 - [`plot_similarities()`](https://gregorlueg.github.io/genewalkR/reference/plot_similarities.md)
   : Plot similarity distributions
 
-## Node2Vec
+## Gene / Embedding drift
 
-Run Node2Vec
+Main classes and methods to run a gene/embedding drift
 
-- [`node2vec()`](https://gregorlueg.github.io/genewalkR/reference/node2vec.md)
-  : Node2Vec
+- [`EmbedDrift()`](https://gregorlueg.github.io/genewalkR/reference/EmbedDrift.md)
+  : EmbedDrift
+- [`generate_initial_embeddings()`](https://gregorlueg.github.io/genewalkR/reference/generate_initial_embeddings.md)
+  : Generate initial node embeddings for both graphs
+- [`calculate_drift()`](https://gregorlueg.github.io/genewalkR/reference/calculate_drift.md)
+  : Calculate embedding drift between two graphs
 
 ## Helpers and getters
 
@@ -125,6 +148,8 @@ Various getters and helper classes
   : Get the statistical results
 - [`get_graph_dt()`](https://gregorlueg.github.io/genewalkR/reference/get_graph_dt.md)
   : Get the edge data.table
+- [`get_graph_dts()`](https://gregorlueg.github.io/genewalkR/reference/get_graph_dts.md)
+  : Get graph edge tables
 - [`get_gw_data()`](https://gregorlueg.github.io/genewalkR/reference/get_gw_data.md)
   : Get the full GW data stored in the class
 - [`get_gw_data_filtered()`](https://gregorlueg.github.io/genewalkR/reference/get_gw_data_filtered.md)
@@ -133,6 +158,10 @@ Various getters and helper classes
   : Get the gene to pathway data.table
 - [`get_embedding()`](https://gregorlueg.github.io/genewalkR/reference/get_embedding.md)
   : Get the list of embeddings
+- [`get_embeddings()`](https://gregorlueg.github.io/genewalkR/reference/get_embeddings.md)
+  : Get node embeddings
+- [`get_aligned_embd()`](https://gregorlueg.github.io/genewalkR/reference/get_aligned_embd.md)
+  : Get the aligned embedding
 - [`get_gene_info()`](https://gregorlueg.github.io/genewalkR/reference/get_gene_info.md)
   : Get the gene main information
 - [`n_nodes()`](https://gregorlueg.github.io/genewalkR/reference/n_nodes.md)
@@ -177,6 +206,8 @@ How to download and interact with the internal DB.
 
 ## (Synthetic) Data & testing
 
+- [`differential_graph_test_data()`](https://gregorlueg.github.io/genewalkR/reference/differential_graph_test_data.md)
+  : Generate Synthetic Differential Graph Data
 - [`synthetic_genewalk_data()`](https://gregorlueg.github.io/genewalkR/reference/synthetic_genewalk_data.md)
   : Generate synthetic GeneWalk data
 - [`node2vec_test_data()`](https://gregorlueg.github.io/genewalkR/reference/node2vec_test_data.md)
@@ -201,8 +232,8 @@ Wrapper functions around core parameters
 
 Everything rusty - only use this if you know what you are doing…
 
-- [`rs_build_synthetic_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.md)
-  : Generate synthetic GeneWalk data with controlled signal structure
+- [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
+  : Generate a node2vec embeddings
 - [`rs_cosine_sim()`](https://gregorlueg.github.io/genewalkR/reference/rs_cosine_sim.md)
   : Cosine similarity between two vectors
 - [`rs_gene_walk()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.md)
@@ -211,38 +242,22 @@ Everything rusty - only use this if you know what you are doing…
   : Generate null distributions from degree-matched random networks
 - [`rs_gene_walk_test()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_test.md)
   : Calculate GeneWalk test statistics
+- [`rs_procrustes_align()`](https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.md)
+  : Orthogonal Procrustes alignment and cosine similarity scoring
+- [`rs_build_synthetic_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.md)
+  : Generate synthetic GeneWalk data with controlled signal structure
 - [`rs_node2vec_synthetic_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.md)
   : Generate synthetic data for node2vec
-
-## Internal
-
-Internal helper functions
-
-- [`assertGeneWalkDataParams()`](https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkDataParams.md)
-  : Assert GeneWalk data parameters
-- [`assertGeneWalkDataTable()`](https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkDataTable.md)
-  : Assert GeneWalk input data.table
-- [`assertGeneWalkGraphDt()`](https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkGraphDt.md)
-  : Assert GeneWalk graph data.table
-- [`assertNode2VecParam()`](https://gregorlueg.github.io/genewalkR/reference/assertNode2VecParam.md)
-  : Assert node2vec parameters
-- [`checkGeneWalkDataParams()`](https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkDataParams.md)
-  : Check GeneWalk data parameters
-- [`checkGeneWalkDataTable()`](https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkDataTable.md)
-  : Check GeneWalk input data.table
-- [`checkGeneWalkGraphDt()`](https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkGraphDt.md)
-  : Check GeneWalk graph data.table
-- [`checkNode2VecParams()`](https://gregorlueg.github.io/genewalkR/reference/checkNode2VecParams.md)
-  : Check node2vec parameters
-- [`gene_ontology_source`](https://gregorlueg.github.io/genewalkR/reference/gene_ontology_source.md)
-  : Gene Ontology Data Source
-- [`opentargets_source`](https://gregorlueg.github.io/genewalkR/reference/opentargets_source.md)
-  : OpenTargets Data Source
+- [`rs_differential_graph_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.md)
+  : Generate a synthetic differential graph pair for testing
+  context-aware node embeddings
 
 # Articles
 
 ### Vignettes
 
+- [Node2vec](https://gregorlueg.github.io/genewalkR/articles/node2vec.md):
 - [Running
   GeneWalk](https://gregorlueg.github.io/genewalkR/articles/genewalk.md):
-- [Node2vec](https://gregorlueg.github.io/genewalkR/articles/node2vec.md):
+- [Embedding Drift via
+  node2vec](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.md):

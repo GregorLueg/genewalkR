@@ -1,17 +1,20 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://gregorlueg.github.io/genewalkR/404.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/LICENSE-text.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/genewalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/index.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/node2vec.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/authors.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/index.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/EmbedDrift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/GeneWalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/GeneWalkGenerator.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkDataParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkDataTable.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkGraphDt.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertNode2VecParam.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/calculate_drift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/calculate_genewalk_stats.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkDataParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkDataTable.html</loc></url>
@@ -19,6 +22,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/checkNode2VecParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/check_degree_distribution.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/db_path.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/differential_graph_test_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/dim.DataBuilder.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/dot-get_node_degree.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/dot-string_cols_to_factors.html</loc></url>
@@ -26,9 +30,12 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/evaluate_node2vec_test.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/gene_ontology_source.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_initial_emb.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_initial_embeddings.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_permuted_emb.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/get_aligned_embd.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_db_connection.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_embedding.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/get_embeddings.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gene_info.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gene_ontology_hierarchy.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gene_ontology_info.html</loc></url>
@@ -36,6 +43,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gene_to_go.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gene_to_reactome.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_graph_dt.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/get_graph_dts.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gw_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_gw_data_filtered.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_interactions_combined.html</loc></url>
@@ -60,14 +68,18 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/pathway_commons_source.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/plot_gw_results.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/plot_similarities.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/print.EmbedDrift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/print.GeneWalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/reload_db.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_cosine_sim.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_perm.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_test.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/synthetic_genewalk_data.html</loc></url>
 </urlset>
 

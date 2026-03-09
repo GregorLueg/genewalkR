@@ -6,9 +6,9 @@ This vignette will first show how Gene Walk behaves on synthetic data,
 what assumptions are baked in and then we will move onto using it with
 real data. If you want to understand the method in more detail, please
 check out [Ietswaart et
-al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8).
+al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)
 
-### Loading in libraries
+### Setup
 
 ``` r
 library(genewalkR)
@@ -86,12 +86,15 @@ genewalk_obj
 
 This function here generates the node2vec embedding based on the
 network. To avoid instability issues due to the [Hogwild!-type
-SGD](https://papers.nips.cc/paper_files/paper/2011/hash/218a0aefd1d1a4be65601cc6ddc1520e-Abstract.html)
-used, we limit the threads to `1L` here via
+SGD](https://arxiv.org/abs/1106.5730) used, we limit the threads to `1L`
+here via
 [`params_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/params_genewalk.md).
 If you want to do fast testing (for parameter optimisation), you can
 increase this to more. Initially, we generate `n_graph` initial
 representations. The authors of the original work default to `3L` here.
+A potential approach could be to leverage the more cores and run more
+iterations. The SGD scales basically linearly with the number of threads
+you use.
 
 ``` r
 genewalk_obj <- generate_initial_emb(
@@ -182,7 +185,7 @@ pathways in the signal data set are all much higher compared to the
 FALSE ones, and we have a bimodal distribution for the noise genes. Some
 of these just by accident get connected into the same dense communities
 from the signal genes, but a large number of them are just noise. Let’s
-look at the p-values
+check the p-values
 
 ``` r
 ggplot(
@@ -224,7 +227,7 @@ some real data.
 
 Let’s explore real data now. The package provides a builder factory to
 generate the objects. Within the package, there is a DuckDB that
-contains
+contains:
 
 **Network resources**
 
@@ -320,30 +323,21 @@ rather as expected with lack of signal).
 #### Running gene walk on actual data
 
 We can now use the same steps as above. Generate first three iterations
-of the real embedding based on different random seeds (if you wish to go
-fast and add a bit more randomness, set num_workers to ≥ 1 and leverage
-[HogWild!-style
-SGD](https://papers.nips.cc/paper_files/paper/2011/hash/218a0aefd1d1a4be65601cc6ddc1520e-Abstract.html)
-in the word2vec implementation.).
+of the real embedding based on different random seeds:
 
 ``` r
-# this will take a while
+# we are reducing the number of walks here... the original paper used 100L
+# walks per node with walk_length = 10L. you can play around with the parameters
+# here.
+
+# this will take a bit
 myc_gwn <- generate_initial_emb(
   myc_gwn,
   genewalk_params = params_genewalk(walks_per_node = 25L),
   .verbose = TRUE
 )
 
-# we are reducing the number of walks here... the original paper used 100L
-# walks per node with walk_length = 10L. you can play around with the parameters
-# here. a potential approach is to test different parameters with 
-# num_workers ≥ 1 and check the stability of the resulting similarities and
-# p-values given your parameters. setting num_workers ≥ 1 will use Hogwild!
-# type SGD which cannot guarantee determinism. however, overall structure
-# should be similar. these are parameters you will have to explore while
-# running the algorithm.
-
-# this even longer... go get coffee
+# this, too
 myc_gwn <- generate_permuted_emb(
   myc_gwn,
   .verbose = TRUE
@@ -496,7 +490,6 @@ Let’s run fast with as many threads as possible the rest
 # about determinism in the results
 no_threads <- parallel::detectCores()
 
-# this will take a while
 random_gwn <- generate_initial_emb(
   random_gwn,
   genewalk_params = params_genewalk(
@@ -505,13 +498,11 @@ random_gwn <- generate_initial_emb(
   .verbose = TRUE
 )
 
-# this even longer... go get coffee
 random_gwn <- generate_permuted_emb(
   random_gwn,
   .verbose = TRUE
 )
 
-# let's calculate the statistics
 random_gwn <- calculate_genewalk_stats(
   random_gwn,
   .verbose = TRUE

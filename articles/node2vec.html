@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,8 +36,9 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
-    <li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
+<li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
+    <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
+    <li><a class="dropdown-item" href="../articles/embedding_drift.html">Embedding Drift via node2vec</a></li>
   </ul>
 </li>
       </ul>
@@ -71,7 +72,7 @@
 
     <section class="section level2"><h2 id="running-node2vec">Running node2vec<a class="anchor" aria-label="anchor" href="#running-node2vec"></a>
 </h2>
-<section class="level2"><h3 id="loading-in-libraries">Loading in libraries<a class="anchor" aria-label="anchor" href="#loading-in-libraries"></a>
+<section class="level2"><h3 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
@@ -80,9 +81,12 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 </div>
+</section><section class="level2"><h3 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
+</h3>
+<p>Node2vec generates vector representations of nodes in a graph by running biased random walks that sample the local neighbourhood of each node, then training a skip-gram model over the resulting sequences. Nodes that appear in similar contexts across the graph will have similar embedding vectors. For a full description of the algorithm, see <a href="https://arxiv.org/abs/1607.00653" class="external-link">Grover &amp; Leskovec</a>.</p>
 </section><section class="level2"><h3 id="synthetic-data">Synthetic data<a class="anchor" aria-label="anchor" href="#synthetic-data"></a>
 </h3>
-<p>genewalkR provides quite a few synthetic graph data sets for testing and exploration purposes, namely:</p>
+<p><code>genewalkR</code> provides quite a few synthetic graph data sets for testing and exploration purposes, namely:</p>
 <ul>
 <li>
 <strong>Barbell graph</strong>: a graph of two distinct clusters</li>
@@ -90,7 +94,9 @@
 <strong>Cavemen graph</strong>: a graph with distinct communities with a low probability of connection between them.</li>
 <li>
 <strong>Stochastic blocks</strong>: a more densely connected graph with communities; however, more cross-edges compared to the previous graphs.</li>
-</ul>
+</ul></section><section class="level2"><h3 id="exploring-node2vec">Exploring node2vec<a class="anchor" aria-label="anchor" href="#exploring-node2vec"></a>
+</h3>
+<p>Let’s check what node2vec does with different types of graphs and if the embeddings faithfully recover the graph structure.</p>
 <section class="level3"><h4 id="barbell-graph">Barbell graph<a class="anchor" aria-label="anchor" href="#barbell-graph"></a>
 </h4>
 <p>Let’s load in the barbell graph.</p>
@@ -104,7 +110,7 @@
 </div>
 <section class="level4"><h5 id="exploring-the-data">Exploring the data<a class="anchor" aria-label="anchor" href="#exploring-the-data"></a>
 </h5>
-<p>Let’s transform this into an igraph first and just look at the data like this</p>
+<p>Let’s transform this into an igraph first and just look at the graph as is.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu">igraph</span><span class="fu">::</span><span class="fu"><a href="https://r.igraph.org/reference/graph_from_data_frame.html" class="external-link">graph_from_data_frame</a></span><span class="op">(</span>d <span class="op">=</span> <span class="va">barbell_data</span><span class="op">$</span><span class="va">edges</span>, directed <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -119,7 +125,7 @@
 </div>
 </section><section class="level4"><h5 id="running-node2vec-1">Running node2vec<a class="anchor" aria-label="anchor" href="#running-node2vec-1"></a>
 </h5>
-<p>You can appreciate a nice barbell graph with two distinct groups. Now let’s run node2vec on this data. The node2vec implementation is based on <a href="https://github.com/GregorLueg/node2vec-rs" class="external-link">node2vec-rs</a>, a Rust-based implementation of node2vec. In its default setting, we use a HIGHLY optimised version that runs on the CPU with SIMD-acceleration and a tolerated race condition (undefined behaviour in low level terms) that makes this very fast. The issue with this is that the underlying embeddings will not be deterministic; however, the structure of the underlying graph will be identified. If you really, really, really need deterministic results here, set the <code>n_workers = 1L</code>.</p>
+<p>You can appreciate a nice barbell graph with two distinct groups. Now let’s run node2vec on this data. The node2vec implementation is based on <a href="https://github.com/GregorLueg/node2vec-rs" class="external-link">node2vec-rs</a>, a Rust-based implementation of node2vec. In its default setting, we use a HIGHLY optimised version that runs on the CPU with SIMD-acceleration and a RWlock free version of SGD - known as <a href="https://arxiv.org/abs/1106.5730" class="external-link">Hogwild!</a>. This approach is also used in the original version of word2vec, <a href="https://arxiv.org/abs/1301.3781" class="external-link">see Mikolov, et al.</a> The issue with this is that the underlying embeddings will not be deterministic; however, the structure of the underlying graph will be identified. If you really, really, really need deterministic results here, set the parameter <code>n_workers = 1L</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run node2vec</span></span>
@@ -144,7 +150,7 @@
 <span></span>
 <span><span class="co"># this list can be supplied and tells node2vec how to run</span></span></code></pre></div>
 </div>
-<p>If you want more details on how node2vec actually works, please, check the original paper from <a href="https://arxiv.org/abs/1607.00653" class="external-link">Grover and Leskovec</a>. Let’s project that data onto two dimensions via PCA and visualise the results</p>
+<p>Let’s generate a PCA of the embedding and explore the first two principal components visually</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run pca on the embeddings</span></span>
@@ -156,7 +162,12 @@
 <span><span class="va">pca_dt</span><span class="op">[</span>, <span class="va">cluster</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">pca_dt</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">PC1</span>, y <span class="op">=</span> <span class="va">PC2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span></span>
+<span>    mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span>,</span>
+<span>    size <span class="op">=</span> <span class="fl">3</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"Cluster:"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div>
 <figure><p><img src="node2vec_files/figure-html/node2vec%20pca-1.png" width="672"></p>
@@ -165,12 +176,9 @@
 </div>
 </div>
 <p>As you can appreciate, node2vec embeddings nicely identify the two groups in the underlying graph.</p>
-</section></section></section><section class="level2"><h3 id="other-graphs">Other graphs<a class="anchor" aria-label="anchor" href="#other-graphs"></a>
-</h3>
-<p>Let’s have a look at some other graphs with well known structures</p>
-<section class="level3"><h4 id="cavemen-graph">Cavemen graph<a class="anchor" aria-label="anchor" href="#cavemen-graph"></a>
+</section></section><section class="level3"><h4 id="cavemen-graph">Cavemen graph<a class="anchor" aria-label="anchor" href="#cavemen-graph"></a>
 </h4>
-<p>Visualisation of the graph structure in igraph first:</p>
+<p>Visualisation of the graph structure in igraph first (same as for the previous graph):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># generate the cavemen</span></span>
@@ -188,7 +196,7 @@
 </div>
 </div>
 </div>
-<p>Let’s check out node2vec on this graph</p>
+<p>Let’s visualise the PCA on top of the embeddings generated by node2vec on this graph structure.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run node2vec</span></span>
@@ -206,7 +214,12 @@
 <span><span class="va">pca_dt</span><span class="op">[</span>, <span class="va">cluster</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">pca_dt</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">PC1</span>, y <span class="op">=</span> <span class="va">PC2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span></span>
+<span>    mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span>,</span>
+<span>    size <span class="op">=</span> <span class="fl">3</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"Cluster:"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div>
 <figure><p><img src="node2vec_files/figure-html/cavemen%20node2vec%20visualisation-1.png" width="672"></p>
@@ -216,7 +229,7 @@
 </div>
 </section><section class="level3"><h4 id="stochastic-blocks">Stochastic blocks<a class="anchor" aria-label="anchor" href="#stochastic-blocks"></a>
 </h4>
-<p>In this graph, we have less defined communities with more between edges across the communities.</p>
+<p>In this last graph example, we have less defined communities with more between edges across the communities. We will do exactly what we did before.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># generate the stochastic block graph</span></span>
@@ -237,7 +250,7 @@
 </div>
 </div>
 </div>
-<p>Let’s check out node2vec on this graph</p>
+<p>Let’s visualise again the PCA here:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run node2vec</span></span>
@@ -255,7 +268,12 @@
 <span><span class="va">pca_dt</span><span class="op">[</span>, <span class="va">cluster</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">pca_dt</span>, mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">PC1</span>, y <span class="op">=</span> <span class="va">PC2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span></span>
+<span>    mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cluster</span><span class="op">)</span>,</span>
+<span>    size <span class="op">=</span> <span class="fl">3</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"Cluster:"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div>
 <figure><p><img src="node2vec_files/figure-html/stochastic%20block%20node2vec%20visualisation-1.png" width="672"></p>
@@ -263,7 +281,7 @@
 </div>
 </div>
 </div>
-<p>In conclusion, node2vec generates an embedding of the underlying network structure that you can then use to visualise the data or do additional analysis (supervised tasks or like in this package statistical testing for gene &lt;&gt; pathway associations in a bag of genes). Pending on your needs, you can go high on the available workers and make this fast, or if you really, really, really need similar embeddings every single time, you can also choose to disable the parallelism during training.</p>
+<p>In conclusion, node2vec generates an embedding of the underlying network structure that you can then use to visualise the data or do additional analyses (with some already part of this package and more to be added). Pending on your needs, you can go high on the available workers and make this fast, or if you really, really, really need similar embeddings every single time, you can also choose to disable the parallelism during training (the random walks will still be generated via Rayon in parallel).</p>
 </section></section></section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);

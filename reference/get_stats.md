@@ -12,9 +12,11 @@ get_stats(object)
 
 - object:
 
-  The `GeneWalk` class, please see
-  [`GeneWalk()`](https://gregorlueg.github.io/genewalkR/reference/GeneWalk.md).
+  The `GeneWalk` (see
+  [`GeneWalk()`](https://gregorlueg.github.io/genewalkR/reference/GeneWalk.md))
+  or `EmbedDrift` class (see
+  [`EmbedDrift()`](https://gregorlueg.github.io/genewalkR/reference/EmbedDrift.md)).
 
 ## Value
 
-If found, the GeneWalk statistics results
+If found, the statistics results within the class
