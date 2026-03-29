@@ -15,21 +15,27 @@ use rand::{rngs::StdRng, Rng, SeedableRng};
 use std::time::Instant;
 
 use crate::data::*;
+use crate::diffusion::*;
 use crate::embedding::*;
 use crate::graph::*;
 use crate::utils::*;
 
 extendr_module! {
     mod genewalkR;
+    // node2vec
     fn rs_node2vec;
+    // gene walk
     fn rs_gene_walk;
     fn rs_gene_walk_perm;
     fn rs_gene_walk_test;
     fn rs_cosine_sim;
     fn rs_node2vec_synthetic_data;
     fn rs_build_synthetic_genewalk;
+    // gene drift
     fn rs_differential_graph_data;
     fn rs_procrustes_align;
+    // diffusion
+    fn rs_diffusion_kernel;
 }
 
 ///////////////////////
@@ -774,6 +780,99 @@ fn rs_procrustes_align(embd1: RMatrix<f64>, embd2: RMatrix<f64>) -> List {
     list!(aligned = aligned_r, cosine_similarities = cosine_sims,)
 }
 
+///////////////
+// Diffusion //
+///////////////
+
+/// Opaque struct holding the precomputed spectral decomposition and kernel
+/// eigenvalues. Stored as an R external pointer.
+pub struct DiffusionKernel {
+    /// Spectral decomposition of the Laplacian
+    pub decomp: SpectralDecomp,
+    /// Transformed eigenvalues for the chosen kernel
+    pub f_lambda: Vec<f64>,
+    /// Node names in graph order (for mapping R names to indices)
+    pub node_names: Vec<String>,
+}
+
+/// Build the diffusion kernel from sparse adjacency components
+///
+/// Takes the CSC slots directly from R's dgCMatrix (igraph output).
+///
+/// ### Params
+///
+/// * `i` - Row indices (0-based, from dgCMatrix@i)
+/// * `p` - Column pointers (from dgCMatrix@p)
+/// * `x` - Values (from dgCMatrix@x)
+/// * `n` - Matrix dimension
+/// * `kernel` - Kernel type string
+/// * `normalised` - Use normalised Laplacian
+/// * `strategy` - "full" or "truncated"
+/// * `k` - Number of eigenvalues for truncated
+/// * `node_names` - Character vector of node names
+/// * `params` - Named list of kernel-specific parameters
+/// * `verbose` - Verbosity of the function.
+///
+/// ### Returns
+///
+/// External pointer to `DiffusionKernel`
+#[extendr]
+#[allow(clippy::too_many_arguments)]
+fn rs_diffusion_kernel(
+    i: &[i32],
+    p: &[i32],
+    x: &[f64],
+    n: i32,
+    kernel: &str,
+    kernel_params: List,
+    normalised: bool,
+    strategy: &str,
+    k: i32,
+    node_names: Strings,
+    verbose: bool,
+) -> ExternalPtr<DiffusionKernel> {
+    let i = i.r_int_convert();
+    let p = p.r_int_convert();
+    let n = n as usize;
+    let kernel_params = KernelParams::from_r_list(kernel_params);
+    let node_names: Vec<String> = node_names.iter().map(|s| s.to_string()).collect();
+
+    let csc = CompressedSparseData::new_csc(x, &i, &p, (n, n));
+    let csr = csc.transform(); // CSC -> CSR
+
+    if verbose {
+        println!("Transforming to Laplacian kernel")
+    }
+
+    let lap = laplacian(&csr, normalised);
+
+    if verbose {
+        println!("Running spectral decomposition via {}.", strategy)
+    }
+
+    let strat = match strategy {
+        "truncated" => SpectralStrategy::Truncated {
+            k: k as usize,
+            tolerance: None,
+        },
+        _ => SpectralStrategy::Full,
+    };
+    let decomp = spectral_decompose(&lap, normalised, strat);
+
+    if verbose {
+        println!("Applying kernel: {}.", kernel)
+    }
+
+    let kernel_type = parse_kernel_type(kernel, &kernel_params).unwrap_or_default();
+    let f_lambda = kernel_eigenvalues(&decomp.eigenvalues, &kernel_type);
+
+    ExternalPtr::new(DiffusionKernel {
+        decomp,
+        f_lambda,
+        node_names,
+    })
+}
+
 ///////////
 // Tests //
 ///////////
@@ -963,10 +1062,6 @@ mod tests {
         assert_ne!(e1.len(), 0);
         assert_ne!(e1, e2, "Different seeds produced identical graphs");
     }
-
-    // -------------------------------------------------------
-    // Configuration model: fragmentation check
-    // -------------------------------------------------------
 
     #[test]
     fn config_model_fragmentation_report() {

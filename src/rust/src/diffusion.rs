@@ -1,5 +1,4 @@
-use crate::graph::*;
-
+use extendr_api::{List, Operators};
 use faer::linalg::matmul::matmul;
 use faer::matrix_free::eigen::{
     partial_eigen_scratch, partial_self_adjoint_eigen, PartialEigenParams,
@@ -14,6 +13,8 @@ use rand::{rngs::StdRng, seq::index, RngCore, SeedableRng};
 use rayon::prelude::*;
 use std::f64::consts::PI;
 use std::num::NonZeroUsize;
+
+use crate::graph::*;
 
 /////////////
 // Helpers //
@@ -423,6 +424,62 @@ pub fn spectral_decompose(
 // Kernel transforms //
 ///////////////////////
 
+/// Structure to store kernel parameters
+pub struct KernelParams {
+    /// Sigma2 value for the kernel(s)
+    pub sigma2: f64,
+    /// Add additional values to the diagonal
+    pub add_diag: f64,
+    /// Alpha value for the PStep kernel
+    pub a: f64,
+    /// Number of times to power the matrix
+    pub p: u32,
+}
+
+/// Default implementation for `KernelParams`
+impl Default for KernelParams {
+    fn default() -> Self {
+        Self {
+            sigma2: 1.0,
+            add_diag: 1.0,
+            a: 3.0,
+            p: 5,
+        }
+    }
+}
+
+impl KernelParams {
+    /// Build `KernelParams` from an R named list
+    ///
+    /// Missing entries fall back to defaults. Unrecognised names are
+    /// silently ignored.
+    ///
+    /// ### Params
+    ///
+    /// * `list` - R named list with optional keys: sigma2, add_diag, a, p
+    ///
+    /// ### Returns
+    ///
+    /// `KernelParams` with values from the list or defaults
+    pub fn from_r_list(list: List) -> Self {
+        let defaults = Self::default();
+
+        let get_f64 = |name: &str, default: f64| -> f64 {
+            list.dollar(name)
+                .ok()
+                .and_then(|v| v.as_real())
+                .unwrap_or(default)
+        };
+
+        Self {
+            sigma2: get_f64("sigma2", defaults.sigma2),
+            add_diag: get_f64("add_diag", defaults.add_diag),
+            a: get_f64("a", defaults.a),
+            p: get_f64("p", defaults.p as f64) as u32,
+        }
+    }
+}
+
 /// Kernel type with its parameters
 pub enum KernelType {
     /// (sigma2 * L + add_diag * I)^{-1}
@@ -435,6 +492,58 @@ pub enum KernelType {
     InverseCosine,
     /// (a*I - L)^p -- normalised Laplacian only, requires a >= 2
     PStep { a: f64, p: u32 },
+}
+
+/// Default implementation for `KernelParams`
+impl Default for KernelType {
+    fn default() -> Self {
+        KernelType::RegularisedLaplacian {
+            sigma2: 1.0,
+            add_diag: 1.0,
+        }
+    }
+}
+
+/// Parse a kernel type string into a `KernelType` using the given parameters
+///
+/// ### Params
+///
+/// * `s` - Kernel name, one of: "regularised_laplacian", "commute_time",
+///   "diffusion", "inverse_cosine", "pstep"
+/// * `kernel_params` - Parameters for the kernel
+///
+/// ### Returns
+///
+/// `Some(KernelType)` if the name is recognised, `None` otherwise
+pub fn parse_kernel_type(s: &str, kernel_params: &KernelParams) -> Option<KernelType> {
+    match s {
+        "regularised_laplacian" => Some(KernelType::RegularisedLaplacian {
+            sigma2: kernel_params.sigma2,
+            add_diag: kernel_params.add_diag,
+        }),
+        "commute_time" => Some(KernelType::CommuteTime),
+        "diffusion" => Some(KernelType::Diffusion {
+            sigma2: kernel_params.sigma2,
+        }),
+        "inverse_cosine" => Some(KernelType::InverseCosine),
+        "pstep" => {
+            assert!(
+                kernel_params.a >= 2.0,
+                "pstep kernel requires a >= 2, got {}",
+                kernel_params.a
+            );
+            assert!(
+                kernel_params.p > 0,
+                "pstep kernel requires p > 0, got {}",
+                kernel_params.p
+            );
+            Some(KernelType::PStep {
+                a: kernel_params.a,
+                p: kernel_params.p,
+            })
+        }
+        _ => None,
+    }
 }
 
 /// Apply a kernel's scalar transform to the Laplacian eigenvalues
@@ -578,7 +687,7 @@ pub fn diffuse_z(
 
     let u_b = extract_u_bkgd(u, bkgd);
 
-    // --- row_sums of K[:, bkgd] ---
+    // row_sums of K[:, bkgd]
     // c[l] = sum_j U_b[j, l] (column sums of U_b)
     let mut c = vec![0.0f64; k];
     for j in 0..n_bkgd {
@@ -596,7 +705,7 @@ pub fn diffuse_z(
         }
     }
 
-    // --- row_sums2 of K[:, bkgd].^2 ---
+    // row_sums2 of K[:, bkgd].^2
     // M = diag(f) * (U_b^T * U_b) * diag(f), shape (k, k)
     let mut ub_t_ub = Mat::zeros(k, k);
     matmul(
@@ -633,7 +742,7 @@ pub fn diffuse_z(
         }
     }
 
-    // --- const_mean and const_var ---
+    // const_mean and const_var
     let nb = n_bkgd as f64;
     let mut const_mean = vec![0.0f64; n];
     let mut const_var = vec![0.0f64; n];
@@ -642,10 +751,10 @@ pub fn diffuse_z(
         const_var[i] = (nb * row_sums2[i] - row_sums[i] * row_sums[i]) / ((nb - 1.0) * nb * nb);
     }
 
-    // --- raw scores (reuse diffuse_raw logic) ---
+    // raw scores (reuse diffuse_raw logic)
     let raw = diffuse_raw(decomp, f_lambda, input, bkgd);
 
-    // --- z-scores per input column ---
+    // z-scores per input column
     let mut z = Mat::zeros(n, n_inputs);
     for col in 0..n_inputs {
         let mut s1 = 0.0f64;
