@@ -1,7 +1,7 @@
 //! Helpers for the generations of the underlying node2vec graph or helpers
 //! to store graph structures.
 
-use faer::Mat;
+use faer::{Mat, MatMut, MatRef};
 use node2vec_rs::graph::{compute_transition_prob, Node2VecGraph};
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
@@ -644,12 +644,12 @@ pub fn csr_to_csc(sparse_data: &CompressedSparseData) -> CompressedSparseData {
     let (_, ncol) = sparse_data.shape();
     let mut col_ptr = vec![0; ncol + 1];
 
-    // Count occurrences per column
+    // count occurrences per column
     for &c in &sparse_data.indices {
         col_ptr[c + 1] += 1;
     }
 
-    // Cumulative sum to get column pointers
+    // cumulative sum to get column pointers
     for i in 0..ncol {
         col_ptr[i + 1] += col_ptr[i];
     }
@@ -658,7 +658,7 @@ pub fn csr_to_csc(sparse_data: &CompressedSparseData) -> CompressedSparseData {
     let mut csc_row_ind = vec![0; nnz];
     let mut next = col_ptr[..ncol].to_vec();
 
-    // Iterate through rows and place data in CSC format
+    // iterate through rows and place data in CSC format
     for row in 0..(sparse_data.indptr.len() - 1) {
         for idx in sparse_data.indptr[row]..sparse_data.indptr[row + 1] {
             let col = sparse_data.indices[idx];
@@ -677,5 +677,30 @@ pub fn csr_to_csc(sparse_data: &CompressedSparseData) -> CompressedSparseData {
         indptr: col_ptr,
         cs_type: CompressedSparseFormat::Csc,
         shape: sparse_data.shape(),
+    }
+}
+
+/// Sparse CSR times dense matrix: out = A * x
+///
+/// ### Params
+///
+/// * `csr` - Matrix in CSR format
+/// * `x` - Dense input, shape (A.ncols, m)
+/// * `out` - Dense output, shape (A.nrows, m), overwritten
+pub fn spmm_csr(csr: &CompressedSparseData, x: MatRef<f64>, mut out: MatMut<f64>) {
+    let nrows = csr.nrows();
+    let m = x.ncols();
+
+    for i in 0..nrows {
+        for col in 0..m {
+            out[(i, col)] = 0.0;
+        }
+        for idx in csr.indptr[i]..csr.indptr[i + 1] {
+            let j = csr.indices[idx];
+            let v = csr.data[idx];
+            for col in 0..m {
+                out[(i, col)] += v * x[(j, col)];
+            }
+        }
     }
 }

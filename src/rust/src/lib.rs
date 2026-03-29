@@ -1,6 +1,7 @@
 #![allow(clippy::needless_range_loop)]
 
 pub mod data;
+pub mod diffusion;
 pub mod embedding;
 pub mod graph;
 pub mod utils;
