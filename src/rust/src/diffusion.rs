@@ -516,7 +516,7 @@ impl Default for KernelType {
 ///
 /// `Some(KernelType)` if the name is recognised, `None` otherwise
 pub fn parse_kernel_type(s: &str, kernel_params: &KernelParams) -> Option<KernelType> {
-    match s {
+    match s.to_lowercase().as_str() {
         "regularised_laplacian" => Some(KernelType::RegularisedLaplacian {
             sigma2: kernel_params.sigma2,
             add_diag: kernel_params.add_diag,
@@ -581,6 +581,40 @@ pub fn kernel_eigenvalues(eigenvalues: &[f64], kernel: &KernelType) -> Vec<f64> 
             KernelType::PStep { a, p } => (a - lam).powi(*p as i32),
         })
         .collect()
+}
+
+////////////////
+// Diffusions //
+////////////////
+
+/// Strategy for the spectral decomposition
+#[derive(Clone, Debug, Default)]
+pub enum DiffusionMethod {
+    /// The raw diffusion method
+    #[default]
+    Raw,
+    /// The Z-score diffuction method
+    ZScore,
+    /// The MonteCarlo diffusion method
+    MonteCarlo,
+}
+
+/// Parse the diffusion method
+///
+/// ### Params
+///
+/// * `s` - String to parse
+///
+/// ### Returns
+///
+/// Option of the DiffusionMethod
+pub fn parse_diffusion_method(s: &str) -> Option<DiffusionMethod> {
+    match s.to_lowercase().as_str() {
+        "raw" => Some(DiffusionMethod::Raw),
+        "z" | "z-score" => Some(DiffusionMethod::ZScore),
+        "mc" | "monte-carlo" | "montecarlo" => Some(DiffusionMethod::MonteCarlo),
+        _ => None,
+    }
 }
 
 ///////////////////

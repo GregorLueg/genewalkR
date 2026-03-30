@@ -10,7 +10,7 @@ use bixverse_rs::assert_same_dims;
 use bixverse_rs::core::math::stats::calc_fdr;
 use bixverse_rs::prelude::*;
 use extendr_api::prelude::*;
-use faer::Mat;
+use faer::{Mat, MatRef};
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use std::time::Instant;
 
@@ -36,6 +36,7 @@ extendr_module! {
     fn rs_procrustes_align;
     // diffusion
     fn rs_diffusion_kernel;
+    fn rs_diffuse;
 }
 
 ///////////////////////
@@ -822,18 +823,17 @@ fn rs_diffusion_kernel(
     i: &[i32],
     p: &[i32],
     x: &[f64],
-    n: i32,
+    n: usize,
     kernel: &str,
     kernel_params: List,
     normalised: bool,
     strategy: &str,
-    k: i32,
+    k: usize,
     node_names: Strings,
     verbose: bool,
 ) -> ExternalPtr<DiffusionKernel> {
     let i = i.r_int_convert();
     let p = p.r_int_convert();
-    let n = n as usize;
     let kernel_params = KernelParams::from_r_list(kernel_params);
     let node_names: Vec<String> = node_names.iter().map(|s| s.to_string()).collect();
 
@@ -851,10 +851,7 @@ fn rs_diffusion_kernel(
     }
 
     let strat = match strategy {
-        "truncated" => SpectralStrategy::Truncated {
-            k: k as usize,
-            tolerance: None,
-        },
+        "truncated" => SpectralStrategy::Truncated { k, tolerance: None },
         _ => SpectralStrategy::Full,
     };
     let decomp = spectral_decompose(&lap, normalised, strat);
@@ -871,6 +868,63 @@ fn rs_diffusion_kernel(
         f_lambda,
         node_names,
     })
+}
+
+/// Run diffusion scoring on a precomputed kernel
+///
+/// ### Params
+///
+/// * `kernel` - External pointer to `DiffusionKernel`
+/// * `scores` - Flattened score matrix (column-major from R)
+/// * `n_bkgd` - Number of background nodes
+/// * `n_inputs` - Number of input columns
+/// * `bkgd_indices` - 0-based node indices for the background
+/// * `method` - "raw", "z", or "mc"
+/// * `n_perm` - Number of permutations (MC only)
+/// * `seed` - RNG seed (MC only)
+///
+/// ### Returns
+///
+/// Scores per given node
+#[extendr]
+#[allow(clippy::too_many_arguments)]
+fn rs_diffuse(
+    kernel: &ExternalPtr<DiffusionKernel>,
+    scores: &[f64],
+    n_bkgd: usize,
+    n_inputs: usize,
+    bkgd_indices: &[i32],
+    method: &str,
+    n_perm: usize,
+    seed: usize,
+) -> Vec<f64> {
+    let n = kernel.decomp.n;
+    let bkgd = bkgd_indices.r_int_convert();
+
+    let input = MatRef::from_column_major_slice(scores, n_bkgd, n_inputs);
+
+    let diffusion_method = parse_diffusion_method(method).unwrap_or_default();
+
+    let res = match diffusion_method {
+        DiffusionMethod::Raw => diffuse_raw(&kernel.decomp, &kernel.f_lambda, input, &bkgd),
+        DiffusionMethod::ZScore => diffuse_z(&kernel.decomp, &kernel.f_lambda, input, &bkgd),
+        DiffusionMethod::MonteCarlo => diffuse_mc(
+            &kernel.decomp,
+            &kernel.f_lambda,
+            input,
+            &bkgd,
+            n_perm,
+            seed as u64,
+        ),
+    };
+
+    let mut out = vec![0.0f64; n * n_inputs];
+    for col in 0..n_inputs {
+        for row in 0..n {
+            out[col * n + row] = res[(row, col)];
+        }
+    }
+    out
 }
 
 ///////////
