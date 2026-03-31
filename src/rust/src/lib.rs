@@ -37,6 +37,7 @@ extendr_module! {
     // diffusion
     fn rs_diffusion_kernel;
     fn rs_diffuse;
+    fn rs_kernel_node_names;
 }
 
 ///////////////////////
@@ -838,7 +839,8 @@ fn rs_diffusion_kernel(
     let node_names: Vec<String> = node_names.iter().map(|s| s.to_string()).collect();
 
     let csc = CompressedSparseData::new_csc(x, &i, &p, (n, n));
-    let csr = csc.transform(); // CSC -> CSR
+    let csr = csc_to_csr(&csc);
+    drop(csc);
 
     if verbose {
         println!("Transforming to Laplacian kernel")
@@ -851,10 +853,48 @@ fn rs_diffusion_kernel(
     }
 
     let strat = match strategy {
-        "truncated" => SpectralStrategy::Truncated { k, tolerance: None },
+        "truncated" => {
+            if n <= 2000 || k >= n / 2 {
+                if verbose {
+                    println!(
+                        "Falling back to full EVD (n={}, k={}); truncating to k afterwards.",
+                        n, k
+                    );
+                }
+                SpectralStrategy::Full
+            } else {
+                SpectralStrategy::Truncated { k, tolerance: None }
+            }
+        }
         _ => SpectralStrategy::Full,
     };
+
     let decomp = spectral_decompose(&lap, normalised, strat);
+
+    // if user asked for truncated but we used full EVD, keep only k smallest
+    let decomp = if strategy == "truncated" && decomp.eigenvalues.len() > k {
+        let eigenvalues = decomp.eigenvalues[..k].to_vec();
+        let mut eigenvectors = Mat::zeros(n, k);
+        for j in 0..k {
+            for i in 0..n {
+                eigenvectors[(i, j)] = decomp.eigenvectors[(i, j)];
+            }
+        }
+        SpectralDecomp {
+            eigenvalues,
+            eigenvectors,
+            n,
+        }
+    } else {
+        decomp
+    };
+
+    if verbose {
+        println!(
+            "Spectral decomposition done: {} eigenvalues retained.",
+            decomp.eigenvalues.len()
+        )
+    }
 
     if verbose {
         println!("Applying kernel: {}.", kernel)
@@ -870,26 +910,43 @@ fn rs_diffusion_kernel(
     })
 }
 
+/// Pull out the node names from the kernel
+///
+/// @param kernel External pointer to the `DiffusionKernel`.
+///
+/// @returns A string vector from R.
+///
+/// @export
+#[extendr]
+fn rs_kernel_node_names(kernel: Robj) -> Strings {
+    let kernel: ExternalPtr<DiffusionKernel> = kernel
+        .try_into()
+        .expect("failed to convert to ExternalPtr<DiffusionKernel>");
+    kernel
+        .node_names
+        .iter()
+        .map(|s| s.as_str())
+        .collect::<Strings>()
+}
+
 /// Run diffusion scoring on a precomputed kernel
 ///
-/// ### Params
+/// @param kernel External pointer to `DiffusionKernel`
+/// @param scores Numeric. The scores.
+/// @param n_bkgd Integer. Number of background nodes.
+/// @param n_inputs Integer. Number of input columns
+/// @param bkgd_indices Integer. 0-based node indices for the background
+/// @param method String. One of `c("raw", "z", "mc")`.
+/// @param n_perm Integer. Number of permutations (MC only)
+/// @param seed Integer RNG seed (MC only)
 ///
-/// * `kernel` - External pointer to `DiffusionKernel`
-/// * `scores` - Flattened score matrix (column-major from R)
-/// * `n_bkgd` - Number of background nodes
-/// * `n_inputs` - Number of input columns
-/// * `bkgd_indices` - 0-based node indices for the background
-/// * `method` - "raw", "z", or "mc"
-/// * `n_perm` - Number of permutations (MC only)
-/// * `seed` - RNG seed (MC only)
+/// @returns Scores per given node
 ///
-/// ### Returns
-///
-/// Scores per given node
+/// @export
 #[extendr]
 #[allow(clippy::too_many_arguments)]
 fn rs_diffuse(
-    kernel: &ExternalPtr<DiffusionKernel>,
+    kernel: Robj,
     scores: &[f64],
     n_bkgd: usize,
     n_inputs: usize,
@@ -898,6 +955,9 @@ fn rs_diffuse(
     n_perm: usize,
     seed: usize,
 ) -> Vec<f64> {
+    let kernel: ExternalPtr<DiffusionKernel> = kernel
+        .try_into()
+        .expect("failed to convert to ExternalPtr<DiffusionKernel>");
     let n = kernel.decomp.n;
     let bkgd = bkgd_indices.r_int_convert();
 

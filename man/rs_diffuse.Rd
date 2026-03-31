@@ -15,23 +15,26 @@ rs_diffuse(
   seed
 )
 }
-\description{
-\subsection{Params}{
-}
-}
-\details{
-\itemize{
-\item \code{kernel} - External pointer to \code{DiffusionKernel}
-\item \code{scores} - Flattened score matrix (column-major from R)
-\item \code{n_bkgd} - Number of background nodes
-\item \code{n_inputs} - Number of input columns
-\item \code{bkgd_indices} - 0-based node indices for the background
-\item \code{method} - "raw", "z", or "mc"
-\item \code{n_perm} - Number of permutations (MC only)
-\item \code{seed} - RNG seed (MC only)
-}
-\subsection{Returns}{
+\arguments{
+\item{kernel}{External pointer to \code{DiffusionKernel}}
 
+\item{scores}{Numeric. The scores.}
+
+\item{n_bkgd}{Integer. Number of background nodes.}
+
+\item{n_inputs}{Integer. Number of input columns}
+
+\item{bkgd_indices}{Integer. 0-based node indices for the background}
+
+\item{method}{String. One of \code{c("raw", "z", "mc")}.}
+
+\item{n_perm}{Integer. Number of permutations (MC only)}
+
+\item{seed}{Integer RNG seed (MC only)}
+}
+\value{
 Scores per given node
 }
+\description{
+Run diffusion scoring on a precomputed kernel
 }

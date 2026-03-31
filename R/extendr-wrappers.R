@@ -219,21 +219,28 @@ rs_diffusion_kernel <- function(i, p, x, n, kernel, kernel_params, normalised, s
 
 #' Run diffusion scoring on a precomputed kernel
 #'
-#' ### Params
+#' @param kernel External pointer to `DiffusionKernel`
+#' @param scores Numeric. The scores.
+#' @param n_bkgd Integer. Number of background nodes.
+#' @param n_inputs Integer. Number of input columns
+#' @param bkgd_indices Integer. 0-based node indices for the background
+#' @param method String. One of `c("raw", "z", "mc")`.
+#' @param n_perm Integer. Number of permutations (MC only)
+#' @param seed Integer RNG seed (MC only)
 #'
-#' * `kernel` - External pointer to `DiffusionKernel`
-#' * `scores` - Flattened score matrix (column-major from R)
-#' * `n_bkgd` - Number of background nodes
-#' * `n_inputs` - Number of input columns
-#' * `bkgd_indices` - 0-based node indices for the background
-#' * `method` - "raw", "z", or "mc"
-#' * `n_perm` - Number of permutations (MC only)
-#' * `seed` - RNG seed (MC only)
+#' @returns Scores per given node
 #'
-#' ### Returns
-#'
-#' Scores per given node
+#' @export
 rs_diffuse <- function(kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n_perm, seed) .Call(wrap__rs_diffuse, kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n_perm, seed)
+
+#' Pull out the node names from the kernel
+#'
+#' @param kernel External pointer to the `DiffusionKernel`.
+#'
+#' @returns A string vector from R.
+#'
+#' @export
+rs_kernel_node_names <- function(kernel) .Call(wrap__rs_kernel_node_names, kernel)
 
 
 # nolint end

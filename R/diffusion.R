@@ -88,6 +88,7 @@ S7::method(build_kernel, DiffusionScores) <- function(
 
   g <- S7::prop(object, "graph")
   adj <- igraph::as_adjacency_matrix(g, sparse = TRUE)
+  node_names <- rownames(adj)
 
   ptr <- rs_diffusion_kernel(
     i = adj@i,
@@ -103,7 +104,10 @@ S7::method(build_kernel, DiffusionScores) <- function(
     verbose = .verbose
   )
 
-  S7::prop(object, "kernel_pointer") <- ptr
+  # wrap into environment; otherwise R GCs this
+  env <- new.env(parent = emptyenv())
+  env$ptr <- ptr
+  S7::prop(object, "kernel_pointer") <- env
   S7::prop(object, "params")[["kernel"]] <- list(
     kernel = kernel,
     kernel_params = kernel_params,
@@ -171,7 +175,9 @@ S7::method(diffuse_scores, DiffusionScores) <- function(
   checkmate::qassert(n_perm, "I1[1,)")
   checkmate::qassert(seed, "I1")
 
-  ptr <- S7::prop(object, "kernel_pointer")
+  ptr_env <- S7::prop(object, "kernel_pointer")
+  ptr <- ptr_env$ptr
+
   if (is.null(ptr)) {
     stop("Kernel not built. Call build_kernel() first.")
   }
@@ -185,35 +191,44 @@ S7::method(diffuse_scores, DiffusionScores) <- function(
   checkmate::assertMatrix(input, mode = "numeric", min.rows = 1)
   checkmate::assertCharacter(rownames(input), min.len = 1L)
 
-  node_names <- ptr$node_names # from the Rust struct
+  # pull node names from the Rust kernel
+  node_names <- rs_kernel_node_names(ptr)
+  if (length(node_names) < 2L) {
+    stop(
+      sprintf(
+        "rs_kernel_node_names returned %d name(s). Is it registered in extendr_module!?",
+        length(node_names)
+      )
+    )
+  }
+
   if (is.null(background)) {
-    background <- rownames(input)
+    background <- node_names
   }
   checkmate::assertCharacter(background, min.len = 2L)
   checkmate::assertSubset(background, node_names)
   checkmate::assertSubset(rownames(input), background)
 
   # map background node names to 0-based indices
-  bkgd_idx <- match(background, node_names) - 1L
+  bkgd_idx <- as.integer(match(background, node_names) - 1L)
 
   # build the score matrix: rows = background, cols = inputs
-  # ensure input rows are ordered to match background
-  score_mat <- matrix(0, nrow = length(background), ncol = ncol(input))
+  score_mat <- matrix(0.0, nrow = length(background), ncol = ncol(input))
   input_pos <- match(rownames(input), background)
   score_mat[input_pos, ] <- input
 
-  n_bkgd <- length(background)
-  n_inputs <- ncol(input)
+  n_bkgd <- as.integer(length(background))
+  n_inputs <- as.integer(ncol(input))
 
   raw_out <- rs_diffuse(
     kernel = ptr,
-    scores = as.vector(score_mat), # column-major
+    scores = as.double(score_mat),
     n_bkgd = n_bkgd,
     n_inputs = n_inputs,
     bkgd_indices = bkgd_idx,
     method = method,
-    n_perm = n_perm,
-    seed = seed
+    n_perm = as.integer(n_perm),
+    seed = as.integer(seed)
   )
 
   # reshape: Rust returns column-major (n x n_inputs)

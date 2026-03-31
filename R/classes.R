@@ -1126,7 +1126,7 @@ DiffusionScores <- S7::new_class(
   properties = list(
     graph = S7::class_any,
     kernel_pointer = S7::class_any,
-    scores = S7::class_data.frame,
+    scores = S7::class_any,
     params = S7::class_list
   ),
   constructor = function(graph) {

@@ -337,6 +337,32 @@ pub fn spectral_decompose(
         }
 
         SpectralStrategy::Truncated { k, tolerance } => {
+            // fall back to full if k is too large for iterative solver
+            if k >= n / 2 {
+                let dense = lap.to_dense();
+                let evd = dense
+                    .self_adjoint_eigen(Side::Lower)
+                    .expect("symmetric EVD failed");
+
+                let all_eigvals: Vec<f64> = evd.S().column_vector().iter().copied().collect();
+                let all_eigvecs = evd.U().to_owned();
+
+                // keep only the k smallest
+                let eigenvalues = all_eigvals[..k].to_vec();
+                let mut eigenvectors = Mat::zeros(n, k);
+                for j in 0..k {
+                    for i in 0..n {
+                        eigenvectors[(i, j)] = all_eigvecs[(i, j)];
+                    }
+                }
+
+                return SpectralDecomp {
+                    eigenvalues,
+                    eigenvectors,
+                    n,
+                };
+            }
+
             assert!(k > 0 && k <= n, "k must be in [1, n]");
             let tol = tolerance.unwrap_or(128.0 * f64::EPSILON);
 
