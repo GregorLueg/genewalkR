@@ -2,7 +2,7 @@
 #'
 #' @title OpenTargets Data Source
 #'
-#' @details The data is extracted from the OpenTargets release `25.12`
+#' @details The data is extracted from the OpenTargets release `26.03`
 #'
 #' @keywords internal
 NULL
@@ -13,7 +13,7 @@ NULL
 #'
 #' @details The data is extracted from the obo file downloaded from
 #' \href{https://obofoundry.org/ontology/go.html}{GO OBO Foundry}. Last
-#' download: `January '26`.
+#' download: `March '26`.
 #'
 #' @keywords internal
 NULL

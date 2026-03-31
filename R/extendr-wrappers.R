@@ -194,5 +194,46 @@ rs_differential_graph_data <- function(n_stable, n_comm2, n_comm3, n_exclusive) 
 #' @export
 rs_procrustes_align <- function(embd1, embd2) .Call(wrap__rs_procrustes_align, embd1, embd2)
 
+#' Build the diffusion kernel from sparse adjacency components
+#'
+#' Takes the CSC slots directly from R's dgCMatrix (igraph output).
+#'
+#' ### Params
+#'
+#' * `i` - Row indices (0-based, from dgCMatrix@i)
+#' * `p` - Column pointers (from dgCMatrix@p)
+#' * `x` - Values (from dgCMatrix@x)
+#' * `n` - Matrix dimension
+#' * `kernel` - Kernel type string
+#' * `normalised` - Use normalised Laplacian
+#' * `strategy` - "full" or "truncated"
+#' * `k` - Number of eigenvalues for truncated
+#' * `node_names` - Character vector of node names
+#' * `params` - Named list of kernel-specific parameters
+#' * `verbose` - Verbosity of the function.
+#'
+#' ### Returns
+#'
+#' External pointer to `DiffusionKernel`
+rs_diffusion_kernel <- function(i, p, x, n, kernel, kernel_params, normalised, strategy, k, node_names, verbose) .Call(wrap__rs_diffusion_kernel, i, p, x, n, kernel, kernel_params, normalised, strategy, k, node_names, verbose)
+
+#' Run diffusion scoring on a precomputed kernel
+#'
+#' ### Params
+#'
+#' * `kernel` - External pointer to `DiffusionKernel`
+#' * `scores` - Flattened score matrix (column-major from R)
+#' * `n_bkgd` - Number of background nodes
+#' * `n_inputs` - Number of input columns
+#' * `bkgd_indices` - 0-based node indices for the background
+#' * `method` - "raw", "z", or "mc"
+#' * `n_perm` - Number of permutations (MC only)
+#' * `seed` - RNG seed (MC only)
+#'
+#' ### Returns
+#'
+#' Scores per given node
+rs_diffuse <- function(kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n_perm, seed) .Call(wrap__rs_diffuse, kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n_perm, seed)
+
 
 # nolint end

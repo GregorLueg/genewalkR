@@ -25,5 +25,5 @@ data.table with the Intact network data.
 Get the Intact network
 }
 \details{
-The data is extracted from the OpenTargets release \code{25.12}
+The data is extracted from the OpenTargets release \code{26.03}
 }

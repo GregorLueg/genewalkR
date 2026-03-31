@@ -23,5 +23,5 @@ data.table with the Reactome to Reactome edges with edge type info.
 Get the Reactome pathway hierarchy
 }
 \details{
-The data is extracted from the OpenTargets release \code{25.12}
+The data is extracted from the OpenTargets release \code{26.03}
 }

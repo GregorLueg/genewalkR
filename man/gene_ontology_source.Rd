@@ -9,6 +9,6 @@ Gene Ontology Data Source
 \details{
 The data is extracted from the obo file downloaded from
 \href{https://obofoundry.org/ontology/go.html}{GO OBO Foundry}. Last
-download: \verb{January '26}.
+download: \verb{March '26}.
 }
 \keyword{internal}

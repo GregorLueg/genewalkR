@@ -16,5 +16,5 @@ data.table with the gene information
 Get the gene main information
 }
 \details{
-The data is extracted from the OpenTargets release \code{25.12}
+The data is extracted from the OpenTargets release \code{26.03}
 }

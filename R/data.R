@@ -65,7 +65,7 @@ download_database <- function() {
   zip_path <- file.path(cache_dir, "genewalk.duckdb.zip")
   db_path <- file.path(cache_dir, "genewalk.duckdb")
 
-  url <- "https://github.com/GregorLueg/genewalkR/releases/download/v0.2-data/genewalk.duckdb.zip"
+  url <- "https://github.com/GregorLueg/genewalkR/releases/download/v0.3-data/genewalk.duckdb.zip"
 
   message("Downloading database...")
   tryCatch(
