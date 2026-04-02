@@ -325,9 +325,17 @@ pub fn spectral_decompose(
                 .self_adjoint_eigen(Side::Lower)
                 .expect("symmetric EVD failed");
 
-            let eigenvalues: Vec<f64> = evd.S().column_vector().iter().copied().collect();
+            let mut eigenvalues: Vec<f64> = evd.S().column_vector().iter().copied().collect();
 
             let eigenvectors = evd.U().to_owned();
+
+            // clamp tiny negatives from numerical noise to zero
+            let tol = 128.0 * f64::EPSILON;
+            for v in eigenvalues.iter_mut() {
+                if *v < 0.0 && *v > -tol {
+                    *v = 0.0;
+                }
+            }
 
             SpectralDecomp {
                 eigenvalues,
