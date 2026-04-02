@@ -34,7 +34,7 @@ Imports:
     data.table,
     igraph,
     ggplot2,
-    gridextra,
+    gridExtra,
     plotly,
     purrr,
     magrittr,
