@@ -801,23 +801,22 @@ pub struct DiffusionKernel {
 ///
 /// Takes the CSC slots directly from R's dgCMatrix (igraph output).
 ///
-/// ### Params
+/// @param i Integers. Row indices (0-based, from dgCMatrix@i)
+/// @param p Integers. Column pointers (from dgCMatrix@p)
+/// @param x Numeric. Values (from dgCMatrix@x)
+/// @param n Integer. Matrix dimension
+/// @param kernel String. Kernel type string. One of
+/// `c("regularised_laplacian", "commute_time", "inverse_cosine", "pstep")`.
+/// @param kernel_params Named list. Contains the kernel-specific parameters.
+/// @param normalised Boolean. Use normalised Laplacian
+/// @param strategy String. One of `"full"` or `"truncated"`. Shall the full
+/// Eigendecomposition of a truncated Eigendecomposition be applied on the data.
+/// The latter is useful for large graphs to reduce memory pressure.
+/// @param k Integer. Number of eigenvalues for truncated
+/// @param node_names String. Character vector of node names.
+/// @param verbose Boolean. Verbosity of the function.
 ///
-/// * `i` - Row indices (0-based, from dgCMatrix@i)
-/// * `p` - Column pointers (from dgCMatrix@p)
-/// * `x` - Values (from dgCMatrix@x)
-/// * `n` - Matrix dimension
-/// * `kernel` - Kernel type string
-/// * `normalised` - Use normalised Laplacian
-/// * `strategy` - "full" or "truncated"
-/// * `k` - Number of eigenvalues for truncated
-/// * `node_names` - Character vector of node names
-/// * `params` - Named list of kernel-specific parameters
-/// * `verbose` - Verbosity of the function.
-///
-/// ### Returns
-///
-/// External pointer to `DiffusionKernel`
+/// @returns External pointer to `DiffusionKernel`
 #[extendr]
 #[allow(clippy::too_many_arguments)]
 fn rs_diffusion_kernel(

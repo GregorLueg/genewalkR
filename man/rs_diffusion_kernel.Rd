@@ -18,28 +18,35 @@ rs_diffusion_kernel(
   verbose
 )
 }
-\description{
-Takes the CSC slots directly from R's dgCMatrix (igraph output).
-}
-\details{
-\subsection{Params}{
-\itemize{
-\item \code{i} - Row indices (0-based, from dgCMatrix@i)
-\item \code{p} - Column pointers (from dgCMatrix@p)
-\item \code{x} - Values (from dgCMatrix@x)
-\item \code{n} - Matrix dimension
-\item \code{kernel} - Kernel type string
-\item \code{normalised} - Use normalised Laplacian
-\item \code{strategy} - "full" or "truncated"
-\item \code{k} - Number of eigenvalues for truncated
-\item \code{node_names} - Character vector of node names
-\item \code{params} - Named list of kernel-specific parameters
-\item \code{verbose} - Verbosity of the function.
-}
-}
+\arguments{
+\item{i}{Integers. Row indices (0-based, from dgCMatrix@i)}
 
-\subsection{Returns}{
+\item{p}{Integers. Column pointers (from dgCMatrix@p)}
 
+\item{x}{Numeric. Values (from dgCMatrix@x)}
+
+\item{n}{Integer. Matrix dimension}
+
+\item{kernel}{String. Kernel type string. One of
+\code{c("regularised_laplacian", "commute_time", "inverse_cosine", "pstep")}.}
+
+\item{kernel_params}{Named list. Contains the kernel-specific parameters.}
+
+\item{normalised}{Boolean. Use normalised Laplacian}
+
+\item{strategy}{String. One of \code{"full"} or \code{"truncated"}. Shall the full
+Eigendecomposition of a truncated Eigendecomposition be applied on the data.
+The latter is useful for large graphs to reduce memory pressure.}
+
+\item{k}{Integer. Number of eigenvalues for truncated}
+
+\item{node_names}{String. Character vector of node names.}
+
+\item{verbose}{Boolean. Verbosity of the function.}
+}
+\value{
 External pointer to \code{DiffusionKernel}
 }
+\description{
+Takes the CSC slots directly from R's dgCMatrix (igraph output).
 }

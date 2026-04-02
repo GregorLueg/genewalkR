@@ -20,7 +20,7 @@ Description:
     Various graph-based methods commonly used in computational biology. 
     Heat diffusions over networks, node2vec-based analyses over biological 
     networks in R powered by Rust. Includes GeneWalkR and co-expression gene 
-    drift detection methods.
+    drift detection methods for the latter.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -40,14 +40,16 @@ Imports:
     rextendr,
     R6,
     S7,
+    stringr,
     zeallot
 Depends: 
     R (>= 4.2)
 Suggests: 
-    tinytest,
-    quarto,
+    here,
     knitr,
-    msigdbr
+    quarto,
+    msigdbr,
+    tinytest
 VignetteBuilder: quarto
 LazyData: true
 URL: https://gregorlueg.github.io/genewalkR/
