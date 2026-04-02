@@ -29,9 +29,10 @@ Network diffusion propagates node-level signals (e.g. gene-level scores)
 across a graph using a kernel derived from the graph Laplacian. The intuition
 is straightforward: if a node carries a strong signal, its neighbours should
 inherit some of that signal, with the strength decaying as graph distance
-increases. This is useful for tasks like gene prioritisation, where you have
-a handful of known disease genes and want to find additional candidates that
-are well-connected to them in a protein-protein interaction network.
+increases. This is useful for tasks based on the "guilty by association" 
+principle, where you have a handful of known disease genes and want to find 
+additional candidates that are well-connected to them in a protein-protein 
+interaction network.
 
 `genewalkR` implements five spectral kernels from the diffusion literature:
 
@@ -48,7 +49,8 @@ And three scoring methods:
 - **Monte Carlo (heatrank)**: empirical p-values via permutation testing
 
 The entire computation is performed in Rust via a spectral decomposition of the
-Laplacian, so the dense kernel matrix is never materialised.
+Laplacian, so the dense kernel matrix is never materialised. The work is
+based on the [diffuStats package](https://pmc.ncbi.nlm.nih.gov/articles/PMC5860365/).
 
 ## A simple example: lattice graph
 
@@ -88,10 +90,11 @@ obj
 ### Diffusing a single source node
 
 We place a unit signal on the corner node and diffuse it across the network.
+
 ```{r}
 #| label: lattice-raw
 
-input_vec <- stats::setNames(5.0,  "17")
+input_vec <- stats::setNames(5.0, "17")
 
 obj <- diffuse_scores(obj, input = input_vec, method = "raw")
 scores <- get_scores(obj)
@@ -127,12 +130,15 @@ ggplot(decay_dt, aes(x = dist, y = mean_score)) +
 ### Heatmap on the grid
 
 Since this is a square lattice, we can visualise the scores as a heatmap.
+
 ```{r}
 #| label: lattice-heatmap
 
 scores[, row := (as.integer(node) - 1L) %/% 15L + 1L]
 scores[, col := (as.integer(node) - 1L) %% 15L + 1L]
 
+# square root the diffusion scores to make them nicer looking for plotting
+# purposes
 ggplot(scores, aes(x = col, y = row, fill = sqrt(input_1))) +
   geom_tile() +
   scale_fill_viridis_c(option = "mako") +
@@ -141,13 +147,17 @@ ggplot(scores, aes(x = col, y = row, fill = sqrt(input_1))) +
   labs(
     fill = "Score",
     title = "Raw diffusion scores on a 15x15 lattice",
-    subtitle = "Source node at top-left corner"
+    subtitle = "Source node at bottom-left corner"
   )
 ```
 
+We can see nicely how on this grid network the bottom left area of the graph
+is getting the diffusion heat from the original source node.
+
 ### Comparing scoring methods
 
-We can compare the three scoring approaches on the same input.
+We can compare the three scoring approaches on the same input:
+
 ```{r}
 #| label: lattice-methods
 
@@ -197,6 +207,7 @@ comparison <- merge(
 
 head(comparison[order(-raw)])
 ```
+
 ```{r}
 #| label: lattice-method-comparison
 
@@ -220,6 +231,9 @@ nodes have few connections, but a small number of hubs are highly connected.
 We can simulate this with a Barabasi-Albert preferential attachment model.
 
 ### Generating the network
+
+We will generate a random network first...
+
 ```{r}
 #| label: scalefree-setup
 
@@ -239,23 +253,29 @@ hist(
 )
 ```
 
+We can appreciate that most nodes have very few connections, with some having
+the majority of edges in the network.
+
 ### Simulating a disease gene signal
 
-We pick a handful of "seed genes" (mimicking known disease associations) and
-diffuse their signal across the network to prioritise candidate genes.
+We pick a handful of "seed genes" (mimicking known disease associations or gene
+function) and diffuse their signal across the network to prioritise candidate 
+genes.
+
 ```{r}
 #| label: scalefree-seeds
 
 # pick 5 seed genes: a mix of hubs and peripheral nodes
 seed_genes <- c(
-  names(sort(deg, decreasing = TRUE))[1:3],  # top 3 hubs
-  sample(names(deg[deg <= 3]), 2)              # 2 peripheral nodes
+  names(sort(deg, decreasing = TRUE))[1:3], # top 3 hubs
+  sample(names(deg[deg <= 3]), 2) # 2 peripheral nodes
 )
 cat("Seed genes:", paste(seed_genes, collapse = ", "), "\n")
 cat("Seed degrees:", deg[seed_genes], "\n")
 ```
 
 ### Running diffusion
+
 ```{r}
 #| label: scalefree-diffusion
 
@@ -284,7 +304,13 @@ setorder(results, -input_1)
 head(results, 20)
 ```
 
+We can clearly appreciate that our seed genes have the most heat, followed by
+the neighbours.
+
 ### Inspecting the top candidates
+
+We can also investigate the top candidates that are not seed genes
+
 ```{r}
 #| label: scalefree-results
 
@@ -293,21 +319,25 @@ results[, rank := .I]
 results[, degree := deg[node]]
 
 # top 20 non-seed genes
-top_candidates <- results[is_seed == FALSE][1:20]
+top_candidates <- results[!(is_seed)][1:20]
 top_candidates[, .(node, z_score = round(input_1, 3), degree)]
 ```
+
+And explore the relationship of node degree with resulting Z-scores:
 
 ```{r}
 #| label: scalefree-zscore-vs-degree
 
-ggplot(results, aes(x = degree, y = input_1, colour = is_seed)) +
-  geom_point(alpha = 0.5, size = 1.5) +
-  scale_colour_manual(values = c("grey50", "red")) +
+ggplot(results, aes(x = degree, y = input_1, fill = input_1, shape = is_seed)) +
+  geom_point(alpha = 0.5, size = 2) +
+  scale_fill_viridis_c(option = "mako") +
+  scale_shape_manual(values = setNames(c(25, 21), c(TRUE, FALSE))) +
   theme_bw() +
   labs(
     x = "Node degree",
     y = "Z-score",
-    colour = "Seed gene",
+    fill = "Z-score",
+    shape = "Seed gene:",
     title = "Diffusion z-scores vs degree (scale-free network)"
   )
 ```
@@ -316,7 +346,9 @@ ggplot(results, aes(x = degree, y = input_1, colour = is_seed)) +
 
 Different kernels emphasise different aspects of the network topology. The
 diffusion kernel with a large bandwidth spreads signal more broadly, whilst
-the regularised Laplacian is more conservative.
+the regularised Laplacian is more conservative. For this synthetic example
+however, we only tiny difference s
+
 ```{r}
 #| label: scalefree-kernel-comparison
 
@@ -324,7 +356,8 @@ kernels <- c("regularised_laplacian", "diffusion", "pstep")
 kernel_results <- list()
 
 for (kt in kernels) {
-  kp <- switch(kt,
+  kp <- switch(
+    kt,
     "diffusion" = params_kernel(sigma2 = 2.0),
     "pstep" = params_kernel(a = 3.0, p = 5L),
     params_kernel()
@@ -351,12 +384,21 @@ combined[, is_seed := node %in% seed_genes]
 combined[, rank := frank(-input_1), by = kernel]
 
 # overlap in top 20 across kernels
-top_sets <- combined[rank <= 20 & is_seed == FALSE, .(genes = list(node)), by = kernel]
+top_sets <- combined[
+  rank <= 20 & is_seed == FALSE,
+  .(genes = list(node)),
+  by = kernel
+]
 cat("Top 20 non-seed genes per kernel:\n")
 for (i in seq_len(nrow(top_sets))) {
-  cat(sprintf("  %s: %s\n", top_sets$kernel[i], paste(top_sets$genes[[i]], collapse = ", ")))
+  cat(sprintf(
+    "  %s: %s\n",
+    top_sets$kernel[i],
+    paste(top_sets$genes[[i]], collapse = ", ")
+  ))
 }
 ```
+
 ```{r}
 #| label: scalefree-kernel-rank-plot
 

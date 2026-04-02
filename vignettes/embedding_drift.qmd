@@ -173,7 +173,7 @@ If you want to get the embeddings out, getters are provided:
 ```{r}
 #| label: embeddrift getters
 
-embd_ls <- get_embeddings(obj) # returns both matrices as a list. 
+embd_ls <- get_embeddings(obj) # returns both matrices as a list.
 
 embd_ls$embd_1[1:5, 1:5]
 ```

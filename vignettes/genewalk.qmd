@@ -136,7 +136,7 @@ Let's explore the signal in the synthetic data a bit... What are we observing
 #| label: plot the similarities - synthetic
 
 # add the labels for signal and noise
-statistics[, signal := grepl("anchor", gene)][, 
+statistics[, signal := grepl("anchor", gene)][,
   signal := factor(signal, levels = c("TRUE", "FALSE"))
 ]
 
@@ -144,9 +144,9 @@ statistics[, signal := grepl("anchor", gene)][,
 ggplot(
   data = statistics,
   mapping = aes(x = similarity)
-) + 
+) +
   geom_histogram(bins = 45, fill = "lightgrey") +
-  facet_wrap(~ signal) +
+  facet_wrap(~signal) +
   xlab("Cosine similarity") +
   ylab("Count") +
   theme_bw()
@@ -164,9 +164,9 @@ number of them are just noise. Let's check the p-values
 ggplot(
   data = statistics,
   mapping = aes(x = avg_pval)
-) + 
+) +
   geom_histogram(bins = 45, fill = "lightgrey") +
-  facet_wrap(~ signal) +
+  facet_wrap(~signal) +
   xlab("p-val") +
   ylab("Count") +
   theme_bw()
@@ -175,7 +175,7 @@ ggplot(
 The patterns of the Cosine similarities are reproduced here.
 
 ```{r}
-#| label: check the synthetic data enrichment results 
+#| label: check the synthetic data enrichment results
 
 # majority of the signal comes from the "anchor" genes
 # due to the contrived nature of the data, we still get some
@@ -389,7 +389,7 @@ Let's run fast with as many threads as possible the rest
 ```{r}
 #| label: random genes - run gwn
 
-# we will parallelise this over all available threads, as we do not care 
+# we will parallelise this over all available threads, as we do not care
 # about determinism in the results
 no_threads <- parallel::detectCores()
 
@@ -397,7 +397,8 @@ random_gwn <- generate_initial_emb(
   random_gwn,
   genewalk_params = params_genewalk(
     walks_per_node = 25L,
-    num_workers = no_threads),
+    num_workers = no_threads
+  ),
   .verbose = TRUE
 )
 
@@ -426,7 +427,7 @@ plot_similarities(random_gwn)
 ```{r}
 #| label: random genes - scatter plot
 
-# some genes still reach significance - this is likely driven by the 
+# some genes still reach significance - this is likely driven by the
 # structure provided, by the gene ontology graph, but one can appreciate
 # that for random genes, the thresholds fall apart
 plot_gw_results(random_gwn, fdr_treshold = 0.05)
@@ -480,10 +481,11 @@ The data can be easily supplied now:
 ```{r}
 #| label: use custom data
 
-custom_gwn <- with(gwr_data, 
+custom_gwn <- with(
+  gwr_data,
   GeneWalk(
-    graph_dt = gwn, 
-    gene_to_pathway_dt = genes_to_pathways, 
+    graph_dt = gwn,
+    gene_to_pathway_dt = genes_to_pathways,
     gene_ids = represented_genes,
     pathway_ids = represented_pathways
   )

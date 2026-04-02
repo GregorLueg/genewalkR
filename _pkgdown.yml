@@ -29,9 +29,10 @@ articles:
   - title: "Vignettes"
     navbar: ~
     contents:
-      - node2vec
-      - genewalk
+      - diffusion
       - embedding_drift
+      - genewalk
+      - node2vec
 
 reference:
   - title: "Node2Vec"
@@ -55,6 +56,14 @@ reference:
       - EmbedDrift
       - generate_initial_embeddings
       - calculate_drift
+  - title: "Network diffusions"
+    desc: ""
+    contents:
+      - DiffusionScores
+      - build_kernel
+      - diffuse_scores
+      - get_scores
+      - params_kernel
   - title: "Helpers and getters"
     desc: "Various getters and helper classes"
     contents:
@@ -104,12 +113,15 @@ reference:
   - title: "Rust wrappers"
     desc: "Everything rusty - only use this if you know what you are doing..."
     contents:
-      - rs_node2vec
+      - rs_build_synthetic_genewalk
       - rs_cosine_sim
+      - rs_differential_graph_data
+      - rs_diffuse
+      - rs_diffusion_kernel
       - rs_gene_walk
       - rs_gene_walk_perm
       - rs_gene_walk_test
+      - rs_kernel_node_names
       - rs_procrustes_align
-      - rs_build_synthetic_genewalk
+      - rs_node2vec
       - rs_node2vec_synthetic_data
-      - rs_differential_graph_data

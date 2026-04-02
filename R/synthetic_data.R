@@ -308,6 +308,8 @@ differential_graph_test_data <- function(
 #' `node_names` (character vector).
 #'
 #' @keywords internal
+#'
+#' @export
 diffusion_test_lattice <- function(n_side = 10L) {
   g <- igraph::make_lattice(dimvector = c(n_side, n_side))
   node_names <- as.character(seq_len(igraph::vcount(g)))
