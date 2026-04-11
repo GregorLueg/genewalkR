@@ -32,4 +32,4 @@ data.table with the Intact network data.
 
 ## Details
 
-The data is extracted from the OpenTargets release `25.12`
+The data is extracted from the OpenTargets release `26.03`

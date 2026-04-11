@@ -29,4 +29,4 @@ data.table with the Reactome to Reactome edges with edge type info.
 
 ## Details
 
-The data is extracted from the OpenTargets release `25.12`
+The data is extracted from the OpenTargets release `26.03`

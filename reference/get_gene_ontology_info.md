@@ -22,4 +22,4 @@ data.table with the Gene Ontology information
 
 The data is extracted from the obo file downloaded from [GO OBO
 Foundry](https://obofoundry.org/ontology/go.html). Last download:
-`January '26`.
+`March '26`.

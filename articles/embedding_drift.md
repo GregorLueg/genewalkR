@@ -201,15 +201,15 @@ print(obj)
 If you want to get the embeddings out, getters are provided:
 
 ``` r
-embd_ls <- get_embeddings(obj) # returns both matrices as a list. 
+embd_ls <- get_embeddings(obj) # returns both matrices as a list.
 
 embd_ls$embd_1[1:5, 1:5]
-#>                dim_1      dim_2       dim_3        dim_4     dim_5
-#> bridge_001 0.4196871 -0.6444453 -0.09456912  0.210284755 0.4375659
-#> bridge_002 0.4418878 -0.6397567 -0.11776508  0.260207951 0.3894148
-#> comm2_000  0.5842883 -0.2955315 -0.02814059  0.234892577 0.2140679
-#> comm2_001  0.5220007 -0.3709379 -0.34359318 -0.077695876 0.5695884
-#> comm2_002  0.5521829 -0.4003372 -0.33498651  0.007129333 0.5176302
+#>                dim_1      dim_2       dim_3       dim_4     dim_5
+#> bridge_001 0.4094421 -0.6394662 -0.10864581  0.19674712 0.4545781
+#> bridge_002 0.4340097 -0.6330951 -0.13474450  0.25480175 0.4033365
+#> comm2_000  0.5881598 -0.2986928 -0.02996316  0.23457602 0.2220614
+#> comm2_001  0.5270774 -0.3712355 -0.33634475 -0.06627915 0.5673791
+#> comm2_002  0.5525070 -0.3989322 -0.33412868  0.00805289 0.5195696
 ```
 
 #### Calculating drift
@@ -225,11 +225,11 @@ stats <- get_stats(obj)
 stats
 #>             node cosine_similarity node_status
 #>           <char>             <num>      <char>
-#>   1:  bridge_001         0.7529704      shared
-#>   2:  bridge_002         0.6864671      shared
-#>   3:   comm2_000         0.9252533      shared
-#>   4:   comm2_001         0.9866119      shared
-#>   5:   comm2_002         0.9944171      shared
+#>   1:  bridge_001         0.7622537      shared
+#>   2:  bridge_002         0.6953369      shared
+#>   3:   comm2_000         0.9173867      shared
+#>   4:   comm2_001         0.9895593      shared
+#>   5:   comm2_002         0.9953459      shared
 #>  ---                                          
 #> 161: g2_only_000         1.1000000     g2_only
 #> 162: g2_only_001         1.1000000     g2_only

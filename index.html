@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,9 +36,10 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/node2vec.html">Node2vec</a></li>
-    <li><a class="dropdown-item" href="articles/genewalk.html">Running GeneWalk</a></li>
+<li><a class="dropdown-item" href="articles/diffusion.html">Graph Diffusion</a></li>
     <li><a class="dropdown-item" href="articles/embedding_drift.html">Embedding Drift via node2vec</a></li>
+    <li><a class="dropdown-item" href="articles/genewalk.html">Running GeneWalk</a></li>
+    <li><a class="dropdown-item" href="articles/node2vec.html">Node2vec</a></li>
   </ul>
 </li>
       </ul>
@@ -57,16 +58,22 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="genewalkr-package">genewalkR package<a class="anchor" aria-label="anchor" href="#genewalkr-package"></a>
 </h1></div>
-<p><img src="https://img.shields.io/badge/R_package-0.0.1.4-orange" alt="r_package"><a href="https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml" class="external-link"><img src="https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg" alt="CI"></a> <a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a> <a href="https://gregorlueg.github.io/genewalkR/"><img src="https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github" alt="pkgdown"></a></p>
+<p><img src="https://img.shields.io/badge/R_package-0.1.5-orange" alt="r_package"><a href="https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml" class="external-link"><img src="https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg" alt="CI"></a> <a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a> <a href="https://gregorlueg.github.io/genewalkR/"><img src="https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github" alt="pkgdown"></a></p>
 <p><img src="reference/figures/genewalkR_logo.png" width="128" height="128" alt="genewalk logo"></p>
 <div class="section level2">
 <h2 id="description">Description<a class="anchor" aria-label="anchor" href="#description"></a>
 </h2>
-<p>This package implements various computational biology methods that use <a href="https://arxiv.org/abs/1607.00653" class="external-link">node2vec</a> under the hood. It leverages the rextendr interface into Rust to make these methods <strong>VERY</strong> fast. For now, we have the following methods implemented:</p>
+<p>This package implements various computational biology methods based on graphs:</p>
 <ul>
+<li>More “simple” <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5860365/" class="external-link">diffusion algorithms of labels over networks</a> that have been translated into Rust for speed and reduced memory pressure.</li>
+<li>Methods leveraging <a href="https://arxiv.org/abs/1607.00653" class="external-link">node2vec</a>, a small graph neural network.</li>
+</ul>
+<p>For now, the following methods implemented:</p>
+<ul>
+<li>Various diffusion methods for “guilty-by-association” approaches, see <a href="https://pubmed.ncbi.nlm.nih.gov/16204126/" class="external-link">Tsuda et al.</a>, <a href="https://pubmed.ncbi.nlm.nih.gov/21385051/" class="external-link">Vandin et al.</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5059623/" class="external-link">Bersanelli et al.</a> and <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/" class="external-link">Mostafavi et al.</a>.</li>
 <li>General node2vec to generate embeddings, please see this <a href="https://gregorlueg.github.io/genewalkR/articles/node2vec.html">vignette</a>.</li>
 <li>The GeneWalk approach from <a href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8" class="external-link">Ietswaart et al.</a> (see GitHub <a href="https://github.com/churchmanlab/genewalk" class="external-link">here</a>). If you want to use this, please check out this <a href="https://gregorlueg.github.io/genewalkR/articles/genewalk.html">vignette</a>.</li>
-<li>A Gene context drift type approach akin to <a href="https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7" class="external-link">Jassim et al.</a>. Specifically the part around running node2vec onto two networks, followed by Procruste alignment and identifying node embeddings that differ between the two networks. Details can be found in this <a href="https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html">vignette</a>.</li>
+<li>A Gene context drift type approach akin to <a href="https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7" class="external-link">Jassim et al.</a> Specifically the part of running node2vec over two networks, followed by Procruste alignment and identifying node embeddings that differ between the two networks, indicating a context drift for these nodes/genes. Details can be found in this <a href="https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html">vignette</a>.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -102,7 +109,12 @@
 <div class="section level2">
 <h2 id="how-to-use-the-package">How to use the package<a class="anchor" aria-label="anchor" href="#how-to-use-the-package"></a>
 </h2>
-<p>Please refer to the <a href="https://gregorlueg.github.io/genewalkR/">website</a> of the package to check out how to use this. Vignettes and function definitions are provided there. If you run into issues, please use GitHub issues.</p>
+<p>Please refer to the <a href="https://gregorlueg.github.io/genewalkR/">package website</a>. Vignettes and function definitions are provided there. If you run into issues, please use GitHub issues.</p>
+</div>
+<div class="section level2">
+<h2 id="roadmap">Roadmap<a class="anchor" aria-label="anchor" href="#roadmap"></a>
+</h2>
+<p>While more complex graph neural networks that leverage edge and node information are in vogue at the moment, some simple methods in times tend to do quite well themselves, while not necessitating massive amounts of (GPU) compute. One of the methods that could be quite interesting for heterogenous graphs and can likely still be run on CPU is <a href="https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf" class="external-link">metapath2vec</a> – an extension of node2vec over heterogenous graphs with different edge and node types. Additionally, a few additional graph-based methods are also already implemented in <a href="https://github.com/GregorLueg/bixverse" class="external-link">bixverse</a>, here more with focus on PageRank-based ones and a lot of methods that use kNN graphs in some colour or shape (specifically for single cell).</p>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>

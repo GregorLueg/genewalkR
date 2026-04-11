@@ -39,6 +39,19 @@ Main classes and methods to run a gene/embedding drift
 - [`calculate_drift()`](https://gregorlueg.github.io/genewalkR/reference/calculate_drift.md)
   : Calculate embedding drift between two graphs
 
+## Network diffusions
+
+- [`DiffusionScores()`](https://gregorlueg.github.io/genewalkR/reference/DiffusionScores.md)
+  : DiffusionScores
+- [`build_kernel()`](https://gregorlueg.github.io/genewalkR/reference/build_kernel.md)
+  : Build the diffusion kernel
+- [`diffuse_scores()`](https://gregorlueg.github.io/genewalkR/reference/diffuse_scores.md)
+  : Run diffusion scoring
+- [`get_scores()`](https://gregorlueg.github.io/genewalkR/reference/get_scores.md)
+  : Get scores
+- [`params_kernel()`](https://gregorlueg.github.io/genewalkR/reference/params_kernel.md)
+  : Wrapper function for the diffusion kernel parameters
+
 ## Helpers and getters
 
 Various getters and helper classes
@@ -131,22 +144,28 @@ Wrapper functions around core parameters
 
 Everything rusty - only use this if you know what you are doing…
 
-- [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
-  : Generate a node2vec embeddings
+- [`rs_build_synthetic_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.md)
+  : Generate synthetic GeneWalk data with controlled signal structure
 - [`rs_cosine_sim()`](https://gregorlueg.github.io/genewalkR/reference/rs_cosine_sim.md)
   : Cosine similarity between two vectors
+- [`rs_differential_graph_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.md)
+  : Generate a synthetic differential graph pair for testing
+  context-aware node embeddings
+- [`rs_diffuse()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffuse.md)
+  : Run diffusion scoring on a precomputed kernel
+- [`rs_diffusion_kernel()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_kernel.md)
+  : Build the diffusion kernel from sparse adjacency components
 - [`rs_gene_walk()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.md)
   : Generate GeneWalk node embeddings (multiple reps)
 - [`rs_gene_walk_perm()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_perm.md)
   : Generate null distributions from degree-matched random networks
 - [`rs_gene_walk_test()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_test.md)
   : Calculate GeneWalk test statistics
+- [`rs_kernel_node_names()`](https://gregorlueg.github.io/genewalkR/reference/rs_kernel_node_names.md)
+  : Pull out the node names from the kernel
 - [`rs_procrustes_align()`](https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.md)
   : Orthogonal Procrustes alignment and cosine similarity scoring
-- [`rs_build_synthetic_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.md)
-  : Generate synthetic GeneWalk data with controlled signal structure
+- [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
+  : Generate a node2vec embeddings
 - [`rs_node2vec_synthetic_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.md)
   : Generate synthetic data for node2vec
-- [`rs_differential_graph_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.md)
-  : Generate a synthetic differential graph pair for testing
-  context-aware node embeddings

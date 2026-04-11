@@ -136,7 +136,9 @@ previous graph):
 ``` r
 # generate the cavemen
 caveman_data <- node2vec_test_data(
-  test_type = "cavemen", n_clusters = 5L, p_between = 0.5
+  test_type = "cavemen",
+  n_clusters = 5L,
+  p_between = 0.5
 )
 
 g <- igraph::graph_from_data_frame(d = caveman_data$edges, directed = FALSE)
@@ -184,11 +186,13 @@ before.
 ``` r
 # generate the stochastic block graph
 stochastic_block_data <- node2vec_test_data(
-  test_type = "stochastic_block", n_clusters = 3L, p_between = 0.05
+  test_type = "stochastic_block",
+  n_clusters = 3L,
+  p_between = 0.05
 )
 
 g <- igraph::graph_from_data_frame(
-  d = stochastic_block_data$edges, 
+  d = stochastic_block_data$edges,
   directed = FALSE
 )
 

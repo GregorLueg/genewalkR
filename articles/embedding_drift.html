@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,9 +36,10 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
-    <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
+<li><a class="dropdown-item" href="../articles/diffusion.html">Graph Diffusion</a></li>
     <li><a class="dropdown-item" href="../articles/embedding_drift.html">Embedding Drift via node2vec</a></li>
+    <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
+    <li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
   </ul>
 </li>
       </ul>
@@ -58,7 +59,7 @@
 
       <h1>Embedding Drift via node2vec</h1>
 
-
+      <p class="author">Gregor Lueg</p>
 
 
 
@@ -231,15 +232,15 @@
 <p>If you want to get the embeddings out, getters are provided:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">embd_ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_embeddings.html">get_embeddings</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span> <span class="co"># returns both matrices as a list. </span></span>
+<code class="sourceCode R"><span><span class="va">embd_ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_embeddings.html">get_embeddings</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span> <span class="co"># returns both matrices as a list.</span></span>
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.4196871 -0.6444453 -0.09456912  0.210284755 0.4375659</span></span>
-<span><span class="co">#&gt; bridge_002 0.4418878 -0.6397567 -0.11776508  0.260207951 0.3894148</span></span>
-<span><span class="co">#&gt; comm2_000  0.5842883 -0.2955315 -0.02814059  0.234892577 0.2140679</span></span>
-<span><span class="co">#&gt; comm2_001  0.5220007 -0.3709379 -0.34359318 -0.077695876 0.5695884</span></span>
-<span><span class="co">#&gt; comm2_002  0.5521829 -0.4003372 -0.33498651  0.007129333 0.5176302</span></span></code></pre></div>
+<span><span class="co">#&gt;                dim_1      dim_2       dim_3       dim_4     dim_5</span></span>
+<span><span class="co">#&gt; bridge_001 0.4094421 -0.6394662 -0.10864581  0.19674712 0.4545781</span></span>
+<span><span class="co">#&gt; bridge_002 0.4340097 -0.6330951 -0.13474450  0.25480175 0.4033365</span></span>
+<span><span class="co">#&gt; comm2_000  0.5881598 -0.2986928 -0.02996316  0.23457602 0.2220614</span></span>
+<span><span class="co">#&gt; comm2_001  0.5270774 -0.3712355 -0.33634475 -0.06627915 0.5673791</span></span>
+<span><span class="co">#&gt; comm2_002  0.5525070 -0.3989322 -0.33412868  0.00805289 0.5195696</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -252,11 +253,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7529704      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6864671      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9252533      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9866119      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9944171      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7622537      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6953369      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9173867      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9895593      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9953459      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>

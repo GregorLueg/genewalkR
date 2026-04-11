@@ -162,7 +162,7 @@ synthetic data a bit… What are we observing … ?
 
 ``` r
 # add the labels for signal and noise
-statistics[, signal := grepl("anchor", gene)][, 
+statistics[, signal := grepl("anchor", gene)][,
   signal := factor(signal, levels = c("TRUE", "FALSE"))
 ]
 
@@ -170,9 +170,9 @@ statistics[, signal := grepl("anchor", gene)][,
 ggplot(
   data = statistics,
   mapping = aes(x = similarity)
-) + 
+) +
   geom_histogram(bins = 45, fill = "lightgrey") +
-  facet_wrap(~ signal) +
+  facet_wrap(~signal) +
   xlab("Cosine similarity") +
   ylab("Count") +
   theme_bw()
@@ -191,9 +191,9 @@ check the p-values
 ggplot(
   data = statistics,
   mapping = aes(x = avg_pval)
-) + 
+) +
   geom_histogram(bins = 45, fill = "lightgrey") +
-  facet_wrap(~ signal) +
+  facet_wrap(~signal) +
   xlab("p-val") +
   ylab("Count") +
   theme_bw()
@@ -264,7 +264,7 @@ gw_factory$add_ppi(source = "combined") # will add the combined one
 gw_factory$build() # will load the data into the factory
 #> Downloading database...
 #> Download complete
-#> Built network with 2646428 edges and 61982 nodes
+#> Built network with 2332921 edges and 61894 nodes
 ```
 
 The idea of the factory is to easily iterate through various bags of
@@ -282,10 +282,10 @@ myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
 myc_gwn
 #> GeneWalk
 #>   Represented genes ENSG00000004779 | ENSG00000013275 | ENSG00000041357 ; Total of 200 genes. 
-#>   Number of edges: 86990 
+#>   Number of edges: 85667 
 #>   Edge distribution:
-#>     Interaction (6149)
-#>     Part of (5598)
+#>     Interaction (5359)
+#>     Part of (5065)
 #>     Hierarchy (75243)
 #>   Embedding generated: no 
 #>   Permutations generated: no 
@@ -307,11 +307,11 @@ check_degree_distribution(myc_gwn)
 #> 
 #> --- interaction ---
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>     1.0    32.0    58.0    61.8    82.0   238.0
+#>    1.00   30.00   50.00   53.86   70.00  240.00
 #> 
 #> --- part_of ---
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>    1.00    1.00    1.00    5.73    4.00  191.00
+#>     1.0     1.0     1.0     5.4     3.0   194.0
 ```
 
 We can appreciate quite a few interactions between the genes and also
@@ -407,42 +407,42 @@ myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
 )]
 
 head(myc_gwn_res_translated, 10L)
-#>       gene                               pathway similarity      sem_sim
-#>     <char>                                <char>      <num>        <num>
-#>  1: SNRPB2       U2-type prespliceosome assembly  0.9968249 0.0008473674
-#>  2:  RPL34                    cytosolic ribosome  0.9961501 0.0025251946
-#>  3:   MCM7 single-stranded DNA helicase activity  0.9952804 0.0023510163
-#>  4: SNRPB2              precatalytic spliceosome  0.9949466 0.0025986310
-#>  5:   RRP9                        snoRNA binding  0.9948157 0.0004635765
-#>  6:  RPL34     cytosolic large ribosomal subunit  0.9942588 0.0032039076
-#>  7:   MCM4 single-stranded DNA helicase activity  0.9941259 0.0020458616
-#>  8: SNRPD2       U2-type prespliceosome assembly  0.9940280 0.0024073063
-#>  9: EIF4A1            cytoplasmic stress granule  0.9939549 0.0020944587
-#> 10:   RPL6     cytosolic large ribosomal subunit  0.9939253 0.0019984519
-#>         avg_pval pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
-#>            <num>         <num>         <num>          <num>               <num>
-#>  1: 1.000000e-16  1.000000e-16  1.000000e-16   4.389406e-15        2.929681e-15
-#>  2: 1.000000e-16  1.000000e-16  1.000000e-16   4.389406e-15        2.929681e-15
-#>  3: 1.000000e-16  1.000000e-16  1.000000e-16   4.389406e-15        2.929681e-15
-#>  4: 5.397352e-13  1.016173e-19  2.866777e-06   1.330640e-11        1.395357e-18
-#>  5: 1.000000e-16  1.000000e-16  1.000000e-16   4.389406e-15        2.929681e-15
-#>  6: 6.800498e-13  8.140565e-20  5.681027e-06   1.607500e-11        2.204230e-18
-#>  7: 5.397352e-13  1.016173e-19  2.866777e-06   1.399173e-11        2.518252e-18
-#>  8: 6.800498e-13  8.140565e-20  5.681027e-06   1.463260e-11        1.273725e-18
-#>  9: 5.397352e-13  1.016173e-19  2.866777e-06   1.396794e-11        2.329096e-18
-#> 10: 5.397352e-13  1.016173e-19  2.866777e-06   1.399173e-11        2.518252e-18
+#>       gene                                     pathway similarity      sem_sim
+#>     <char>                                      <char>      <num>        <num>
+#>  1:   CCT4                    unfolded protein binding  0.9977242 0.0006921113
+#>  2:   CCT7                    unfolded protein binding  0.9974709 0.0009565346
+#>  3:   CCT2                    unfolded protein binding  0.9969797 0.0012715767
+#>  4: SNRPB2             U2-type prespliceosome assembly  0.9968200 0.0006111839
+#>  5:   MCM4       single-stranded DNA helicase activity  0.9966688 0.0012457743
+#>  6:   MCM5                 3'-5' DNA helicase activity  0.9953649 0.0005724305
+#>  7:   MCM6 single-stranded 3'-5' DNA helicase activity  0.9948775 0.0012432135
+#>  8:   CCT5                    unfolded protein binding  0.9945908 0.0021464376
+#>  9:  SNRPG                                    U7 snRNP  0.9945805 0.0010591306
+#> 10:   MCM5       single-stranded DNA helicase activity  0.9945246 0.0015604327
+#>     avg_pval pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
+#>        <num>         <num>         <num>          <num>               <num>
+#>  1:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  2:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  3:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  4:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  5:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  6:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  7:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  8:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#>  9:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
+#> 10:    1e-16         1e-16         1e-16   4.384025e-15        2.782195e-15
 #>     global_fdr_ci_upper avg_gene_fdr gene_fdr_ci_lower gene_fdr_ci_upper
 #>                   <num>        <num>             <num>             <num>
-#>  1:        6.576444e-15 4.367481e-16      1.767391e-16      1.079269e-15
-#>  2:        6.576444e-15 1.138562e-15      7.485793e-16      1.731713e-15
-#>  3:        6.576444e-15 1.400000e-15      1.400000e-15      1.400000e-15
-#>  4:        1.268924e-04 1.310763e-12      1.215881e-19      1.413049e-05
-#>  5:        6.576444e-15 8.454072e-16      4.528455e-16      1.578272e-15
-#>  6:        1.172317e-04 4.136708e-12      3.372801e-19      5.073633e-05
-#>  7:        7.773984e-05 6.386671e-12      1.236338e-18      3.299225e-05
-#>  8:        1.680998e-04 1.737007e-12      9.001490e-20      3.351883e-05
-#>  9:        8.376787e-05 5.547066e-12      3.905015e-19      7.879595e-05
-#> 10:        7.773984e-05 3.956615e-12      4.408788e-19      3.550817e-05
+#>  1:        6.908097e-15 9.626586e-16      7.585929e-16      1.221619e-15
+#>  2:        6.908097e-15 1.800000e-15      1.800000e-15      1.800000e-15
+#>  3:        6.908097e-15 1.006345e-15      7.921897e-16      1.278394e-15
+#>  4:        6.908097e-15 3.447960e-16      2.800299e-16      4.245414e-16
+#>  5:        6.908097e-15 1.470285e-15      7.592255e-16      2.847293e-15
+#>  6:        6.908097e-15 7.987637e-16      5.375687e-16      1.186869e-15
+#>  7:        6.908097e-15 1.400888e-15      7.252647e-16      2.705892e-15
+#>  8:        6.908097e-15 1.830979e-15      1.195620e-15      2.803971e-15
+#>  9:        6.908097e-15 3.782730e-16      2.318243e-16      6.172369e-16
+#> 10:        6.908097e-15 7.987637e-16      5.375687e-16      1.186869e-15
 ```
 
 Why is so much significant here? Is this not just pathway enrichment?
@@ -463,20 +463,18 @@ set.seed(123L)
 random_gene_set <- sample(genes$ensembl_id, 200L)
 
 random_gwn <- gw_factory$create_for_genes(genes = random_gene_set)
-#> Warning in get_gw_data_filtered.DataBuilder(x = private$gene_walk_data, : 10
-#> gene(s) had no edges in the network and were excluded: ENSG00000274944,
-#> ENSG00000223601, ENSG00000224383, ENSG00000235034, ENSG00000286022,
-#> ENSG00000180425, ENSG00000261611, ENSG00000263715, ENSG00000268870,
-#> ENSG00000187808
+#> Warning in get_gw_data_filtered.DataBuilder(x = private$gene_walk_data, : 4
+#> gene(s) had no edges in the network and were excluded: ENSG00000205856,
+#> ENSG00000205659, ENSG00000227152, ENSG00000215373
 
 # we can appreciate that we only have very few interactions between the genes
 random_gwn
 #> GeneWalk
-#>   Represented genes ENSG00000004939 | ENSG00000006837 | ENSG00000007968 ; Total of 190 genes. 
-#>   Number of edges: 78815 
+#>   Represented genes ENSG00000014641 | ENSG00000020426 | ENSG00000028528 ; Total of 196 genes. 
+#>   Number of edges: 78486 
 #>   Edge distribution:
-#>     Interaction (290)
-#>     Part of (3282)
+#>     Interaction (246)
+#>     Part of (2997)
 #>     Hierarchy (75243)
 #>   Embedding generated: no 
 #>   Permutations generated: no 
@@ -486,7 +484,7 @@ random_gwn
 Let’s run fast with as many threads as possible the rest
 
 ``` r
-# we will parallelise this over all available threads, as we do not care 
+# we will parallelise this over all available threads, as we do not care
 # about determinism in the results
 no_threads <- parallel::detectCores()
 
@@ -494,7 +492,8 @@ random_gwn <- generate_initial_emb(
   random_gwn,
   genewalk_params = params_genewalk(
     walks_per_node = 25L,
-    num_workers = no_threads),
+    num_workers = no_threads
+  ),
   .verbose = TRUE
 )
 
@@ -521,7 +520,7 @@ plot_similarities(random_gwn)
 ![](genewalk_files/figure-html/random%20genes%20-%20similarities-1.png)
 
 ``` r
-# some genes still reach significance - this is likely driven by the 
+# some genes still reach significance - this is likely driven by the
 # structure provided, by the gene ontology graph, but one can appreciate
 # that for random genes, the thresholds fall apart
 plot_gw_results(random_gwn, fdr_treshold = 0.05)
@@ -554,12 +553,12 @@ verification:
 get_gw_data(data_builder) %>% head()
 #>               from              to        type
 #>             <char>          <char>      <char>
-#> 1: ENSG00000211810 ENSG00000198851 interaction
-#> 2: ENSG00000211592 ENSG00000143226 interaction
-#> 3: ENSG00000211893 ENSG00000211592 interaction
-#> 4: ENSG00000211790 ENSG00000231389 interaction
-#> 5: ENSG00000211892 ENSG00000062598 interaction
-#> 6: ENSG00000211799 ENSG00000158473 interaction
+#> 1: ENSG00000020633 ENSG00000204256 interaction
+#> 2: ENSG00000019991 ENSG00000196396 interaction
+#> 3: ENSG00000019991 ENSG00000109758 interaction
+#> 4: ENSG00000019991 ENSG00000109458 interaction
+#> 5: ENSG00000026025 ENSG00000244734 interaction
+#> 6: ENSG00000020922 ENSG00000104320 interaction
 ```
 
 If you want to subset to your bag of genes of interest, you can run the
@@ -572,27 +571,28 @@ gwr_data <- get_gw_data_filtered(data_builder, genes_of_interest)
 
 str(gwr_data)
 #> List of 4
-#>  $ gwn                 :Classes 'data.table' and 'data.frame':   4007 obs. of  3 variables:
-#>   ..$ from: chr [1:4007] "ENSG00000120837" "ENSG00000112237" "ENSG00000196498" "ENSG00000204231" ...
-#>   ..$ to  : chr [1:4007] "ENSG00000072310" "ENSG00000132964" "ENSG00000171720" "ENSG00000025434" ...
-#>   ..$ type: chr [1:4007] "interaction" "interaction" "interaction" "interaction" ...
+#>  $ gwn                 :Classes 'data.table' and 'data.frame':   4004 obs. of  3 variables:
+#>   ..$ from: chr [1:4004] "ENSG00000025434" "ENSG00000141027" "ENSG00000131408" "ENSG00000100393" ...
+#>   ..$ to  : chr [1:4004] "ENSG00000171720" "ENSG00000025434" "ENSG00000196498" "ENSG00000120837" ...
+#>   ..$ type: chr [1:4004] "interaction" "interaction" "interaction" "interaction" ...
 #>   ..- attr(*, ".internal.selfref")=<externalptr> 
-#>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   898 obs. of  3 variables:
-#>   ..$ from: chr [1:898] "ENSG00000001167" "ENSG00000001167" "ENSG00000001167" "ENSG00000001167" ...
-#>   ..$ to  : chr [1:898] "R-HSA-9614657" "R-HSA-1989781" "R-HSA-380994" "R-HSA-381183" ...
-#>   ..$ type: chr [1:898] "part_of" "part_of" "part_of" "part_of" ...
+#>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   901 obs. of  3 variables:
+#>   ..$ from: chr [1:901] "ENSG00000001167" "ENSG00000001167" "ENSG00000001167" "ENSG00000001167" ...
+#>   ..$ to  : chr [1:901] "R-HSA-9614657" "R-HSA-1989781" "R-HSA-380994" "R-HSA-381183" ...
+#>   ..$ type: chr [1:901] "part_of" "part_of" "part_of" "part_of" ...
 #>   ..- attr(*, ".internal.selfref")=<externalptr> 
-#>  $ represented_genes   : chr [1:116] "ENSG00000120837" "ENSG00000112237" "ENSG00000196498" "ENSG00000204231" ...
-#>  $ represented_pathways: chr [1:2825] "R-HSA-9614657" "R-HSA-1989781" "R-HSA-380994" "R-HSA-381183" ...
+#>  $ represented_genes   : chr [1:116] "ENSG00000025434" "ENSG00000141027" "ENSG00000131408" "ENSG00000100393" ...
+#>  $ represented_pathways: chr [1:2829] "R-HSA-9614657" "R-HSA-1989781" "R-HSA-380994" "R-HSA-381183" ...
 ```
 
 The data can be easily supplied now:
 
 ``` r
-custom_gwn <- with(gwr_data, 
+custom_gwn <- with(
+  gwr_data,
   GeneWalk(
-    graph_dt = gwn, 
-    gene_to_pathway_dt = genes_to_pathways, 
+    graph_dt = gwn,
+    gene_to_pathway_dt = genes_to_pathways,
     gene_ids = represented_genes,
     pathway_ids = represented_pathways
   )

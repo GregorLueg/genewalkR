@@ -20,4 +20,4 @@ data.table with the Gene Ontology to gene edges
 
 ## Details
 
-The data is extracted from the OpenTargets release `25.12`
+The data is extracted from the OpenTargets release `26.03`

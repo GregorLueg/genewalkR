@@ -1,6 +1,6 @@
 # genewalkR package
 
-![r_package](https://img.shields.io/badge/R_package-0.0.1.4-orange)[![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
+![r_package](https://img.shields.io/badge/R_package-0.1.5-orange)[![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github)](https://gregorlueg.github.io/genewalkR/)
@@ -9,11 +9,22 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 
 ## Description
 
-This package implements various computational biology methods that use
-[node2vec](https://arxiv.org/abs/1607.00653) under the hood. It
-leverages the rextendr interface into Rust to make these methods
-**VERY** fast. For now, we have the following methods implemented:
+This package implements various computational biology methods based on
+graphs:
 
+- More “simple” [diffusion algorithms of labels over
+  networks](https://pmc.ncbi.nlm.nih.gov/articles/PMC5860365/) that have
+  been translated into Rust for speed and reduced memory pressure.
+- Methods leveraging [node2vec](https://arxiv.org/abs/1607.00653), a
+  small graph neural network.
+
+For now, the following methods implemented:
+
+- Various diffusion methods for “guilty-by-association” approaches, see
+  [Tsuda et al.](https://pubmed.ncbi.nlm.nih.gov/16204126/), [Vandin et
+  al.](https://pubmed.ncbi.nlm.nih.gov/21385051/), [Bersanelli et
+  al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5059623/) and [Mostafavi
+  et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/).
 - General node2vec to generate embeddings, please see this
   [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
 - The GeneWalk approach from [Ietswaart et
@@ -22,10 +33,11 @@ leverages the rextendr interface into Rust to make these methods
   want to use this, please check out this
   [vignette](https://gregorlueg.github.io/genewalkR/articles/genewalk.html).
 - A Gene context drift type approach akin to [Jassim et
-  al.](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7).
-  Specifically the part around running node2vec onto two networks,
-  followed by Procruste alignment and identifying node embeddings that
-  differ between the two networks. Details can be found in this
+  al.](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7)
+  Specifically the part of running node2vec over two networks, followed
+  by Procruste alignment and identifying node embeddings that differ
+  between the two networks, indicating a context drift for these
+  nodes/genes. Details can be found in this
   [vignette](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html).
 
 ## Installation
@@ -71,10 +83,26 @@ remotes::install_github("GregorLueg/genewalkR")
 
 ## How to use the package
 
-Please refer to the [website](https://gregorlueg.github.io/genewalkR/)
-of the package to check out how to use this. Vignettes and function
-definitions are provided there. If you run into issues, please use
-GitHub issues.
+Please refer to the [package
+website](https://gregorlueg.github.io/genewalkR/). Vignettes and
+function definitions are provided there. If you run into issues, please
+use GitHub issues.
+
+## Roadmap
+
+While more complex graph neural networks that leverage edge and node
+information are in vogue at the moment, some simple methods in times
+tend to do quite well themselves, while not necessitating massive
+amounts of (GPU) compute. One of the methods that could be quite
+interesting for heterogenous graphs and can likely still be run on CPU
+is
+[metapath2vec](https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf)
+– an extension of node2vec over heterogenous graphs with different edge
+and node types. Additionally, a few additional graph-based methods are
+also already implemented in
+[bixverse](https://github.com/GregorLueg/bixverse), here more with focus
+on PageRank-based ones and a lot of methods that use kNN graphs in some
+colour or shape (specifically for single cell).
 
 ## License
 
@@ -139,6 +167,19 @@ Main classes and methods to run a gene/embedding drift
   : Generate initial node embeddings for both graphs
 - [`calculate_drift()`](https://gregorlueg.github.io/genewalkR/reference/calculate_drift.md)
   : Calculate embedding drift between two graphs
+
+## Network diffusions
+
+- [`DiffusionScores()`](https://gregorlueg.github.io/genewalkR/reference/DiffusionScores.md)
+  : DiffusionScores
+- [`build_kernel()`](https://gregorlueg.github.io/genewalkR/reference/build_kernel.md)
+  : Build the diffusion kernel
+- [`diffuse_scores()`](https://gregorlueg.github.io/genewalkR/reference/diffuse_scores.md)
+  : Run diffusion scoring
+- [`get_scores()`](https://gregorlueg.github.io/genewalkR/reference/get_scores.md)
+  : Get scores
+- [`params_kernel()`](https://gregorlueg.github.io/genewalkR/reference/params_kernel.md)
+  : Wrapper function for the diffusion kernel parameters
 
 ## Helpers and getters
 
@@ -232,32 +273,40 @@ Wrapper functions around core parameters
 
 Everything rusty - only use this if you know what you are doing…
 
-- [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
-  : Generate a node2vec embeddings
+- [`rs_build_synthetic_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.md)
+  : Generate synthetic GeneWalk data with controlled signal structure
 - [`rs_cosine_sim()`](https://gregorlueg.github.io/genewalkR/reference/rs_cosine_sim.md)
   : Cosine similarity between two vectors
+- [`rs_differential_graph_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.md)
+  : Generate a synthetic differential graph pair for testing
+  context-aware node embeddings
+- [`rs_diffuse()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffuse.md)
+  : Run diffusion scoring on a precomputed kernel
+- [`rs_diffusion_kernel()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_kernel.md)
+  : Build the diffusion kernel from sparse adjacency components
 - [`rs_gene_walk()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.md)
   : Generate GeneWalk node embeddings (multiple reps)
 - [`rs_gene_walk_perm()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_perm.md)
   : Generate null distributions from degree-matched random networks
 - [`rs_gene_walk_test()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_test.md)
   : Calculate GeneWalk test statistics
+- [`rs_kernel_node_names()`](https://gregorlueg.github.io/genewalkR/reference/rs_kernel_node_names.md)
+  : Pull out the node names from the kernel
 - [`rs_procrustes_align()`](https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.md)
   : Orthogonal Procrustes alignment and cosine similarity scoring
-- [`rs_build_synthetic_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/rs_build_synthetic_genewalk.md)
-  : Generate synthetic GeneWalk data with controlled signal structure
+- [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
+  : Generate a node2vec embeddings
 - [`rs_node2vec_synthetic_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.md)
   : Generate synthetic data for node2vec
-- [`rs_differential_graph_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.md)
-  : Generate a synthetic differential graph pair for testing
-  context-aware node embeddings
 
 # Articles
 
 ### Vignettes
 
-- [Node2vec](https://gregorlueg.github.io/genewalkR/articles/node2vec.md):
-- [Running
-  GeneWalk](https://gregorlueg.github.io/genewalkR/articles/genewalk.md):
+- [Graph
+  Diffusion](https://gregorlueg.github.io/genewalkR/articles/diffusion.md):
 - [Embedding Drift via
   node2vec](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.md):
+- [Running
+  GeneWalk](https://gregorlueg.github.io/genewalkR/articles/genewalk.md):
+- [Node2vec](https://gregorlueg.github.io/genewalkR/articles/node2vec.md):
