@@ -1,6 +1,7 @@
 #![allow(clippy::needless_range_loop)]
 
 pub mod data;
+pub mod diffusion;
 pub mod embedding;
 pub mod graph;
 pub mod utils;
@@ -9,26 +10,34 @@ use bixverse_rs::assert_same_dims;
 use bixverse_rs::core::math::stats::calc_fdr;
 use bixverse_rs::prelude::*;
 use extendr_api::prelude::*;
-use faer::Mat;
+use faer::{Mat, MatRef};
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use std::time::Instant;
 
 use crate::data::*;
+use crate::diffusion::*;
 use crate::embedding::*;
 use crate::graph::*;
 use crate::utils::*;
 
 extendr_module! {
     mod genewalkR;
+    // node2vec
     fn rs_node2vec;
+    // gene walk
     fn rs_gene_walk;
     fn rs_gene_walk_perm;
     fn rs_gene_walk_test;
     fn rs_cosine_sim;
     fn rs_node2vec_synthetic_data;
     fn rs_build_synthetic_genewalk;
+    // gene drift
     fn rs_differential_graph_data;
     fn rs_procrustes_align;
+    // diffusion
+    fn rs_diffusion_kernel;
+    fn rs_diffuse;
+    fn rs_kernel_node_names;
 }
 
 ///////////////////////
@@ -773,6 +782,210 @@ fn rs_procrustes_align(embd1: RMatrix<f64>, embd2: RMatrix<f64>) -> List {
     list!(aligned = aligned_r, cosine_similarities = cosine_sims,)
 }
 
+///////////////
+// Diffusion //
+///////////////
+
+/// Opaque struct holding the precomputed spectral decomposition and kernel
+/// eigenvalues. Stored as an R external pointer.
+pub struct DiffusionKernel {
+    /// Spectral decomposition of the Laplacian
+    pub decomp: SpectralDecomp,
+    /// Transformed eigenvalues for the chosen kernel
+    pub f_lambda: Vec<f64>,
+    /// Node names in graph order (for mapping R names to indices)
+    pub node_names: Vec<String>,
+}
+
+/// Build the diffusion kernel from sparse adjacency components
+///
+/// Takes the CSC slots directly from R's dgCMatrix (igraph output).
+///
+/// @param i Integers. Row indices (0-based, from dgCMatrix@i)
+/// @param p Integers. Column pointers (from dgCMatrix@p)
+/// @param x Numeric. Values (from dgCMatrix@x)
+/// @param n Integer. Matrix dimension
+/// @param kernel String. Kernel type string. One of
+/// `c("regularised_laplacian", "commute_time", "inverse_cosine", "pstep")`.
+/// @param kernel_params Named list. Contains the kernel-specific parameters.
+/// @param normalised Boolean. Use normalised Laplacian
+/// @param strategy String. One of `"full"` or `"truncated"`. Shall the full
+/// Eigendecomposition of a truncated Eigendecomposition be applied on the data.
+/// The latter is useful for large graphs to reduce memory pressure.
+/// @param k Integer. Number of eigenvalues for truncated
+/// @param node_names String. Character vector of node names.
+/// @param verbose Boolean. Verbosity of the function.
+///
+/// @returns External pointer to `DiffusionKernel`
+#[extendr]
+#[allow(clippy::too_many_arguments)]
+fn rs_diffusion_kernel(
+    i: &[i32],
+    p: &[i32],
+    x: &[f64],
+    n: usize,
+    kernel: &str,
+    kernel_params: List,
+    normalised: bool,
+    strategy: &str,
+    k: usize,
+    node_names: Strings,
+    verbose: bool,
+) -> ExternalPtr<DiffusionKernel> {
+    let i = i.r_int_convert();
+    let p = p.r_int_convert();
+    let kernel_params = KernelParams::from_r_list(kernel_params);
+    let node_names: Vec<String> = node_names.iter().map(|s| s.to_string()).collect();
+
+    let csc = CompressedSparseData::new_csc(x, &i, &p, (n, n));
+    let csr = csc_to_csr(&csc);
+    drop(csc);
+
+    if verbose {
+        println!("Transforming to Laplacian kernel")
+    }
+
+    let lap = laplacian(&csr, normalised);
+
+    if verbose {
+        println!("Running spectral decomposition via {}.", strategy)
+    }
+
+    let strat = match strategy {
+        "truncated" => {
+            if n <= 2000 || k >= n / 2 {
+                if verbose {
+                    println!(
+                        "Falling back to full EVD (n={}, k={}); truncating to k afterwards.",
+                        n, k
+                    );
+                }
+                SpectralStrategy::Full
+            } else {
+                SpectralStrategy::Truncated { k, tolerance: None }
+            }
+        }
+        _ => SpectralStrategy::Full,
+    };
+
+    let decomp = spectral_decompose(&lap, normalised, strat);
+
+    // if user asked for truncated but we used full EVD, keep only k smallest
+    let decomp = if strategy == "truncated" && decomp.eigenvalues.len() > k {
+        let eigenvalues = decomp.eigenvalues[..k].to_vec();
+        let mut eigenvectors = Mat::zeros(n, k);
+        for j in 0..k {
+            for i in 0..n {
+                eigenvectors[(i, j)] = decomp.eigenvectors[(i, j)];
+            }
+        }
+        SpectralDecomp {
+            eigenvalues,
+            eigenvectors,
+            n,
+        }
+    } else {
+        decomp
+    };
+
+    if verbose {
+        println!(
+            "Spectral decomposition done: {} eigenvalues retained.",
+            decomp.eigenvalues.len()
+        )
+    }
+
+    if verbose {
+        println!("Applying kernel: {}.", kernel)
+    }
+
+    let kernel_type = parse_kernel_type(kernel, &kernel_params).unwrap_or_default();
+    let f_lambda = kernel_eigenvalues(&decomp.eigenvalues, &kernel_type);
+
+    ExternalPtr::new(DiffusionKernel {
+        decomp,
+        f_lambda,
+        node_names,
+    })
+}
+
+/// Pull out the node names from the kernel
+///
+/// @param kernel External pointer to the `DiffusionKernel`.
+///
+/// @returns A string vector from R.
+///
+/// @export
+#[extendr]
+fn rs_kernel_node_names(kernel: Robj) -> Strings {
+    let kernel: ExternalPtr<DiffusionKernel> = kernel
+        .try_into()
+        .expect("failed to convert to ExternalPtr<DiffusionKernel>");
+    kernel
+        .node_names
+        .iter()
+        .map(|s| s.as_str())
+        .collect::<Strings>()
+}
+
+/// Run diffusion scoring on a precomputed kernel
+///
+/// @param kernel External pointer to `DiffusionKernel`
+/// @param scores Numeric. The scores.
+/// @param n_bkgd Integer. Number of background nodes.
+/// @param n_inputs Integer. Number of input columns
+/// @param bkgd_indices Integer. 0-based node indices for the background
+/// @param method String. One of `c("raw", "z", "mc")`.
+/// @param n_perm Integer. Number of permutations (MC only)
+/// @param seed Integer RNG seed (MC only)
+///
+/// @returns Scores per given node
+///
+/// @export
+#[extendr]
+#[allow(clippy::too_many_arguments)]
+fn rs_diffuse(
+    kernel: Robj,
+    scores: &[f64],
+    n_bkgd: usize,
+    n_inputs: usize,
+    bkgd_indices: &[i32],
+    method: &str,
+    n_perm: usize,
+    seed: usize,
+) -> Vec<f64> {
+    let kernel: ExternalPtr<DiffusionKernel> = kernel
+        .try_into()
+        .expect("failed to convert to ExternalPtr<DiffusionKernel>");
+    let n = kernel.decomp.n;
+    let bkgd = bkgd_indices.r_int_convert();
+
+    let input = MatRef::from_column_major_slice(scores, n_bkgd, n_inputs);
+
+    let diffusion_method = parse_diffusion_method(method).unwrap_or_default();
+
+    let res = match diffusion_method {
+        DiffusionMethod::Raw => diffuse_raw(&kernel.decomp, &kernel.f_lambda, input, &bkgd),
+        DiffusionMethod::ZScore => diffuse_z(&kernel.decomp, &kernel.f_lambda, input, &bkgd),
+        DiffusionMethod::MonteCarlo => diffuse_mc(
+            &kernel.decomp,
+            &kernel.f_lambda,
+            input,
+            &bkgd,
+            n_perm,
+            seed as u64,
+        ),
+    };
+
+    let mut out = vec![0.0f64; n * n_inputs];
+    for col in 0..n_inputs {
+        for row in 0..n {
+            out[col * n + row] = res[(row, col)];
+        }
+    }
+    out
+}
+
 ///////////
 // Tests //
 ///////////
@@ -962,10 +1175,6 @@ mod tests {
         assert_ne!(e1.len(), 0);
         assert_ne!(e1, e2, "Different seeds produced identical graphs");
     }
-
-    // -------------------------------------------------------
-    // Configuration model: fragmentation check
-    // -------------------------------------------------------
 
     #[test]
     fn config_model_fragmentation_report() {

@@ -194,5 +194,52 @@ rs_differential_graph_data <- function(n_stable, n_comm2, n_comm3, n_exclusive) 
 #' @export
 rs_procrustes_align <- function(embd1, embd2) .Call(wrap__rs_procrustes_align, embd1, embd2)
 
+#' Build the diffusion kernel from sparse adjacency components
+#'
+#' Takes the CSC slots directly from R's dgCMatrix (igraph output).
+#'
+#' @param i Integers. Row indices (0-based, from dgCMatrix@i)
+#' @param p Integers. Column pointers (from dgCMatrix@p)
+#' @param x Numeric. Values (from dgCMatrix@x)
+#' @param n Integer. Matrix dimension
+#' @param kernel String. Kernel type string. One of
+#' `c("regularised_laplacian", "commute_time", "inverse_cosine", "pstep")`.
+#' @param kernel_params Named list. Contains the kernel-specific parameters.
+#' @param normalised Boolean. Use normalised Laplacian
+#' @param strategy String. One of `"full"` or `"truncated"`. Shall the full
+#' Eigendecomposition of a truncated Eigendecomposition be applied on the data.
+#' The latter is useful for large graphs to reduce memory pressure.
+#' @param k Integer. Number of eigenvalues for truncated
+#' @param node_names String. Character vector of node names.
+#' @param verbose Boolean. Verbosity of the function.
+#'
+#' @returns External pointer to `DiffusionKernel`
+rs_diffusion_kernel <- function(i, p, x, n, kernel, kernel_params, normalised, strategy, k, node_names, verbose) .Call(wrap__rs_diffusion_kernel, i, p, x, n, kernel, kernel_params, normalised, strategy, k, node_names, verbose)
+
+#' Run diffusion scoring on a precomputed kernel
+#'
+#' @param kernel External pointer to `DiffusionKernel`
+#' @param scores Numeric. The scores.
+#' @param n_bkgd Integer. Number of background nodes.
+#' @param n_inputs Integer. Number of input columns
+#' @param bkgd_indices Integer. 0-based node indices for the background
+#' @param method String. One of `c("raw", "z", "mc")`.
+#' @param n_perm Integer. Number of permutations (MC only)
+#' @param seed Integer RNG seed (MC only)
+#'
+#' @returns Scores per given node
+#'
+#' @export
+rs_diffuse <- function(kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n_perm, seed) .Call(wrap__rs_diffuse, kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n_perm, seed)
+
+#' Pull out the node names from the kernel
+#'
+#' @param kernel External pointer to the `DiffusionKernel`.
+#'
+#' @returns A string vector from R.
+#'
+#' @export
+rs_kernel_node_names <- function(kernel) .Call(wrap__rs_kernel_node_names, kernel)
+
 
 # nolint end

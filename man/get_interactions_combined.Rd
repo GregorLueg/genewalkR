@@ -19,7 +19,7 @@ interactions from Intact and the full sets from SIGNOR, Reactome and Pathway
 Commons interactions.
 }
 \details{
-The data is extracted from the OpenTargets release \code{25.12}
+The data is extracted from the OpenTargets release \code{26.03}
 }
 \references{
 Barrio-Hernandez et al., Nat Gen, 2023

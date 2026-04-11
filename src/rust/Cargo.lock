@@ -13,12 +13,13 @@ dependencies = [
 
 [[package]]
 name = "ann-search-rs"
-version = "0.2.4"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742469b8cde5d666fadbd1d1481bd55fefc4df0d930a767dc2cada5ffeb87574"
+checksum = "784e3c8e7e2191a0600f8d4f430ef5f1a0bf5a4c5f7c824735bc47f7676fcfe7"
 dependencies = [
  "approx",
  "clap",
+ "document-features",
  "faer",
  "faer-traits",
  "fixedbitset",
@@ -114,11 +115,12 @@ checksum = "812e12b5285cc515a9c72a5c1d3b6d46a19dac5acfef5265968c166106e31dd3"
 
 [[package]]
 name = "bixverse-rs"
-version = "0.1.2"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9786424bd06e666443f26e1bc16ee45eda2a3ed8464a6efe67da795ab9cbcc2e"
+checksum = "f11c0ea9be994b1ff641bc95f39853e403f23f39337a1b7e38bfb333e27ca97e"
 dependencies = [
- "ann-search-rs",
+ "approx",
+ "document-features",
  "extendr-api",
  "faer",
  "faer-entity",
@@ -132,6 +134,7 @@ dependencies = [
  "serde",
  "statrs",
  "thousands",
+ "wide 1.1.1",
 ]
 
 [[package]]
@@ -372,6 +375,15 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer",
  "crypto-common",
+]
+
+[[package]]
+name = "document-features"
+version = "0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4b8a88685455ed29a21542a33abd9cb6510b6b129abadabdcef0f4c55bc8f61"
+dependencies = [
+ "litrs",
 ]
 
 [[package]]
@@ -745,7 +757,7 @@ dependencies = [
 
 [[package]]
 name = "genewalkR"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "ann-search-rs",
  "bixverse-rs",
@@ -911,6 +923,12 @@ name = "linux-raw-sys"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df1d3c3b53da64cf5760482273a98e575c651a67eec7f77df96b5b642de8f039"
+
+[[package]]
+name = "litrs"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 
 [[package]]
 name = "log"

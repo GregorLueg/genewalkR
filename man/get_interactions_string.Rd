@@ -18,5 +18,5 @@ data.table with the String network data.
 Get the STRING network
 }
 \details{
-The data is extracted from the OpenTargets release \code{25.12}
+The data is extracted from the OpenTargets release \code{26.03}
 }

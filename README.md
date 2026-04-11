@@ -1,6 +1,6 @@
 # genewalkR package
 
-![r_package](https://img.shields.io/badge/R_package-0.0.1.4-orange) 
+![r_package](https://img.shields.io/badge/R_package-0.1.5-orange) 
 [![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github)](https://gregorlueg.github.io/genewalkR/)
@@ -9,18 +9,32 @@
 
 ## Description
 
-This package implements various computational biology methods that use 
-[node2vec](https://arxiv.org/abs/1607.00653) under the hood. It leverages the
-rextendr interface into Rust to make these methods **VERY** fast. For now, we 
-have the following methods implemented:
+This package implements various computational biology methods based on graphs: 
 
-- General node2vec to generate embeddings, please see this [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
-- The GeneWalk approach from [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8) (see GitHub [here](https://github.com/churchmanlab/genewalk)).
-If you want to use this, please check out this [vignette](https://gregorlueg.github.io/genewalkR/articles/genewalk.html).
-- A Gene context drift type approach akin to [Jassim et al.](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7). Specifically the part around running node2vec onto two
-networks, followed by Procruste alignment and identifying node embeddings that
-differ between the two networks. Details can be found in this 
-[vignette](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html).
+- More "simple" 
+  [diffusion algorithms of labels over networks](https://pmc.ncbi.nlm.nih.gov/articles/PMC5860365/) 
+  that have been translated into Rust for speed and reduced memory pressure.
+- Methods leveraging [node2vec](https://arxiv.org/abs/1607.00653), a small graph
+  neural network. 
+
+For now, the following methods implemented:
+
+- Various diffusion methods for "guilty-by-association" approaches, see 
+  [Tsuda et al.](https://pubmed.ncbi.nlm.nih.gov/16204126/),
+  [Vandin et al.](https://pubmed.ncbi.nlm.nih.gov/21385051/), 
+  [Bersanelli et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5059623/) and
+  [Mostafavi et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/).
+- General node2vec to generate embeddings, please see this 
+  [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
+- The GeneWalk approach from 
+  [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8) 
+  (see GitHub [here](https://github.com/churchmanlab/genewalk)).
+  If you want to use this, please check out this [vignette](https://gregorlueg.github.io/genewalkR/articles/genewalk.html).
+- A Gene context drift type approach akin to [Jassim et al.](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00255-7) 
+  Specifically the part of running node2vec over two networks, followed by 
+  Procruste alignment and identifying node embeddings that differ between the 
+  two networks, indicating a context drift for these nodes/genes. Details can be 
+  found in this [vignette](https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html).
 
 ## Installation
 
@@ -61,9 +75,22 @@ remotes::install_github("GregorLueg/genewalkR")
 
 ## How to use the package
 
-Please refer to the [website](https://gregorlueg.github.io/genewalkR/) of the
-package to check out how to use this. Vignettes and function definitions are
-provided there. If you run into issues, please use GitHub issues.
+Please refer to the [package website](https://gregorlueg.github.io/genewalkR/). 
+Vignettes and function definitions are provided there. If you run into issues, 
+please use GitHub issues.
+
+## Roadmap
+
+While more complex graph neural networks that leverage edge and node
+information are in vogue at the moment, some simple methods in times tend to
+do quite well themselves, while not necessitating massive amounts of (GPU) 
+compute. One of the methods that could be quite interesting for heterogenous
+graphs and can likely still be run on CPU is [metapath2vec](https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf) – 
+an extension of node2vec over heterogenous graphs with different edge and node
+types. Additionally, a few additional graph-based methods are also already 
+implemented in [bixverse](https://github.com/GregorLueg/bixverse), here more
+with focus on PageRank-based ones and a lot of methods that use kNN graphs
+in some colour or shape (specifically for single cell).
 
 ## License
 

@@ -16,5 +16,5 @@ data.table with the Gene Ontology to gene edges
 Get the Gene Ontology to gene connections
 }
 \details{
-The data is extracted from the OpenTargets release \code{25.12}
+The data is extracted from the OpenTargets release \code{26.03}
 }

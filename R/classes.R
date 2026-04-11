@@ -846,17 +846,17 @@ GeneWalkGenerator <- R6::R6Class(
 #'
 #' @section Properties:
 #' \describe{
-#'   \item{graph_dt_1}{A data.frame containing the edges of graph 1. Must have
-#'     columns `from`, `to`, and optionally `weight`.}
-#'   \item{graph_dt_2}{A data.frame containing the edges of graph 2. Must have
-#'     columns `from`, `to`, and optionally `weight`.}
-#'   \item{embd_1}{Numeric matrix. Node embedding for graph 1, rows are nodes.}
-#'   \item{embd_2}{Numeric matrix. Node embedding for graph 2, rows are nodes.}
-#'   \item{aligned_embd}{Numeric matrix. Procrustes-aligned embedding of graph 1
-#'     onto graph 2, restricted to shared nodes.}
-#'   \item{stats}{A data.frame holding per-node cosine similarity scores and
-#'     node metadata after running the differential analysis.}
-#'   \item{params}{Named list of parameters used during embedding and alignment.}
+#'  \item{graph_dt_1}{A data.frame containing the edges of graph 1. Must have
+#'  columns `from`, `to`, and optionally `weight`.}
+#'  \item{graph_dt_2}{A data.frame containing the edges of graph 2. Must have
+#'  columns `from`, `to`, and optionally `weight`.}
+#'  \item{embd_1}{Numeric matrix. Node embedding for graph 1, rows are nodes.}
+#'  \item{embd_2}{Numeric matrix. Node embedding for graph 2, rows are nodes.}
+#'  \item{aligned_embd}{Numeric matrix. Procrustes-aligned embedding of graph 1
+#'  onto graph 2, restricted to shared nodes.}
+#'  \item{stats}{A data.frame holding per-node cosine similarity scores and
+#'  node metadata after running the differential analysis.}
+#'  \item{params}{Named list of parameters used during embedding and alignment.}
 #' }
 #'
 #' @param graph_dt_1 A data.frame with columns `from`, `to`, and optionally
@@ -1094,4 +1094,115 @@ S7::method(print, EmbedDrift) <- function(x, ...) {
   cat("  Procrustes alignment done:", ifelse(aligned, "yes", "no"), "\n")
   cat("  Statistics calculated:", ifelse(stats_done, "yes", "no"), "\n")
   invisible(x)
+}
+
+## diffusion ------------------------------------------------------------------
+
+#' DiffusionScores
+#'
+#' @description
+#' S7 class wrapping the Rust spectral diffusion backend. Holds the input
+#' graph, the precomputed kernel (as an external pointer), and the resulting
+#' per-node diffusion scores.
+#'
+#' @section Properties:
+#' \describe{
+#'  \item{graph}{An igraph object. The input graph.}
+#'  \item{kernel_pointer}{External pointer to the Rust `DiffusionKernel`.
+#'  `NULL` until `build_kernel()` is called.}
+#'  \item{scores}{A data.table of diffusion results. Empty until `diffuse()`
+#'  is called.}
+#'  \item{params}{Named list of parameters used during kernel construction
+#'  and diffusion.}
+#' }
+#'
+#' @param graph An igraph object.
+#'
+#' @return An initialised `DiffusionScores` object.
+#'
+#' @export
+DiffusionScores <- S7::new_class(
+  name = "DiffusionScores",
+  properties = list(
+    graph = S7::class_any,
+    kernel_pointer = S7::class_any,
+    scores = S7::class_any,
+    params = S7::class_list
+  ),
+  constructor = function(graph) {
+    checkmate::assertClass(graph, "igraph")
+    S7::new_object(
+      S7::S7_object(),
+      graph = graph,
+      kernel_pointer = NULL,
+      scores = data.table::data.table(),
+      params = list()
+    )
+  }
+)
+
+### primitives -----------------------------------------------------------------
+
+#' @method print DiffusionScores
+#'
+#' @keywords internal
+S7::method(print, DiffusionScores) <- function(x, ...) {
+  g <- S7::prop(x, "graph")
+  n_nodes <- igraph::vcount(g)
+  n_edges <- igraph::ecount(g)
+  has_kernel <- !is.null(S7::prop(x, "kernel_pointer"))
+  has_scores <- nrow(S7::prop(x, "scores")) > 0
+
+  cat("DiffusionScores\n")
+  cat("  Graph:", n_nodes, "nodes |", n_edges, "edges\n")
+
+  if (has_kernel) {
+    kp <- S7::prop(x, "params")[["kernel"]]
+    cat("  Kernel:", kp$kernel, "(", kp$strategy, ")\n")
+    cat("  Normalised:", kp$normalised, "\n")
+  } else {
+    cat("  Kernel: not built\n")
+  }
+
+  if (has_scores) {
+    dp <- S7::prop(x, "params")[["diffusion"]]
+    n_inputs <- ncol(S7::prop(x, "scores")) - 1L
+    cat("  Scores:", n_inputs, "input(s) | method:", dp$method, "\n")
+  } else {
+    cat("  Scores: not computed\n")
+  }
+
+  invisible(x)
+}
+
+### getters --------------------------------------------------------------------
+
+#' Get scores
+#'
+#' @param object An object containing scores.
+#'
+#' @return A data.table of scores.
+#'
+#' @export
+get_scores <- S7::new_generic(
+  name = "get_scores",
+  dispatch_args = "object",
+  fun = function(object) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_scores DiffusionScores
+#'
+#' @export
+S7::method(get_scores, DiffusionScores) <- function(object) {
+  checkmate::assertTRUE(S7::S7_inherits(object, DiffusionScores))
+  scores <- S7::prop(object, "scores")
+  if (nrow(scores) == 0) {
+    warning(
+      "Scores are empty. Has diffuse() been run? Returning empty data.table"
+    )
+    return(data.table::data.table())
+  }
+  return(scores)
 }

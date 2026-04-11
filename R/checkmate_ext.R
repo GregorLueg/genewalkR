@@ -273,3 +273,101 @@ checkGeneWalkGraphDt <- function(x) {
 #'
 #' @keywords internal
 assertGeneWalkGraphDt <- checkmate::makeAssertionFunction(checkGeneWalkGraphDt)
+
+## kernel checks ---------------------------------------------------------------
+
+#' Check diffusion kernel parameters
+#'
+#' @description Checkmate extension for checking the kernel parameters.
+#'
+#' @param x The list to check/assert
+#'
+#' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
+checkKernelParams <- function(x) {
+  res <- checkmate::checkList(x)
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  res <- checkmate::checkNames(
+    names(x),
+    must.include = c("sigma2", "add_diag", "a", "p")
+  )
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  numeric_rules <- list(
+    "sigma2" = "N1",
+    "add_diag" = "N1",
+    "a" = "N1"
+  )
+  res <- purrr::imap_lgl(x, \(x, name) {
+    if (name %in% names(numeric_rules)) {
+      checkmate::qtest(x, numeric_rules[[name]])
+    } else {
+      TRUE
+    }
+  })
+  if (!isTRUE(all(res))) {
+    broken_elem <- names(res)[which(!res)][1]
+    return(
+      sprintf(
+        paste(
+          "The following element `%s` in kernel parameters is",
+          "incorrect: sigma2, add_diag, and a must be numeric."
+        ),
+        broken_elem
+      )
+    )
+  }
+
+  integer_rules <- list("p" = "I1")
+  res <- purrr::imap_lgl(x, \(x, name) {
+    if (name %in% names(integer_rules)) {
+      checkmate::qtest(x, integer_rules[[name]])
+    } else {
+      TRUE
+    }
+  })
+  if (!isTRUE(all(res))) {
+    broken_elem <- names(res)[which(!res)][1]
+    return(
+      sprintf(
+        paste(
+          "The following element `%s` in kernel parameters is incorrect:",
+          "p must be an integer."
+        ),
+        broken_elem
+      )
+    )
+  }
+
+  if (x$a < 2) {
+    return("Parameter `a` must be >= 2 for the pstep kernel.")
+  }
+
+  if (x$p < 1L) {
+    return("Parameter `p` must be a positive integer.")
+  }
+
+  return(TRUE)
+}
+
+#' Assert diffusion kernel parameters
+#'
+#' @description Checkmate extension for asserting the kernel parameters.
+#'
+#' @inheritParams checkKernelParams
+#'
+#' @param .var.name Name of the checked object to print in assertions. Defaults
+#'   to the heuristic implemented in checkmate.
+#' @param add Collection to store assertion messages. See
+#'   [checkmate::makeAssertCollection()].
+#'
+#' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
+assertKernelParams <- checkmate::makeAssertionFunction(checkKernelParams)

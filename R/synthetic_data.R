@@ -297,3 +297,28 @@ differential_graph_test_data <- function(
     data_info = info
   )
 }
+
+## diffusions ------------------------------------------------------------------
+
+#' Create a lattice graph for diffusion testing
+#'
+#' @param n_side Integer. Side length of the square lattice.
+#'
+#' @return A named list with `graph` (igraph), `edges` (data.frame), and
+#' `node_names` (character vector).
+#'
+#' @keywords internal
+#'
+#' @export
+diffusion_test_lattice <- function(n_side = 10L) {
+  g <- igraph::make_lattice(dimvector = c(n_side, n_side))
+  node_names <- as.character(seq_len(igraph::vcount(g)))
+  igraph::V(g)$name <- node_names
+  edges <- igraph::as_data_frame(g, what = "edges")
+  list(
+    graph = g,
+    edges = edges,
+    node_names = node_names,
+    n_side = n_side
+  )
+}
