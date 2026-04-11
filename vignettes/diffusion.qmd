@@ -49,7 +49,7 @@ And three scoring methods:
 - **Monte Carlo (heatrank)**: empirical p-values via permutation testing
 
 The entire computation is performed in Rust via a spectral decomposition of the
-Laplacian, so the dense kernel matrix is never materialised. The work is
+Laplacian, so the dense kernel matrix is never materialised. The work here is
 based on the [diffuStats package](https://pmc.ncbi.nlm.nih.gov/articles/PMC5860365/).
 
 ## A simple example: lattice graph
