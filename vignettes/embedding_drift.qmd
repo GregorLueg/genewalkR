@@ -1,5 +1,7 @@
 ---
 title: "Embedding Drift via node2vec"
+date: last-modified
+date-format: YYYY-MM-DD
 vignette: >
   %\VignetteIndexEntry{Embedding Drift via node2vec}
   %\VignetteEngine{quarto::html}
@@ -88,7 +90,6 @@ Let's look at both graphs and highlight which nodes are expected to drift.
 #| label: igraph visualisation
 #| fig-width: 12
 #| fig-height: 6
-
 # helper function for graph generation and plotting
 make_graph <- function(edges, nodes, info) {
   g <- igraph::graph_from_data_frame(d = edges, directed = FALSE)
@@ -139,7 +140,6 @@ spanning communities 2 and 3 to being embedded entirely within community 3.
 `EmbedDrift` takes the two edge tables and holds all intermediate results.
 ```{r}
 #| label: initialise object
-
 obj <- EmbedDrift(
   graph_dt_1 = test_data$g1_edges,
   graph_dt_2 = test_data$g2_edges
@@ -157,7 +157,6 @@ using a larger dimension would over-parameterise relative to the number of nodes
 and compress the signal we are trying to detect.
 ```{r}
 #| label: generate embeddings
-
 obj <- generate_initial_embeddings(
   object = obj,
   embd_dim = 8L,
@@ -172,7 +171,6 @@ If you want to get the embeddings out, getters are provided:
 
 ```{r}
 #| label: embeddrift getters
-
 embd_ls <- get_embeddings(obj) # returns both matrices as a list.
 
 embd_ls$embd_1[1:5, 1:5]
@@ -195,7 +193,6 @@ greatest context drift appear first. Let's add the ground truth labels and see
 whether the known differential nodes rank lower than the stable ones.
 ```{r}
 #| label: evaluate results
-
 results <- merge(
   stats,
   test_data$data_info[, .(node, is_differential)],

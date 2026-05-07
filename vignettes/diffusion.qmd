@@ -1,5 +1,7 @@
 ---
 title: "Graph Diffusion"
+date: last-modified
+date-format: YYYY-MM-DD
 vignette: >
   %\VignetteIndexEntry{Graph Diffusion}
   %\VignetteEngine{quarto::html}
@@ -62,7 +64,6 @@ expected.
 
 ```{r}
 #| label: lattice-setup
-
 # 15 x 15 lattice = 225 nodes
 g <- make_lattice(dimvector = c(15, 15))
 V(g)$name <- as.character(seq_len(vcount(g)))
@@ -75,7 +76,6 @@ Run the kernel:
 
 ```{r}
 #| label: lattice-kernel
-
 obj <- build_kernel(
   obj,
   kernel = "regularised_laplacian",
@@ -93,7 +93,6 @@ We place a unit signal on the corner node and diffuse it across the network.
 
 ```{r}
 #| label: lattice-raw
-
 input_vec <- stats::setNames(5.0, "17")
 
 obj <- diffuse_scores(obj, input = input_vec, method = "raw")
@@ -109,7 +108,6 @@ distance from the source.
 
 ```{r}
 #| label: lattice-decay-plot
-
 dists <- distances(g, v = "17")
 scores[, dist := as.integer(dists[1, node])]
 
@@ -133,7 +131,6 @@ Since this is a square lattice, we can visualise the scores as a heatmap.
 
 ```{r}
 #| label: lattice-heatmap
-
 scores[, row := (as.integer(node) - 1L) %/% 15L + 1L]
 scores[, col := (as.integer(node) - 1L) %% 15L + 1L]
 
@@ -160,7 +157,6 @@ We can compare the three scoring approaches on the same input:
 
 ```{r}
 #| label: lattice-methods
-
 all_nodes <- V(g)$name
 input_full <- stats::setNames(
   ifelse(all_nodes == "17", 1.0, 0.0),
@@ -210,7 +206,6 @@ head(comparison[order(-raw)])
 
 ```{r}
 #| label: lattice-method-comparison
-
 p1 <- ggplot(comparison, aes(x = dist, y = z)) +
   geom_jitter(width = 0.2, alpha = 0.5, size = 1) +
   theme_bw() +
@@ -236,7 +231,6 @@ We will generate a random network first...
 
 ```{r}
 #| label: scalefree-setup
-
 set.seed(42)
 g_sf <- sample_pa(n = 500, m = 3, directed = FALSE)
 V(g_sf)$name <- paste0("gene_", seq_len(vcount(g_sf)))
@@ -264,7 +258,6 @@ genes.
 
 ```{r}
 #| label: scalefree-seeds
-
 # pick 5 seed genes: a mix of hubs and peripheral nodes
 seed_genes <- c(
   names(sort(deg, decreasing = TRUE))[1:3], # top 3 hubs
@@ -278,7 +271,6 @@ cat("Seed degrees:", deg[seed_genes], "\n")
 
 ```{r}
 #| label: scalefree-diffusion
-
 obj_sf <- DiffusionScores(g_sf)
 
 obj_sf <- build_kernel(
@@ -313,7 +305,6 @@ We can also investigate the top candidates that are not seed genes
 
 ```{r}
 #| label: scalefree-results
-
 results[, is_seed := node %in% seed_genes]
 results[, rank := .I]
 results[, degree := deg[node]]
@@ -327,7 +318,6 @@ And explore the relationship of node degree with resulting Z-scores:
 
 ```{r}
 #| label: scalefree-zscore-vs-degree
-
 ggplot(results, aes(x = degree, y = input_1, fill = input_1, shape = is_seed)) +
   geom_point(alpha = 0.5, size = 2) +
   scale_fill_viridis_c(option = "mako") +
@@ -351,7 +341,6 @@ however, we only tiny difference s
 
 ```{r}
 #| label: scalefree-kernel-comparison
-
 kernels <- c("regularised_laplacian", "diffusion", "pstep")
 kernel_results <- list()
 
@@ -401,7 +390,6 @@ for (i in seq_len(nrow(top_sets))) {
 
 ```{r}
 #| label: scalefree-kernel-rank-plot
-
 # compare ranks across kernels
 rank_wide <- dcast(
   combined[, .(node, kernel, rank)],

@@ -1,5 +1,7 @@
 ---
 title: "Node2vec"
+date: last-modified
+date-format: YYYY-MM-DD
 vignette: >
   %\VignetteIndexEntry{Node2vec}
   %\VignetteEngine{quarto::html}
@@ -8,6 +10,8 @@ knitr:
   opts_chunk:
     collapse: true
     comment: '#>'
+author:
+  Gregor Lueg
 ---
 
 # Running node2vec
@@ -52,7 +56,6 @@ Let's load in the barbell graph.
 
 ```{r}
 #| label: loading in barbell data
-
 # this creates a random data set with 20 nodes per barbell cluster
 barbell_data <- node2vec_test_data(
   test_type = "barbell",
@@ -66,7 +69,6 @@ Let's transform this into an igraph first and just look at the graph as is.
 
 ```{r}
 #| label: generate igraph from barbell data
-
 g <- igraph::graph_from_data_frame(d = barbell_data$edges, directed = FALSE)
 
 plot(g, vertex.label = NA)
@@ -89,7 +91,6 @@ really, really, really need deterministic results here, set the parameter
 
 ```{r}
 #| label: run node2vec
-
 # run node2vec
 barbell_node2vec_results <- node2vec(
   graph_dt = barbell_data$edges,
@@ -107,7 +108,6 @@ components visually
 
 ```{r}
 #| label: node2vec pca
-
 # run pca on the embeddings
 pca_results <- prcomp(barbell_node2vec_results, scale. = TRUE)
 
@@ -135,7 +135,6 @@ graph):
 
 ```{r}
 #| label: cavemen igraph
-
 # generate the cavemen
 caveman_data <- node2vec_test_data(
   test_type = "cavemen",
@@ -153,7 +152,6 @@ graph structure.
 
 ```{r}
 #| label: cavemen node2vec visualisation
-
 # run node2vec
 cavemen_node2vec_results <- node2vec(
   graph_dt = caveman_data$edges,
@@ -184,7 +182,6 @@ edges across the communities. We will do exactly what we did before.
 
 ```{r}
 #| label: stochastic block igraph
-
 # generate the stochastic block graph
 stochastic_block_data <- node2vec_test_data(
   test_type = "stochastic_block",
@@ -204,7 +201,6 @@ Let's visualise again the PCA here:
 
 ```{r}
 #| label: stochastic block node2vec visualisation
-
 # run node2vec
 stochastic_blocks_node2vec_results <- node2vec(
   graph_dt = stochastic_block_data$edges,
