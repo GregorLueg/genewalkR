@@ -11,9 +11,15 @@ al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8
 ### Setup
 
 ``` r
+
 library(genewalkR)
 library(ggplot2)
 library(data.table)
+#> 
+#> Attaching package: 'data.table'
+#> The following object is masked from 'package:base':
+#> 
+#>     %notin%
 library(magrittr)
 ```
 
@@ -30,6 +36,7 @@ still due to the nature of the synthetic data; however, to a lesser
 extent.
 
 ``` r
+
 gene_walk_syn_data <- synthetic_genewalk_data()
 
 str(gene_walk_syn_data)
@@ -38,12 +45,12 @@ str(gene_walk_syn_data)
 #>   ..$ from: chr [1:8237] "term_0001" "term_0001" "term_0002" "term_0002" ...
 #>   ..$ to  : chr [1:8237] "term_0002" "term_0003" "term_0004" "term_0005" ...
 #>   ..$ type: chr [1:8237] "hierarchy" "hierarchy" "hierarchy" "hierarchy" ...
-#>   ..- attr(*, ".internal.selfref")=<externalptr> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55b1b219eb20> 
 #>  $ gene_to_pathways:Classes 'data.table' and 'data.frame':   6399 obs. of  3 variables:
 #>   ..$ from: chr [1:6399] "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" ...
 #>   ..$ to  : chr [1:6399] "term_0025" "term_0019" "term_0024" "term_0017" ...
 #>   ..$ type: chr [1:6399] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<externalptr> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55b1b219eb20> 
 #>  $ gene_ids        : chr [1:444] "gene_signal_0001" "gene_signal_0002" "gene_signal_0003" "gene_signal_0004" ...
 #>  $ pathway_ids     : chr [1:355] "term_0001" "term_0002" "term_0003" "term_0004" ...
 ```
@@ -61,6 +68,7 @@ The data contains everything we need to initialise a new GeneWalk:
 Let’s initialise the class.
 
 ``` r
+
 # this create the class
 genewalk_obj <- GeneWalk(
   graph_dt = gene_walk_syn_data$full_data,
@@ -97,6 +105,7 @@ iterations. The SGD scales basically linearly with the number of threads
 you use.
 
 ``` r
+
 genewalk_obj <- generate_initial_emb(
   genewalk_obj,
   n_graph = 3L,
@@ -110,6 +119,7 @@ will generate three random permuted networks as in the paper. These will
 be used for statistical testing.
 
 ``` r
+
 genewalk_obj <- generate_permuted_emb(genewalk_obj, .verbose = TRUE)
 ```
 
@@ -119,6 +129,7 @@ are larger than the ones from the background embedding, giving us the
 p-values.
 
 ``` r
+
 genewalk_obj <- calculate_genewalk_stats(
   genewalk_obj,
   .verbose = TRUE
@@ -128,6 +139,7 @@ genewalk_obj <- calculate_genewalk_stats(
 Now we can extract the statistics:
 
 ``` r
+
 statistics <- get_stats(genewalk_obj)
 
 head(statistics)
@@ -161,6 +173,7 @@ The different metrics in the data Let’s explore the signal in the
 synthetic data a bit… What are we observing … ?
 
 ``` r
+
 # add the labels for signal and noise
 statistics[, signal := grepl("anchor", gene)][,
   signal := factor(signal, levels = c("TRUE", "FALSE"))
@@ -188,6 +201,7 @@ from the signal genes, but a large number of them are just noise. Let’s
 check the p-values
 
 ``` r
+
 ggplot(
   data = statistics,
   mapping = aes(x = avg_pval)
@@ -204,6 +218,7 @@ ggplot(
 The patterns of the Cosine similarities are reproduced here.
 
 ``` r
+
 # majority of the signal comes from the "anchor" genes
 # due to the contrived nature of the data, we still get some
 # signal from the noise genes (also very small subgraph)
@@ -257,6 +272,7 @@ for a new release), you can use
 [`reload_db()`](https://gregorlueg.github.io/genewalkR/reference/reload_db.md).
 
 ``` r
+
 gw_factory <- GeneWalkGenerator$new()
 
 gw_factory$add_pathways() # will add GO to the builder
@@ -275,6 +291,7 @@ al.](https://pubmed.ncbi.nlm.nih.gov/26771021/)) and generate a
 GeneWalkNetwork for them.
 
 ``` r
+
 data(myc_genes)
 
 myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
@@ -299,6 +316,7 @@ interaction networks. This is a helper to get some information on the
 underlying node degree:
 
 ``` r
+
 check_degree_distribution(myc_gwn)
 #> 
 #> --- hierarchy ---
@@ -326,6 +344,7 @@ We can now use the same steps as above. Generate first three iterations
 of the real embedding based on different random seeds:
 
 ``` r
+
 # we are reducing the number of walks here... the original paper used 100L
 # walks per node with walk_length = 10L. you can play around with the parameters
 # here.
@@ -360,6 +379,7 @@ myc_gwn_res <- get_stats(myc_gwn)
 Let’s compare the embeddings we generate against the NULLs
 
 ``` r
+
 plot_similarities(myc_gwn)
 ```
 
@@ -378,6 +398,7 @@ genes within your bag of genes (degree + 1 on the x-axis), the number of
 gene and the number of `gene <> pathway` connections.
 
 ``` r
+
 plot_gw_results(myc_gwn, fdr_treshold = 0.05)
 ```
 
@@ -387,6 +408,7 @@ associated terms (not shown).
 ##### Actual data
 
 ``` r
+
 # translate go ids to names and do the same for the gene symbols
 gene_symbol_translation <- setNames(
   myc_genes$gene_symbol,
@@ -455,6 +477,7 @@ enrichment. Nonetheless, let’s check what happens with noisy data…
 ##### Random data set
 
 ``` r
+
 genes <- get_gene_info() %>%
   .[biotype == "protein_coding"]
 
@@ -484,6 +507,7 @@ random_gwn
 Let’s run fast with as many threads as possible the rest
 
 ``` r
+
 # we will parallelise this over all available threads, as we do not care
 # about determinism in the results
 no_threads <- parallel::detectCores()
@@ -513,6 +537,7 @@ random_gwn_res <- get_stats(random_gwn)
 Let’s plot the results
 
 ``` r
+
 # that looks way worse than for the MYC genes...
 plot_similarities(random_gwn)
 ```
@@ -520,6 +545,7 @@ plot_similarities(random_gwn)
 ![](genewalk_files/figure-html/random%20genes%20-%20similarities-1.png)
 
 ``` r
+
 # some genes still reach significance - this is likely driven by the
 # structure provided, by the gene ontology graph, but one can appreciate
 # that for random genes, the thresholds fall apart
@@ -533,6 +559,7 @@ can use this simple wrapper class to help you. Let’s show case this in
 terms of the internally stored Reactome data.
 
 ``` r
+
 # these are helpers to get the reactome data from the DuckDB in the
 # package
 reactome_genes <- get_gene_to_reactome()
@@ -550,6 +577,7 @@ If you want to now get the full graph dt including everything for
 verification:
 
 ``` r
+
 get_gw_data(data_builder) %>% head()
 #>               from              to        type
 #>             <char>          <char>      <char>
@@ -565,6 +593,7 @@ If you want to subset to your bag of genes of interest, you can run the
 following:
 
 ``` r
+
 genes_of_interest <- reactome_genes[to == "R-HSA-1989781", from]
 
 gwr_data <- get_gw_data_filtered(data_builder, genes_of_interest)
@@ -575,12 +604,12 @@ str(gwr_data)
 #>   ..$ from: chr [1:4004] "ENSG00000025434" "ENSG00000141027" "ENSG00000131408" "ENSG00000100393" ...
 #>   ..$ to  : chr [1:4004] "ENSG00000171720" "ENSG00000025434" "ENSG00000196498" "ENSG00000120837" ...
 #>   ..$ type: chr [1:4004] "interaction" "interaction" "interaction" "interaction" ...
-#>   ..- attr(*, ".internal.selfref")=<externalptr> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55b1b219eb20> 
 #>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   901 obs. of  3 variables:
 #>   ..$ from: chr [1:901] "ENSG00000001167" "ENSG00000001167" "ENSG00000001167" "ENSG00000001167" ...
 #>   ..$ to  : chr [1:901] "R-HSA-9614657" "R-HSA-1989781" "R-HSA-380994" "R-HSA-381183" ...
 #>   ..$ type: chr [1:901] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<externalptr> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55b1b219eb20> 
 #>  $ represented_genes   : chr [1:116] "ENSG00000025434" "ENSG00000141027" "ENSG00000131408" "ENSG00000100393" ...
 #>  $ represented_pathways: chr [1:2829] "R-HSA-9614657" "R-HSA-1989781" "R-HSA-380994" "R-HSA-381183" ...
 ```
@@ -588,6 +617,7 @@ str(gwr_data)
 The data can be easily supplied now:
 
 ``` r
+
 custom_gwn <- with(
   gwr_data,
   GeneWalk(

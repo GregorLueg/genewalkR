@@ -5,8 +5,14 @@
 ### Setup
 
 ``` r
+
 library(genewalkR)
 library(data.table)
+#> 
+#> Attaching package: 'data.table'
+#> The following object is masked from 'package:base':
+#> 
+#>     %notin%
 library(igraph)
 #> 
 #> Attaching package: 'igraph'
@@ -34,10 +40,10 @@ well-connected to them in a protein-protein interaction network.
 literature:
 
 - **Regularised Laplacian**: \$(\\sigma^2 L + \\alpha I)^{-1}\$
-- **Commute time**: Moore-Penrose pseudoinverse of $L$
+- **Commute time**: Moore-Penrose pseudoinverse of $`L`$
 - **Diffusion (heat)**: \$\\exp(-\\sigma^2 / 2 \\cdot L)\$
 - **Inverse cosine**: \$\\cos(\\pi/4 \\cdot \\lambda)\$
-- **p-step**: $(aI - L)^{p}$
+- **p-step**: $`(aI - L)^p`$
 
 And three scoring methods:
 
@@ -59,6 +65,7 @@ decay as expected.
 #### Building the graph and kernel
 
 ``` r
+
 # 15 x 15 lattice = 225 nodes
 g <- make_lattice(dimvector = c(15, 15))
 V(g)$name <- as.character(seq_len(vcount(g)))
@@ -74,6 +81,7 @@ obj
 Run the kernel:
 
 ``` r
+
 obj <- build_kernel(
   obj,
   kernel = "regularised_laplacian",
@@ -96,6 +104,7 @@ We place a unit signal on the corner node and diffuse it across the
 network.
 
 ``` r
+
 input_vec <- stats::setNames(5.0, "17")
 
 obj <- diffuse_scores(obj, input = input_vec, method = "raw")
@@ -118,6 +127,7 @@ On a lattice, we expect scores to decay monotonically with shortest-path
 distance from the source.
 
 ``` r
+
 dists <- distances(g, v = "17")
 scores[, dist := as.integer(dists[1, node])]
 
@@ -143,6 +153,7 @@ Since this is a square lattice, we can visualise the scores as a
 heatmap.
 
 ``` r
+
 scores[, row := (as.integer(node) - 1L) %/% 15L + 1L]
 scores[, col := (as.integer(node) - 1L) %% 15L + 1L]
 
@@ -170,6 +181,7 @@ graph is getting the diffusion heat from the original source node.
 We can compare the three scoring approaches on the same input:
 
 ``` r
+
 all_nodes <- V(g)$name
 input_full <- stats::setNames(
   ifelse(all_nodes == "17", 1.0, 0.0),
@@ -226,6 +238,7 @@ head(comparison[order(-raw)])
 ```
 
 ``` r
+
 p1 <- ggplot(comparison, aes(x = dist, y = z)) +
   geom_jitter(width = 0.2, alpha = 0.5, size = 1) +
   theme_bw() +
@@ -253,6 +266,7 @@ attachment model.
 We will generate a random network first…
 
 ``` r
+
 set.seed(42)
 g_sf <- sample_pa(n = 500, m = 3, directed = FALSE)
 V(g_sf)$name <- paste0("gene_", seq_len(vcount(g_sf)))
@@ -281,6 +295,7 @@ or gene function) and diffuse their signal across the network to
 prioritise candidate genes.
 
 ``` r
+
 # pick 5 seed genes: a mix of hubs and peripheral nodes
 seed_genes <- c(
   names(sort(deg, decreasing = TRUE))[1:3], # top 3 hubs
@@ -295,6 +310,7 @@ cat("Seed degrees:", deg[seed_genes], "\n")
 #### Running diffusion
 
 ``` r
+
 obj_sf <- DiffusionScores(g_sf)
 
 obj_sf <- build_kernel(
@@ -352,6 +368,7 @@ followed by the neighbours.
 We can also investigate the top candidates that are not seed genes
 
 ``` r
+
 results[, is_seed := node %in% seed_genes]
 results[, rank := .I]
 results[, degree := deg[node]]
@@ -388,6 +405,7 @@ top_candidates[, .(node, z_score = round(input_1, 3), degree)]
 And explore the relationship of node degree with resulting Z-scores:
 
 ``` r
+
 ggplot(results, aes(x = degree, y = input_1, fill = input_1, shape = is_seed)) +
   geom_point(alpha = 0.5, size = 2) +
   scale_fill_viridis_c(option = "mako") +
@@ -412,6 +430,7 @@ whilst the regularised Laplacian is more conservative. For this
 synthetic example however, we only tiny difference s
 
 ``` r
+
 kernels <- c("regularised_laplacian", "diffusion", "pstep")
 kernel_results <- list()
 
@@ -464,6 +483,7 @@ for (i in seq_len(nrow(top_sets))) {
 ```
 
 ``` r
+
 # compare ranks across kernels
 rank_wide <- dcast(
   combined[, .(node, kernel, rank)],

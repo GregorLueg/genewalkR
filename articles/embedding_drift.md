@@ -5,8 +5,14 @@
 ### Setup
 
 ``` r
+
 library(genewalkR)
 library(data.table)
+#> 
+#> Attaching package: 'data.table'
+#> The following object is masked from 'package:base':
+#> 
+#>     %notin%
 library(magrittr)
 library(ggplot2)
 library(igraph)
@@ -68,6 +74,7 @@ We know in advance which nodes should show context drift and which
 should not, making this a useful benchmark for the method.
 
 ``` r
+
 test_data <- differential_graph_test_data(
   n_stable = 50L,
   n_comm2 = 50L,
@@ -93,6 +100,7 @@ Let’s look at both graphs and highlight which nodes are expected to
 drift.
 
 ``` r
+
 # helper function for graph generation and plotting
 make_graph <- function(edges, nodes, info) {
   g <- igraph::graph_from_data_frame(d = edges, directed = FALSE)
@@ -134,6 +142,7 @@ plot(g2, vertex.label = NA, main = "Graph 2", vertex.size = 10)
 ![](embedding_drift_files/figure-html/igraph%20visualisation-1.png)
 
 ``` r
+
 par(mfrow = c(1, 1))
 ```
 
@@ -150,6 +159,7 @@ within community 3.
 results.
 
 ``` r
+
 obj <- EmbedDrift(
   graph_dt_1 = test_data$g1_edges,
   graph_dt_2 = test_data$g2_edges
@@ -177,6 +187,7 @@ over-parameterise relative to the number of nodes and compress the
 signal we are trying to detect.
 
 ``` r
+
 obj <- generate_initial_embeddings(
   object = obj,
   embd_dim = 8L,
@@ -201,15 +212,16 @@ print(obj)
 If you want to get the embeddings out, getters are provided:
 
 ``` r
+
 embd_ls <- get_embeddings(obj) # returns both matrices as a list.
 
 embd_ls$embd_1[1:5, 1:5]
-#>                dim_1      dim_2       dim_3       dim_4     dim_5
-#> bridge_001 0.4094421 -0.6394662 -0.10864581  0.19674712 0.4545781
-#> bridge_002 0.4340097 -0.6330951 -0.13474450  0.25480175 0.4033365
-#> comm2_000  0.5881598 -0.2986928 -0.02996316  0.23457602 0.2220614
-#> comm2_001  0.5270774 -0.3712355 -0.33634475 -0.06627915 0.5673791
-#> comm2_002  0.5525070 -0.3989322 -0.33412868  0.00805289 0.5195696
+#>                dim_1      dim_2       dim_3        dim_4     dim_5
+#> bridge_001 0.4156245 -0.6459072 -0.10770883  0.200617060 0.4432926
+#> bridge_002 0.4374254 -0.6391289 -0.13581797  0.255183309 0.3949776
+#> comm2_000  0.5871869 -0.2991635 -0.03248966  0.229178011 0.2113970
+#> comm2_001  0.5148071 -0.3717145 -0.34168667 -0.083076969 0.5707827
+#> comm2_002  0.5436956 -0.3999259 -0.34196118 -0.003643553 0.5234640
 ```
 
 #### Calculating drift
@@ -219,17 +231,18 @@ aligns the two embedding matrices via Procrustes and computes per-node
 cosine similarities.
 
 ``` r
+
 obj <- calculate_drift(object = obj)
 
 stats <- get_stats(obj)
 stats
 #>             node cosine_similarity node_status
 #>           <char>             <num>      <char>
-#>   1:  bridge_001         0.7622537      shared
-#>   2:  bridge_002         0.6953369      shared
-#>   3:   comm2_000         0.9173867      shared
-#>   4:   comm2_001         0.9895593      shared
-#>   5:   comm2_002         0.9953459      shared
+#>   1:  bridge_001         0.7466989      shared
+#>   2:  bridge_002         0.6817916      shared
+#>   3:   comm2_000         0.9199778      shared
+#>   4:   comm2_001         0.9877012      shared
+#>   5:   comm2_002         0.9952359      shared
 #>  ---                                          
 #> 161: g2_only_000         1.1000000     g2_only
 #> 162: g2_only_001         1.1000000     g2_only
@@ -244,6 +257,7 @@ labels and see whether the known differential nodes rank lower than the
 stable ones.
 
 ``` r
+
 results <- merge(
   stats,
   test_data$data_info[, .(node, is_differential)],
@@ -277,6 +291,7 @@ confirming the method recovers the planted signal. The exclusive nodes
 carry sentinel values and are excluded from this comparison:
 
 ``` r
+
 # exclusive nodes carry fixed sentinel values
 results[node_status != "shared", .(node, cosine_similarity, node_status)]
 #> Key: <node>

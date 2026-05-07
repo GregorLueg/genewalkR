@@ -1,9 +1,10 @@
 # genewalkR package
 
-![r_package](https://img.shields.io/badge/R_package-0.1.5-orange)[![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
+![r_package](https://img.shields.io/badge/R_package-0.1.6-orange)[![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github)](https://gregorlueg.github.io/genewalkR/)
+[![extendr](https://img.shields.io/badge/extendr-%5E0.9.0-276DC2)](https://extendr.github.io/extendr/extendr_api/)
 
 ![genewalk logo](reference/figures/genewalkR_logo.png)
 
@@ -77,6 +78,7 @@ Steps for installation:
 ### Install genewalkR
 
 ``` r
+
 # From GitHub
 remotes::install_github("GregorLueg/genewalkR")
 ```

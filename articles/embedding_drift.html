@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,6 +79,11 @@
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gregorlueg.github.io/genewalkR/">genewalkR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'data.table'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     %notin%</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r.igraph.org/" class="external-link">igraph</a></span><span class="op">)</span></span>
@@ -235,12 +240,12 @@
 <code class="sourceCode R"><span><span class="va">embd_ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_embeddings.html">get_embeddings</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span> <span class="co"># returns both matrices as a list.</span></span>
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                dim_1      dim_2       dim_3       dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.4094421 -0.6394662 -0.10864581  0.19674712 0.4545781</span></span>
-<span><span class="co">#&gt; bridge_002 0.4340097 -0.6330951 -0.13474450  0.25480175 0.4033365</span></span>
-<span><span class="co">#&gt; comm2_000  0.5881598 -0.2986928 -0.02996316  0.23457602 0.2220614</span></span>
-<span><span class="co">#&gt; comm2_001  0.5270774 -0.3712355 -0.33634475 -0.06627915 0.5673791</span></span>
-<span><span class="co">#&gt; comm2_002  0.5525070 -0.3989322 -0.33412868  0.00805289 0.5195696</span></span></code></pre></div>
+<span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
+<span><span class="co">#&gt; bridge_001 0.4156245 -0.6459072 -0.10770883  0.200617060 0.4432926</span></span>
+<span><span class="co">#&gt; bridge_002 0.4374254 -0.6391289 -0.13581797  0.255183309 0.3949776</span></span>
+<span><span class="co">#&gt; comm2_000  0.5871869 -0.2991635 -0.03248966  0.229178011 0.2113970</span></span>
+<span><span class="co">#&gt; comm2_001  0.5148071 -0.3717145 -0.34168667 -0.083076969 0.5707827</span></span>
+<span><span class="co">#&gt; comm2_002  0.5436956 -0.3999259 -0.34196118 -0.003643553 0.5234640</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -253,11 +258,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7622537      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6953369      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9173867      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9895593      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9953459      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7466989      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6817916      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9199778      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9877012      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9952359      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>
