@@ -1,11 +1,16 @@
 # Changelog
 
+## genewalkR 0.1.7
+
+### Features
+
+- Vignettes and documentations
+
 ## genewalkR 0.1.6
 
 ### Features
 
-- Various diffusion methods for “guilty-by-association” methods
-  implemented.
+- Various version bumps
 
 ## genewalkR 0.1.5
 
