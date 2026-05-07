@@ -2,7 +2,9 @@
 
 #![warn(missing_docs)]
 
+use extendr_api::Robj;
 use node2vec_rs::prelude::*;
+use std::collections::HashMap;
 
 ////////////
 // Config //
@@ -37,8 +39,11 @@ impl GeneWalkConfig {
     /// ### Returns
     ///
     /// Initialised GeneWalkConfig
-    pub fn from_r_list(param_list: extendr_api::List, seed: usize) -> GeneWalkConfig {
-        let param_list = param_list.into_hashmap();
+    pub fn from_r_list(
+        param_list: extendr_api::List,
+        seed: usize,
+    ) -> Result<GeneWalkConfig, extendr_api::Error> {
+        let param_list: HashMap<&str, Robj> = param_list.try_into()?;
 
         let p = param_list.get("p").and_then(|v| v.as_real()).unwrap_or(1.0) as f32;
         let q = param_list.get("q").and_then(|v| v.as_real()).unwrap_or(1.0) as f32;
@@ -94,7 +99,7 @@ impl GeneWalkConfig {
             .and_then(|v| v.as_real())
             .unwrap_or(1e-3) as f32;
 
-        GeneWalkConfig {
+        Ok(GeneWalkConfig {
             walks_per_node,
             walk_length,
             p,
@@ -111,7 +116,7 @@ impl GeneWalkConfig {
                 verbose,
                 sample,
             },
-        }
+        })
     }
 }
 

@@ -7,9 +7,12 @@
 src/rust/vendor
 src/Makevars
 src/Makevars.win
+vendor.tar.xz
 
 inst/doc
 **/.quarto/
 /doc/
 /Meta/
 docs
+
+scratch.R
