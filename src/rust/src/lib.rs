@@ -73,8 +73,8 @@ fn rs_node2vec(
     directed: bool,
     seed: usize,
     verbose: bool,
-) -> RArray<f64, [usize; 2]> {
-    let mut config = GeneWalkConfig::from_r_list(node2vec_params, seed);
+) -> Result<RArray<f64, 2>, extendr_api::Error> {
+    let mut config = GeneWalkConfig::from_r_list(node2vec_params, seed)?;
     config.train_args.dim = embd_dim;
 
     if verbose {
@@ -111,7 +111,9 @@ fn rs_node2vec(
     let nrows = embedding.len();
     let ncols = embedding[0].len();
 
-    RMatrix::new_matrix(nrows, ncols, |r, c| embedding[r][c] as f64)
+    Ok(RMatrix::new_matrix(nrows, ncols, |r, c| {
+        embedding[r][c] as f64
+    }))
 }
 
 /////////////////////////
@@ -153,7 +155,7 @@ fn rs_gene_walk(
     seed: usize,
     verbose: bool,
 ) -> extendr_api::Result<List> {
-    let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
+    let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed)?;
     config.train_args.dim = embd_dim;
 
     if verbose {
@@ -259,7 +261,7 @@ fn rs_gene_walk_perm(
     seed: usize,
     verbose: bool,
 ) -> extendr_api::Result<List> {
-    let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed);
+    let mut config = GeneWalkConfig::from_r_list(gene_walk_params, seed)?;
     config.train_args.dim = embd_dim;
 
     let from = from.iter().map(|x| (*x - 1) as u32).collect::<Vec<u32>>();
@@ -346,14 +348,14 @@ fn rs_gene_walk_perm(
 /// learning and significance testing procedures of the GWN nreps_graph times
 /// and provide the mean and 95\% confidence intervals".
 ///
-/// @param gene_embds_list List of n_graph gene embedding matrices
-///   (n_genes x dim).
+/// @param gene_embds_list List of n_graph gene embedding matrices (n_genes x
+/// dim).
 /// @param pathway_embds_list List of n_graph pathway embedding matrices
-///   (n_pathways x dim).
+/// (n_pathways x dim).
 /// @param null_similarities List of n_perm numeric vectors (null cosine
-///   similarities to be pooled).
+/// similarities to be pooled).
 /// @param connected_pathways List. Per-gene integer vectors of connected
-///   pathway indices (1-indexed).
+/// pathway indices (1-indexed).
 /// @param verbose Controls verbosity.
 ///
 /// @returns A list with per-pair statistics.
@@ -367,14 +369,17 @@ fn rs_gene_walk_test(
     null_similarities: List,
     connected_pathways: List,
     verbose: bool,
-) -> List {
+) -> Result<List, extendr_api::Error> {
     let n_reps = gene_embds_list.len();
     let n_genes = {
-        let first: RMatrix<f64> = gene_embds_list.elt(0).unwrap().try_into().unwrap();
+        let first: RMatrix<f64> = gene_embds_list
+            .elt(0)
+            .map_err(|_| Error::Other("missing first gene embedding".into()))?
+            .try_into()
+            .map_err(|_| Error::Other("first gene embedding is not a numeric matrix".into()))?;
         first.nrows()
     };
 
-    // parse connectivity (1-indexed -> 0-indexed)
     let connectivity: Vec<Vec<usize>> = connected_pathways
         .iter()
         .map(|(_, v)| {
@@ -386,14 +391,13 @@ fn rs_gene_walk_test(
         })
         .collect();
 
-    // pool all null similarities into one sorted distribution
     let mut pooled_null: Vec<f64> = Vec::new();
     for (_, perm_item) in null_similarities.iter() {
         if let Some(v) = perm_item.as_real_vector() {
             pooled_null.extend(v);
         }
     }
-    pooled_null.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    pooled_null.sort_by(|a, b| a.total_cmp(b));
 
     if verbose {
         let total_pairs: usize = connectivity.iter().map(|c| c.len()).sum();
@@ -405,7 +409,6 @@ fn rs_gene_walk_test(
         );
     }
 
-    // compute cosine similarities, p-values, and FDR per rep
     let mut raw_pvals_per_rep: Vec<Vec<Vec<f64>>> = Vec::with_capacity(n_reps);
     let mut gene_fdr_per_rep: Vec<Vec<Vec<f64>>> = Vec::with_capacity(n_reps);
     let mut global_fdr_per_rep: Vec<Vec<f64>> = Vec::with_capacity(n_reps);
@@ -416,15 +419,32 @@ fn rs_gene_walk_test(
             println!("Processing rep {}/{}", rep + 1, n_reps);
         }
 
-        let gene_mat: RMatrix<f64> = gene_embds_list.elt(rep).unwrap().try_into().unwrap();
-        let pathway_mat: RMatrix<f64> = pathway_embds_list.elt(rep).unwrap().try_into().unwrap();
+        let gene_mat: RMatrix<f64> = gene_embds_list
+            .elt(rep)
+            .map_err(|_| Error::Other(format!("missing gene embedding at rep {}", rep + 1)))?
+            .try_into()
+            .map_err(|_| {
+                Error::Other(format!(
+                    "gene embedding at rep {} is not a numeric matrix",
+                    rep + 1
+                ))
+            })?;
+        let pathway_mat: RMatrix<f64> = pathway_embds_list
+            .elt(rep)
+            .map_err(|_| Error::Other(format!("missing pathway embedding at rep {}", rep + 1)))?
+            .try_into()
+            .map_err(|_| {
+                Error::Other(format!(
+                    "pathway embedding at rep {} is not a numeric matrix",
+                    rep + 1
+                ))
+            })?;
 
         let gene_embds = r_matrix_to_vec(gene_mat);
         let pathway_embds = r_matrix_to_vec(pathway_mat);
 
         let cosine_sim: Mat<f64> = compute_cross_cosine(&gene_embds, &pathway_embds);
 
-        // P-values for connected pairs against pooled null
         let gene_pvals: Vec<Vec<f64>> = (0..n_genes)
             .map(|gi| {
                 connectivity[gi]
@@ -439,7 +459,6 @@ fn rs_gene_walk_test(
             })
             .collect();
 
-        // global FDR: across all connected pairs
         let all_connected_pvals: Vec<f64> = gene_pvals.iter().flatten().cloned().collect();
 
         let global_fdr_flat = if all_connected_pvals.is_empty() {
@@ -458,8 +477,6 @@ fn rs_gene_walk_test(
         global_fdr_per_rep.push(global_fdr_flat);
         cosine_sims_per_rep.push(cosine_sim);
     }
-
-    // aggregate across reps
 
     let mut out_gene: Vec<i32> = Vec::new();
     let mut out_pathway: Vec<i32> = Vec::new();
@@ -480,7 +497,6 @@ fn rs_gene_walk_test(
     #[allow(clippy::needless_range_loop)]
     for gene_i in 0..n_genes {
         for (local_idx, &pathway_i) in connectivity[gene_i].iter().enumerate() {
-            // aimilarity: mean and SEM across reps
             let sims: Vec<f64> = (0..n_reps)
                 .map(|r| cosine_sims_per_rep[r][(gene_i, pathway_i)])
                 .collect();
@@ -493,7 +509,6 @@ fn rs_gene_walk_test(
                 0.0
             };
 
-            // pvals across reps
             let raw_pvals: Vec<f64> = (0..n_reps)
                 .map(|r| raw_pvals_per_rep[r][gene_i][local_idx])
                 .collect();
@@ -526,7 +541,7 @@ fn rs_gene_walk_test(
         }
     }
 
-    list![
+    Ok(list![
         gene = out_gene,
         pathway = out_pathway,
         similarity = out_similarity,
@@ -540,7 +555,7 @@ fn rs_gene_walk_test(
         avg_gene_fdr = out_avg_gene_fdr,
         gene_fdr_ci_lower = out_gene_fdr_ci_lower,
         gene_fdr_ci_upper = out_gene_fdr_ci_upper
-    ]
+    ])
 }
 
 ///////////
@@ -605,12 +620,12 @@ fn rs_node2vec_synthetic_data(
 ///
 /// @param n_signal_genes Integer. Genes annotated to a single ontology subtree.
 /// @param n_noise_genes Integer. Genes with annotations scattered across
-///   subtrees.
+/// subtrees.
 /// @param n_roots Integer. Number of ontology root terms.
 /// @param depth Integer. Depth of each ontology subtree.
 /// @param branching Integer. Average branching factor per node.
 /// @param p_lateral Numeric. Probability of lateral edges within each ontology
-///   level.
+/// level.
 /// @param p_ppi Numeric. PPI connection probability within gene groups.
 /// @param min_annotations Integer. Minimum annotations per gene.
 /// @param max_annotations Integer. Maximum annotations per gene.
@@ -702,17 +717,17 @@ fn rs_build_synthetic_genewalk(
 /// only one graph.
 ///
 /// @param n_stable Integer. Number of nodes in the stable negative-control
-///   community.
+/// community.
 /// @param n_comm2 Integer. Number of regular nodes in community 2, excluding
-///   the hub.
+/// the hub.
 /// @param n_comm3 Integer. Number of nodes in community 3, excluding bridge
-///   nodes.
+/// nodes.
 /// @param n_exclusive Integer. Number of exclusive nodes in each graph.
 ///
 /// @return A named list with:
 /// `g1_edges` (from, to), `g1_nodes` (node, cluster),
-///   `g2_edges` (from, to), `g2_nodes` (node, cluster), `data_info`
-///   (shared_nodes, is_differential, g1_only, g2_only).
+/// `g2_edges` (from, to), `g2_nodes` (node, cluster), `data_info`
+/// (shared_nodes, is_differential, g1_only, g2_only).
 ///
 /// @export
 #[extendr]
@@ -754,7 +769,10 @@ fn rs_differential_graph_data(
 ///
 /// @export
 #[extendr]
-fn rs_procrustes_align(embd1: RMatrix<f64>, embd2: RMatrix<f64>) -> List {
+fn rs_procrustes_align(
+    embd1: RMatrix<f64>,
+    embd2: RMatrix<f64>,
+) -> Result<List, extendr_api::Error> {
     assert_same_dims!(embd1, embd2);
 
     let k = embd1.nrows();
@@ -764,7 +782,9 @@ fn rs_procrustes_align(embd1: RMatrix<f64>, embd2: RMatrix<f64>) -> List {
     let s2 = r_matrix_to_faer(&embd2);
 
     let m = s1.transpose() * s2;
-    let svd = m.thin_svd().unwrap();
+    let svd = m
+        .thin_svd()
+        .map_err(|_| Error::Other("Faer thin_svd() failed. Please check the data.".into()))?;
     let w = svd.U() * svd.V().transpose();
 
     let aligned = s1 * w;
@@ -779,7 +799,10 @@ fn rs_procrustes_align(embd1: RMatrix<f64>, embd2: RMatrix<f64>) -> List {
 
     let aligned_r = faer_to_r_matrix(aligned.as_ref());
 
-    list!(aligned = aligned_r, cosine_similarities = cosine_sims,)
+    Ok(list!(
+        aligned = aligned_r,
+        cosine_similarities = cosine_sims
+    ))
 }
 
 ///////////////

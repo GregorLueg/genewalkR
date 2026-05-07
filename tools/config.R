@@ -18,8 +18,9 @@ if (is_debug) {
   # if we have DEBUG then we set not cran to true
   # CRAN is always release build
   is_not_cran <- TRUE
-  message("Creating DEBUG build.")
+  message("DEBUG requested but ignored - this package always builds release.")
 }
+is_debug <- FALSE
 
 if (!is_not_cran) {
   message("Building for CRAN.")

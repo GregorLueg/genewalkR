@@ -13,8 +13,8 @@ rs_gene_walk_test(
 )
 }
 \arguments{
-\item{gene_embds_list}{List of n_graph gene embedding matrices
-(n_genes x dim).}
+\item{gene_embds_list}{List of n_graph gene embedding matrices (n_genes x
+dim).}
 
 \item{pathway_embds_list}{List of n_graph pathway embedding matrices
 (n_pathways x dim).}

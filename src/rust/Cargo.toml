@@ -1,12 +1,12 @@
 [package]
 name = 'genewalkR'
 publish = false
-version = '0.1.5'
+version = '0.1.6'
 edition = '2021'
 rust-version = '1.85'
 
 [lib]
-crate-type = ['staticlib']
+crate-type = ['staticlib', 'rlib']
 name = 'genewalkR'
 
 # I want aggressive optimisation also during testing
@@ -24,9 +24,9 @@ lto = "thin"
 codegen-units = 1
 
 [dependencies]
-ann-search-rs = "0.2.8"
-bixverse-rs = "0.1.6"
-extendr-api = '0.8.1'
+ann-search-rs = "0.2.15"
+bixverse-rs = "0.2.0"
+extendr-api = "0.9.0"
 faer = "0.23.2"
 fastrand = "2.3.0"
 itertools = "0.14.0"
@@ -39,3 +39,7 @@ rustc-hash = "2.1.1"
 
 [lints.rust]
 non_snake_case = "allow"
+
+[[bin]]
+name = "document"
+path = "document.rs"
