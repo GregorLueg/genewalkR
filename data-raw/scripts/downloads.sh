@@ -27,11 +27,11 @@ download_parquet_files() {
     done
 }
 
-download_parquet_files "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/26.03/output/target/" "$TARGET_FOLDER/targets"
+download_parquet_files "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/26.06/output/target/" "$TARGET_FOLDER/targets"
 
-download_parquet_files "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/26.03/intermediate/reactome/" "$TARGET_FOLDER/reactome"
+download_parquet_files "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/26.06/output/reactome/" "$TARGET_FOLDER/reactome"
 
-download_parquet_files "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/26.03/output/interaction_evidence/" "$TARGET_FOLDER/interactions"
+download_parquet_files "https://ftp.ebi.ac.uk/pub/databases/opentargets/platform/26.06/output/interaction_evidence/" "$TARGET_FOLDER/interactions"
 
 echo "Downloading GO obo file..."
 wget "https://purl.obolibrary.org/obo/go.obo" -P "$TARGET_FOLDER/obo_files" --no-verbose
