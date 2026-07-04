@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Embedding Drift via node2vec • genewalkR</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="embedding_drift_files/libs/quarto-html/popper.min.js"></script><script src="embedding_drift_files/libs/quarto-html/tippy.umd.min.js"></script><link href="embedding_drift_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="embedding_drift_files/libs/quarto-html/light-border.css" rel="stylesheet">
@@ -60,7 +60,7 @@
       <h1>Embedding Drift via node2vec</h1>
 
       <p class="author">Gregor Lueg</p>
-      <p class="date">2026-05-07</p>
+      <p class="date">2026-07-04</p>
 
 
       <div class="d-none name"><code></code></div>
@@ -241,11 +241,11 @@
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.4132652 -0.6532472 -0.09086256  0.203046083 0.4352451</span></span>
-<span><span class="co">#&gt; bridge_002 0.4418445 -0.6471694 -0.11369205  0.256728619 0.3814397</span></span>
-<span><span class="co">#&gt; comm2_000  0.5946093 -0.2952264 -0.02838421  0.226028949 0.2240217</span></span>
-<span><span class="co">#&gt; comm2_001  0.5240986 -0.3750361 -0.34323531 -0.070832714 0.5692720</span></span>
-<span><span class="co">#&gt; comm2_002  0.5472054 -0.4017503 -0.34141681  0.004575797 0.5242871</span></span></code></pre></div>
+<span><span class="co">#&gt; bridge_001 0.4174429 -0.6497087 -0.09200338  0.205291539 0.4356003</span></span>
+<span><span class="co">#&gt; bridge_002 0.4408265 -0.6426820 -0.12082695  0.258722901 0.3856717</span></span>
+<span><span class="co">#&gt; comm2_000  0.5734137 -0.2932176 -0.03182559  0.239751741 0.2325829</span></span>
+<span><span class="co">#&gt; comm2_001  0.5260075 -0.3702053 -0.33949915 -0.075667851 0.5629376</span></span>
+<span><span class="co">#&gt; comm2_002  0.5561754 -0.4002404 -0.33038044  0.005319599 0.5113709</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -258,11 +258,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7498372      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6851695      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9160074      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9879078      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9958680      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7524952      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6842311      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9166296      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9875152      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9944051      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>
