@@ -793,7 +793,7 @@ fn rs_procrustes_align(
         .map(|i| {
             let a: Vec<f64> = (0..d).map(|c| aligned[(i, c)]).collect();
             let b: Vec<f64> = (0..d).map(|c| s2[(i, c)]).collect();
-            cosine_similarity(&a, &b) as f64
+            cosine_similarity(&a, &b)
         })
         .collect();
 
