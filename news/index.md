@@ -1,5 +1,12 @@
 # Changelog
 
+## genewalkR 0.1.8
+
+### Features
+
+- New data release
+- Various updates to Rust crates to be up-to-date
+
 ## genewalkR 0.1.7
 
 ### Features
