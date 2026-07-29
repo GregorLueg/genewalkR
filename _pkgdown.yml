@@ -2,23 +2,22 @@ url: https://gregorlueg.github.io/genewalkR/
 
 template:
   bootstrap: 5
-  bootswatch: darkly
+  bootswatch: lux
+  light-switch: true
   bslib:
-    primary: "#00bc8c"
-    border-radius: 0.4rem
-    btn-border-radius: 0.4rem
-  includes:
-    in_header: ""
-  css: pkgdown/extra.css
+    # lux uses navbar-padding-y: 1.5rem, so pkgdown's 56px default is too small
+    pkgdown-nav-height: 104px
 
 home:
   title: "genewalkR"
-  description: "node2vec-based analyses over biological networks in R powered by Rust."
+  description: 
+    "node2vec-based and other graph-based analyses over biological networks in R 
+    powered by Rust."
 
 navbar:
   structure:
-    left: [intro, reference, articles]
-    right: [search, github]
+    left: [intro, reference, news, articles]
+    right: [search, lightswitch, github]
   components:
     github:
       icon: fab fa-github
