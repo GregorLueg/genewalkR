@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Embedding Drift via node2vec • genewalkR</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
@@ -33,6 +33,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
@@ -47,6 +48,14 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/GregorLueg/genewalkR" aria-label="GitHub"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
@@ -60,7 +69,7 @@
       <h1>Embedding Drift via node2vec</h1>
 
       <p class="author">Gregor Lueg</p>
-      <p class="date">2026-07-04</p>
+      <p class="date">2026-07-29</p>
 
 
       <div class="d-none name"><code></code></div>
@@ -240,12 +249,12 @@
 <code class="sourceCode R"><span><span class="va">embd_ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_embeddings.html">get_embeddings</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span> <span class="co"># returns both matrices as a list.</span></span>
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                dim_1      dim_2       dim_3         dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.4197871 -0.6447058 -0.09543983  0.2042042166 0.4420213</span></span>
-<span><span class="co">#&gt; bridge_002 0.4484729 -0.6402932 -0.11630459  0.2607710063 0.3881299</span></span>
-<span><span class="co">#&gt; comm2_000  0.5918545 -0.2853894 -0.02505511  0.2180375010 0.2147676</span></span>
-<span><span class="co">#&gt; comm2_001  0.5213498 -0.3677218 -0.33851066 -0.0751986429 0.5699013</span></span>
-<span><span class="co">#&gt; comm2_002  0.5439677 -0.3959929 -0.33318239  0.0002837415 0.5246281</span></span></code></pre></div>
+<span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
+<span><span class="co">#&gt; bridge_001 0.3864669 -0.6419768 -0.12606427  0.183727384 0.4657997</span></span>
+<span><span class="co">#&gt; bridge_002 0.4128394 -0.6375831 -0.14949791  0.245883003 0.4115852</span></span>
+<span><span class="co">#&gt; comm2_000  0.5797266 -0.3192397 -0.04569889  0.247126892 0.2115422</span></span>
+<span><span class="co">#&gt; comm2_001  0.5242016 -0.3775858 -0.34447151 -0.093270890 0.5619564</span></span>
+<span><span class="co">#&gt; comm2_002  0.5485054 -0.4099753 -0.33965412 -0.007247515 0.5146898</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -258,11 +267,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7552111      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6882355      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9176664      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9901200      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9945922      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7479073      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6778354      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9139795      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9883088      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9952327      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>
@@ -415,7 +424,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
