@@ -1,72 +1,22 @@
 name: R-CMD-check
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   R-CMD-check:
-    runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
-    strategy:
-      fail-fast: true
-      matrix:
-        config:
-          - {os: macOS-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      R_KEEP_PKG_SOURCE: yes
-    steps:
-      - uses: actions/checkout@v5
-      
-      - uses: r-lib/actions/setup-pandoc@v2
-      
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: ${{ matrix.config.r }}
-          http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: true
-          extra-repositories: 'https://cloud.r-project.org'
-      
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ runner.os == 'Windows' && '1.91.0-x86_64-pc-windows-gnu' || '1.91.0' }}
-      
-      - name: Cache Rust dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            src/rust/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          pak-version: stable
-          cache-version: 2 
-          extra-packages: |
-            any::rcmdcheck
-            any::rmarkdown
-            any::knitr
-            any::rextendr
-          needs: check
-      
-      - name: Install system dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
-      
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          build_args: 'c("--no-manual","--no-build-vignettes")'
-          args: 'c("--no-manual", "--no-vignettes")'
-          error-on: '"error"'
+    uses: GregorLueg/personal-actions/.github/workflows/r-cmd-check.yml@v1
+    with:
+      rust: true
+      rust-toolchain: '1.91.0'
+      gpu: false
+      windows: true
+      linux-runner: ubuntu-latest
+    secrets: inherit
