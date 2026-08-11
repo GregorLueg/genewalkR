@@ -6,7 +6,7 @@ articles:
   embedding_drift: embedding_drift.html
   genewalk: genewalk.html
   node2vec: node2vec.html
-last_built: 2026-07-29T08:55Z
+last_built: 2026-08-11T22:01Z
 urls:
   reference: https://gregorlueg.github.io/genewalkR/reference
   article: https://gregorlueg.github.io/genewalkR/articles

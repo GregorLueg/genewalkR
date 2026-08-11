@@ -69,7 +69,7 @@
       <h1>Embedding Drift via node2vec</h1>
 
       <p class="author">Gregor Lueg</p>
-      <p class="date">2026-07-29</p>
+      <p class="date">2026-08-11</p>
 
 
       <div class="d-none name"><code></code></div>
@@ -250,11 +250,11 @@
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.3864669 -0.6419768 -0.12606427  0.183727384 0.4657997</span></span>
-<span><span class="co">#&gt; bridge_002 0.4128394 -0.6375831 -0.14949791  0.245883003 0.4115852</span></span>
-<span><span class="co">#&gt; comm2_000  0.5797266 -0.3192397 -0.04569889  0.247126892 0.2115422</span></span>
-<span><span class="co">#&gt; comm2_001  0.5242016 -0.3775858 -0.34447151 -0.093270890 0.5619564</span></span>
-<span><span class="co">#&gt; comm2_002  0.5485054 -0.4099753 -0.33965412 -0.007247515 0.5146898</span></span></code></pre></div>
+<span><span class="co">#&gt; bridge_001 0.4220293 -0.6372396 -0.11679229  0.204771459 0.4478752</span></span>
+<span><span class="co">#&gt; bridge_002 0.4450616 -0.6305789 -0.14156571  0.260549814 0.3987963</span></span>
+<span><span class="co">#&gt; comm2_000  0.5886466 -0.2958317 -0.03145234  0.238651723 0.2151458</span></span>
+<span><span class="co">#&gt; comm2_001  0.5290049 -0.3674698 -0.33788297 -0.078354903 0.5619667</span></span>
+<span><span class="co">#&gt; comm2_002  0.5480707 -0.3948155 -0.33749998 -0.001885847 0.5223194</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -267,11 +267,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7479073      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6778354      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9139795      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9883088      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9952327      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7524841      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6884709      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9210524      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9888081      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9952129      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>
