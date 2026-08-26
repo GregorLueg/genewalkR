@@ -15,7 +15,6 @@ jobs:
     uses: GregorLueg/personal-actions/.github/workflows/r-cmd-check.yml@v1
     with:
       rust: true
-      rust-toolchain: ''
       gpu: false
       windows: true
       linux-runner: ubuntu-latest

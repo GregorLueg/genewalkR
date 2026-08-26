@@ -17,6 +17,5 @@ jobs:
     uses: GregorLueg/personal-actions/.github/workflows/r-pkgdown.yml@v1
     with:
       rust: true
-      rust-toolchain: ''
       gpu: false
     secrets: inherit
