@@ -2,7 +2,7 @@ Package: genewalkR
 Title: 
     Graph-based computational algorithms in R, including diffusions and small 
     neural networks like node2vec.
-Version: 0.1.8
+Version: 0.1.9
 Authors@R: 
     c(
     person(

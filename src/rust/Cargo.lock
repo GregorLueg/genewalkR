@@ -848,7 +848,7 @@ dependencies = [
 
 [[package]]
 name = "genewalkR"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "ann-search-rs",
  "bixverse-rs",
