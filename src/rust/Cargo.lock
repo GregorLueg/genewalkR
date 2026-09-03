@@ -19,12 +19,10 @@ checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 
 [[package]]
 name = "ann-search-rs"
-version = "0.5.2"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88a7154255eea2dcf4c15fa213c324e41257233953c3276f938e9a7b5b7c0307"
+checksum = "ceee6fcb65e024ed0f7d9ebe3a2ea1e591735ab5d4637e892fdae8d3d87d60ac"
 dependencies = [
- "approx",
- "clap",
  "document-features",
  "faer",
  "faer-traits",
@@ -129,9 +127,9 @@ checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
 
 [[package]]
 name = "bixverse-rs"
-version = "0.4.7"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cdda1b0ef1890a29cc77faad29f89fad31f38394146cb11e68c9d38ae3060c7c"
+checksum = "83a5c2ad235452b8d42ce8c7ba9e985a15caaed67585226854e5246fb6524cd6"
 dependencies = [
  "ann-search-rs",
  "approx",
@@ -848,7 +846,7 @@ dependencies = [
 
 [[package]]
 name = "genewalkR"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "ann-search-rs",
  "bixverse-rs",

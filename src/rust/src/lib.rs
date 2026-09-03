@@ -7,7 +7,7 @@ pub mod graph;
 pub mod utils;
 
 use bixverse_rs::assert_same_dims;
-use bixverse_rs::core::math::stats::calc_fdr;
+use bixverse_rs::core::math::stats::p_adjust_fdr;
 use bixverse_rs::prelude::*;
 use extendr_api::prelude::*;
 use faer::{Mat, MatRef};
@@ -464,12 +464,18 @@ fn rs_gene_walk_test(
         let global_fdr_flat = if all_connected_pvals.is_empty() {
             vec![]
         } else {
-            calc_fdr(&all_connected_pvals)
+            p_adjust_fdr(&all_connected_pvals)
         };
 
         let gene_fdr: Vec<Vec<f64>> = gene_pvals
             .iter()
-            .map(|p| if p.is_empty() { vec![] } else { calc_fdr(p) })
+            .map(|p| {
+                if p.is_empty() {
+                    vec![]
+                } else {
+                    p_adjust_fdr(p)
+                }
+            })
             .collect();
 
         raw_pvals_per_rep.push(gene_pvals);
