@@ -1,12 +1,11 @@
-# genewalkR package
+# genewalkR <img src="man/figures/logo.png" align="right" height="138" alt="genewalkR logo" />
 
-![r_package](https://img.shields.io/badge/R_package-0.1.8-orange) 
+[![r_package](https://img.shields.io/github/r-package/v/GregorLueg/genewalkR?label=R_package&color=orange)](https://github.com/GregorLueg/genewalkR/blob/main/DESCRIPTION)
+[![genewalkR status badge](https://gregorlueg.r-universe.dev/genewalkR/badges/version)](https://gregorlueg.r-universe.dev/genewalkR)
 [![CI](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml/badge.svg)](https://github.com/GregorLueg/genewalkR/actions/workflows/R-cmd-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![pkgdown](https://img.shields.io/badge/pkgdown-website-1b5e9f?logo=github)](https://gregorlueg.github.io/genewalkR/)
 [![extendr](https://img.shields.io/badge/extendr-^0.9.0-276DC2)](https://extendr.github.io/extendr/extendr_api/)
-
-<img src="man/figures/genewalkR_logo.png" width="128" height="128" alt="genewalk logo">
 
 ## Description
 
@@ -68,6 +67,17 @@ devtools::install_github("https://github.com/GregorLueg/genewalkR")
 ```
 
 ### Install genewalkR
+
+You can install from R-universe:
+
+```r
+install.packages(
+  'genewalkR', 
+  repos = c('https://gregorlueg.r-universe.dev', 'https://cloud.r-project.org')
+)
+```
+
+Or from source which will compile all the Rust.
 
 ```r
 # From GitHub

@@ -6,7 +6,7 @@ template:
   theme: atom-one-light
   theme-dark: atom-one-dark
   bslib:
-    primary: "#3F51B5"
+    primary: "#5B7095"
     border-radius: 0.5rem
     btn-border-radius: 0.25rem
 

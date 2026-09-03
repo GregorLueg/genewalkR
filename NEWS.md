@@ -1,3 +1,16 @@
+# genewalkR 0.1.10
+
+## Features
+
+- Rust version updates
+- Nicer website and updades to `README.md` to point to R-universe for install.
+
+# genewalkR 0.1.9
+
+## Features
+
+- Rust version updates
+
 # genewalkR 0.1.8
 
 ## Features
