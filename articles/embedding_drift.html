@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Embedding Drift via node2vec • genewalkR</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -14,6 +19,7 @@
 <link href="embedding_drift_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Embedding Drift via node2vec">
+<meta property="og:image" content="https://gregorlueg.github.io/genewalkR/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -23,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,11 +71,10 @@
 </nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Embedding Drift via node2vec</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Embedding Drift via node2vec</h1>
 
       <p class="author">Gregor Lueg</p>
-      <p class="date">2026-08-26</p>
+      <p class="date">2026-09-03</p>
 
 
       <div class="d-none name"><code></code></div>
@@ -249,12 +254,12 @@
 <code class="sourceCode R"><span><span class="va">embd_ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_embeddings.html">get_embeddings</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span> <span class="co"># returns both matrices as a list.</span></span>
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.4107268 -0.6558790 -0.09364233  0.213656202 0.4356941</span></span>
-<span><span class="co">#&gt; bridge_002 0.4329211 -0.6499459 -0.11985210  0.265487313 0.3903206</span></span>
-<span><span class="co">#&gt; comm2_000  0.5884016 -0.2954965 -0.03487657  0.224909917 0.2103065</span></span>
-<span><span class="co">#&gt; comm2_001  0.5204664 -0.3739595 -0.34902579 -0.079805717 0.5653057</span></span>
-<span><span class="co">#&gt; comm2_002  0.5514274 -0.4056327 -0.34191945  0.003869261 0.5127114</span></span></code></pre></div>
+<span><span class="co">#&gt;                dim_1      dim_2       dim_3       dim_4     dim_5</span></span>
+<span><span class="co">#&gt; bridge_001 0.4169891 -0.6587558 -0.08641786  0.19218160 0.4281792</span></span>
+<span><span class="co">#&gt; bridge_002 0.4438764 -0.6528321 -0.11050832  0.24785288 0.3745771</span></span>
+<span><span class="co">#&gt; comm2_000  0.5850236 -0.2939754 -0.03488820  0.21066369 0.2326420</span></span>
+<span><span class="co">#&gt; comm2_001  0.5387049 -0.3798841 -0.33443803 -0.05953214 0.5573732</span></span>
+<span><span class="co">#&gt; comm2_002  0.5488719 -0.4002734 -0.34692410 -0.00294586 0.5232115</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -267,11 +272,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7476393      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6830504      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9174530      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9885432      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9948047      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7483744      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6939637      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9107180      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9894530      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9949497      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>
