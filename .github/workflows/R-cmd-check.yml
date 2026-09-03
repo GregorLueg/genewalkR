@@ -17,5 +17,6 @@ jobs:
       rust: true
       gpu: false
       windows: true
+      macos-x86: true
       linux-runner: ubuntu-latest
     secrets: inherit
