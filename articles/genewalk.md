@@ -45,12 +45,12 @@ str(gene_walk_syn_data)
 #>   ..$ from: chr [1:8237] "term_0001" "term_0001" "term_0002" "term_0002" ...
 #>   ..$ to  : chr [1:8237] "term_0002" "term_0003" "term_0004" "term_0005" ...
 #>   ..$ type: chr [1:8237] "hierarchy" "hierarchy" "hierarchy" "hierarchy" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5600fbc6fb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556d9153cb80> 
 #>  $ gene_to_pathways:Classes 'data.table' and 'data.frame':   6399 obs. of  3 variables:
 #>   ..$ from: chr [1:6399] "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" ...
 #>   ..$ to  : chr [1:6399] "term_0025" "term_0019" "term_0024" "term_0017" ...
 #>   ..$ type: chr [1:6399] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5600fbc6fb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556d9153cb80> 
 #>  $ gene_ids        : chr [1:444] "gene_signal_0001" "gene_signal_0002" "gene_signal_0003" "gene_signal_0004" ...
 #>  $ pathway_ids     : chr [1:355] "term_0001" "term_0002" "term_0003" "term_0004" ...
 ```
@@ -143,14 +143,14 @@ Now we can extract the statistics:
 statistics <- get_stats(genewalk_obj)
 
 head(statistics)
-#>                  gene   pathway similarity    sem_sim     avg_pval
-#>                <char>    <char>      <num>      <num>        <num>
-#> 1: gene_anchor_1_0015 term_0070  0.9551714 0.01860447 0.0002820349
-#> 2: gene_anchor_1_0003 term_0070  0.9539643 0.01328374 0.0004367785
-#> 3: gene_anchor_4_0010 term_0156  0.9343623 0.01708196 0.0011255221
-#> 4: gene_anchor_4_0005 term_0156  0.9317070 0.00685643 0.0015102091
-#> 5: gene_anchor_4_0002 term_0156  0.9297756 0.01473127 0.0016251556
-#> 6: gene_anchor_1_0004 term_0082  0.9269314 0.01442637 0.0017465073
+#>                  gene   pathway similarity     sem_sim     avg_pval
+#>                <char>    <char>      <num>       <num>        <num>
+#> 1: gene_anchor_1_0015 term_0070  0.9551714 0.018604450 0.0002820349
+#> 2: gene_anchor_1_0003 term_0070  0.9539643 0.013283729 0.0004367785
+#> 3: gene_anchor_4_0010 term_0156  0.9343623 0.017081933 0.0011255221
+#> 4: gene_anchor_4_0005 term_0156  0.9317070 0.006856439 0.0015102091
+#> 5: gene_anchor_4_0002 term_0156  0.9297757 0.014731246 0.0016251556
+#> 6: gene_anchor_1_0004 term_0082  0.9269314 0.014426363 0.0017465073
 #>    pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
 #>            <num>         <num>          <num>               <num>
 #> 1:  0.0000265351   0.002997678      0.1996261           0.1762366
@@ -281,7 +281,7 @@ gw_factory$build() # will load the data into the factory
 #> Downloading database...
 #> Download complete
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -289,7 +289,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -297,7 +297,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -305,7 +305,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -313,7 +313,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -458,7 +458,7 @@ gene_symbol_translation <- setNames(
 # get the go data
 go_info <- get_gene_ontology_info()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -479,16 +479,16 @@ myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
 head(myc_gwn_res_translated, 10L)
 #>        gene                                pathway similarity      sem_sim
 #>      <char>                                 <char>      <num>        <num>
-#>  1:  SNRPB2        U2-type prespliceosome assembly  0.9961471 0.0005640030
-#>  2:  SNRPB2   U2-type catalytic step 2 spliceosome  0.9960237 0.0008671974
-#>  3:  SNRPB2               precatalytic spliceosome  0.9956106 0.0008555194
-#>  4:    MCM5            3'-5' DNA helicase activity  0.9953370 0.0011583585
-#>  5:  SNRPB2 post-mRNA release spliceosomal complex  0.9951207 0.0021059865
-#>  6:  TXNL4A               precatalytic spliceosome  0.9947818 0.0003105502
-#>  7:  SNRPB2   U2-type catalytic step 1 spliceosome  0.9946122 0.0014855497
-#>  8: HNRNPA3                    mRNA 3'-UTR binding  0.9942660 0.0022522197
-#>  9:   RPL14                     cytosolic ribosome  0.9941861 0.0024526580
-#> 10:   RPLP0                     cytosolic ribosome  0.9941760 0.0033034425
+#>  1:  SNRPB2        U2-type prespliceosome assembly  0.9961471 0.0005639686
+#>  2:  SNRPB2   U2-type catalytic step 2 spliceosome  0.9960236 0.0008672173
+#>  3:  SNRPB2               precatalytic spliceosome  0.9956107 0.0008555406
+#>  4:    MCM5            3'-5' DNA helicase activity  0.9953370 0.0011583929
+#>  5:  SNRPB2 post-mRNA release spliceosomal complex  0.9951207 0.0021059673
+#>  6:  TXNL4A               precatalytic spliceosome  0.9947818 0.0003105636
+#>  7:  SNRPB2   U2-type catalytic step 1 spliceosome  0.9946122 0.0014855100
+#>  8: HNRNPA3                    mRNA 3'-UTR binding  0.9942660 0.0022522309
+#>  9:   RPL14                     cytosolic ribosome  0.9941861 0.0024526857
+#> 10:   RPLP0                     cytosolic ribosome  0.9941760 0.0033034334
 #>         avg_pval pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
 #>            <num>         <num>         <num>          <num>               <num>
 #>  1: 5.437329e-13  1.009002e-19  2.930078e-06   7.903141e-11        2.333000e-17
@@ -529,7 +529,7 @@ enrichment. Nonetheless, let’s check what happens with noisy data…
 genes <- get_gene_info() %>%
   .[biotype == "protein_coding"]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -621,7 +621,7 @@ terms of the internally stored Reactome data.
 # package
 reactome_genes <- get_gene_to_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -630,7 +630,7 @@ reactome_genes <- get_gene_to_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_ppi <- get_interactions_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -639,7 +639,7 @@ reactome_ppi <- get_interactions_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_hierarchy <- get_reactome_hierarchy(relationship = "parent_of")
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpa6sppB/duckdb
+#> ℹ /tmp/Rtmp8NMrRl/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -685,12 +685,12 @@ str(gwr_data)
 #>   ..$ from: chr [1:4059] "ENSG00000155846" "ENSG00000171720" "ENSG00000204231" "ENSG00000196498" ...
 #>   ..$ to  : chr [1:4059] "ENSG00000173153" "ENSG00000131408" "ENSG00000101849" "ENSG00000131408" ...
 #>   ..$ type: chr [1:4059] "interaction" "interaction" "interaction" "interaction" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5600fbc6fb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556d9153cb80> 
 #>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   911 obs. of  3 variables:
 #>   ..$ from: chr [1:911] "ENSG00000146072" "ENSG00000146072" "ENSG00000146072" "ENSG00000146072" ...
 #>   ..$ to  : chr [1:911] "R-HSA-1989781" "R-HSA-3371511" "R-HSA-3371568" "R-HSA-3371453" ...
 #>   ..$ type: chr [1:911] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5600fbc6fb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x556d9153cb80> 
 #>  $ represented_genes   : chr [1:116] "ENSG00000155846" "ENSG00000171720" "ENSG00000204231" "ENSG00000196498" ...
 #>  $ represented_pathways: chr [1:2870] "R-HSA-1989781" "R-HSA-3371511" "R-HSA-3371568" "R-HSA-3371453" ...
 ```
