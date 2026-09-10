@@ -1,3 +1,10 @@
+# genewalkR 0.1.11
+
+## Features
+
+- Version bumps to `ann-search-rs` to take advantage of avx2 and avx512 
+  instructions
+
 # genewalkR 0.1.10
 
 ## Features
