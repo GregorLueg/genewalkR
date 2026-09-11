@@ -138,7 +138,12 @@ pub fn train_node2vec(
     config: &GeneWalkConfig,
     verbose: bool,
 ) -> Vec<Vec<f32>> {
-    let neg_table = create_negative_table(vocab_size, &walks, NEGATIVE_TABLE_SIZE, config.seed);
+    let neg_table = NegativeTable::Global(create_negative_table(
+        vocab_size,
+        &walks,
+        NEGATIVE_TABLE_SIZE,
+        config.seed,
+    ));
 
     let mut args = config.train_args.clone();
     args.verbose = verbose;
