@@ -5,6 +5,7 @@
 use extendr_api::Robj;
 use node2vec_rs::prelude::*;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 ////////////
 // Config //
@@ -69,7 +70,7 @@ impl GeneWalkConfig {
             .unwrap_or(5) as usize;
 
         let num_negatives = param_list
-            .get("num_negatives")
+            .get("n_negatives")
             .and_then(|v| v.as_integer())
             .unwrap_or(5) as usize;
 
@@ -145,6 +146,80 @@ pub fn train_node2vec(
         config.seed,
     ));
 
+    train_skipgram(walks, vocab_size, neg_table, config, verbose)
+}
+
+/// Train metapath2vec on the CPU and return combined embeddings
+///
+/// The skip-gram objective is the node2vec one; only the walks and, for
+/// metapath2vec++, the negative table differ.
+///
+/// ### Params
+///
+/// * `walks` - Metapath-constrained walks over `graph`
+/// * `graph` - The heterogeneous graph the walks came from
+/// * `config` - The training configuration
+/// * `metapath_plus` - Draw negatives per node type (metapath2vec++)
+/// * `verbose` - Controls verbosity
+///
+/// ### Returns
+///
+/// Embeddings as Vec<Vec<f32>>, indexed by the graph's dense node id
+///
+/// ### References
+///
+/// Dong, Chawla and Swami, *metapath2vec*, KDD 2017
+pub fn train_metapath2vec(
+    walks: Vec<Vec<u32>>,
+    graph: &HetGraph,
+    config: &GeneWalkConfig,
+    metapath_plus: bool,
+    verbose: bool,
+) -> Vec<Vec<f32>> {
+    let vocab_size = graph.n_nodes();
+    let neg_table = if metapath_plus {
+        NegativeTable::PerType {
+            tables: create_negative_table_per_type(
+                graph.node_types(),
+                graph.n_types(),
+                &walks,
+                NEGATIVE_TABLE_SIZE,
+                config.seed,
+            ),
+            node_type: Arc::new(graph.node_types().to_vec()),
+        }
+    } else {
+        NegativeTable::Global(create_negative_table(
+            vocab_size,
+            &walks,
+            NEGATIVE_TABLE_SIZE,
+            config.seed,
+        ))
+    };
+
+    train_skipgram(walks, vocab_size, neg_table, config, verbose)
+}
+
+/// Run the CPU skip-gram trainer and return L2-normalised input embeddings
+///
+/// ### Params
+///
+/// * `walks` - The walks to train on
+/// * `vocab_size` - Number of unique nodes
+/// * `neg_table` - Negative sampling table
+/// * `config` - The training configuration
+/// * `verbose` - Controls verbosity
+///
+/// ### Returns
+///
+/// Embeddings as Vec<Vec<f32>>, indexed by node ID
+fn train_skipgram(
+    walks: Vec<Vec<u32>>,
+    vocab_size: usize,
+    neg_table: NegativeTable,
+    config: &GeneWalkConfig,
+    verbose: bool,
+) -> Vec<Vec<f32>> {
     let mut args = config.train_args.clone();
     args.verbose = verbose;
 

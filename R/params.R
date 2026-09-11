@@ -70,6 +70,68 @@ params_node2vec <- function(
   )
 }
 
+## metapath2vec ----------------------------------------------------------------
+
+#' Wrapper function for the metapath2vec parameters
+#'
+#' @description
+#' Parameters for [metapath2vec()]. There is no `p` or `q`: metapath walks are
+#' first-order and follow the schema, not a biased return/explore rule.
+#'
+#' @param walks_per_node Integer. Number of random walks per node of the
+#' metapath's starting type. Defaults to `40L`.
+#' @param walk_length Integer. Length of each random walk. Rounded up so the
+#' walk closes on a full number of schema cycles. Defaults to `40L`.
+#' @param n_epochs Integer. Number of training epochs. Defaults to `20L`.
+#' @param n_negatives Integer. Number of negative samples. Defaults to `5L`.
+#' @param window_size Integer. Context window size. Defaults to `2L`.
+#' @param lr Numeric. Learning rate. Defaults to `1e-2`.
+#' @param sample Numeric. Subsampling threshold for frequent nodes. Defaults to
+#' `1e-3`.
+#' @param num_workers Optional integer. If kept to `NULL`, it will default
+#' to `available cores - 2 (min 1)`.
+#'
+#' @returns A list with the metapath2vec parameters.
+#'
+#' @export
+params_metapath2vec <- function(
+  walks_per_node = 40L,
+  walk_length = 40L,
+  n_epochs = 20L,
+  n_negatives = 5L,
+  window_size = 2L,
+  lr = 1e-2,
+  sample = 1e-3,
+  num_workers = NULL
+) {
+  # checkmate
+  checkmate::qassert(walks_per_node, "I1[1,)")
+  checkmate::qassert(walk_length, "I1[2,)")
+  checkmate::qassert(n_epochs, "I1[1,)")
+  checkmate::qassert(n_negatives, "I1[1,)")
+  checkmate::qassert(window_size, "I1[1,)")
+  checkmate::qassert(lr, "N1(0,)")
+  checkmate::qassert(sample, "N1[0,)")
+  checkmate::qassert(num_workers, c("I1[1,)", "0"))
+
+  num_workers <- if (is.null(num_workers)) {
+    max(1L, parallel::detectCores() - 2L)
+  } else {
+    num_workers
+  }
+
+  list(
+    walks_per_node = walks_per_node,
+    walk_length = walk_length,
+    num_workers = num_workers,
+    n_epochs = n_epochs,
+    n_negatives = n_negatives,
+    window_size = window_size,
+    lr = lr,
+    sample = sample
+  )
+}
+
 ## genewalk node2vec -----------------------------------------------------------
 
 #' Wrapper function for the GeneWalk-specific node2vec parameters
