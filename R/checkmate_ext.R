@@ -176,6 +176,65 @@ assertMetapath2VecParams <- checkmate::makeAssertionFunction(
   checkMetapath2VecParams
 )
 
+## diffusion profiles ----------------------------------------------------------
+
+#' Check diffusion profile parameters
+#'
+#' @description Checkmate extension for checking the diffusion profile
+#' parameters.
+#'
+#' @param x The list to check/assert
+#'
+#' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
+checkDiffusionProfilesParams <- function(x) {
+  res <- checkmate::checkList(x)
+  if (!isTRUE(res)) {
+    return(res)
+  }
+  rules <- list(
+    "alpha" = "N1(0,1)",
+    "max_iter" = "I1[1,)",
+    "tol" = "N1(0,)"
+  )
+  res <- checkmate::checkNames(names(x), must.include = names(rules))
+  if (!isTRUE(res)) {
+    return(res)
+  }
+  res <- purrr::map_lgl(names(rules), \(name) {
+    checkmate::qtest(x[[name]], rules[[name]])
+  })
+  if (!isTRUE(all(res))) {
+    broken_elem <- names(rules)[which(!res)][1]
+    return(sprintf(
+      "Element `%s` in diffusion profile parameters does not conform to `%s`.",
+      broken_elem,
+      rules[[broken_elem]]
+    ))
+  }
+  return(TRUE)
+}
+
+#' Assert diffusion profile parameters
+#'
+#' @description Checkmate extension for asserting the diffusion profile
+#' parameters.
+#'
+#' @inheritParams checkDiffusionProfilesParams
+#'
+#' @param .var.name Name of the checked object to print in assertions. Defaults
+#' to the heuristic implemented in checkmate.
+#' @param add Collection to store assertion messages. See
+#' [checkmate::makeAssertCollection()].
+#'
+#' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
+assertDiffusionProfilesParams <- checkmate::makeAssertionFunction(
+  checkDiffusionProfilesParams
+)
+
 ## synthetic data parameter ----------------------------------------------------
 
 #' Check GeneWalk data parameters

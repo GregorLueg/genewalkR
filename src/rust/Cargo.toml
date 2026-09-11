@@ -49,3 +49,5 @@ path = "document.rs"
 
 [patch.crates-io]
 node2vec-rs = { git = "https://github.com/GregorLueg/node2vec-rs", branch = "feat-metapath2vec" }
+# TODO: drop once bixverse-rs 0.5.2 is released
+bixverse-rs = { path = "/Users/gregorlueg/repos/shared/bixverse-rs" }
