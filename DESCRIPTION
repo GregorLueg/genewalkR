@@ -17,10 +17,10 @@ Authors@R:
         role = c("ctb"))
     )
 Description: 
-    Various graph-based methods commonly used in computational biology. 
-    Heat diffusions over networks, node2vec-based analyses over biological 
-    networks in R powered by Rust. Includes GeneWalkR and co-expression gene 
-    drift detection methods for the latter.
+    Various graph-based methods commonly used in computational biology. Heat 
+    diffusions over networks, node2vec and metapath2vec-based analyses over 
+    biologicals networks in R powered by Rust. Includes GeneWalkR and 
+    co-expression gene drift detection methods based on node2vec.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

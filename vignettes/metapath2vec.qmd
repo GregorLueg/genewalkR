@@ -368,10 +368,11 @@ ggplot(data = pca_dt, mapping = aes(x = PC1, y = PC2)) +
     mapping = aes(fill = top_level_name),
     size = 2,
     alpha = 0.7,
-    shape = 21
+    shape = 21,
+    stroke = 0.2
   ) +
   theme_bw() +
-  labs(color = "Top-level pathway:") +
+  labs(fill = "Top-level pathway:") +
   scale_fill_viridis_d(option = "turbo")
 ```
 
