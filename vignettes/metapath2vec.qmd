@@ -123,7 +123,7 @@ bad_schema <- metapath2vec(
     walks_per_node = 5L,
     n_epochs = 1L
   ),
-  .verbose = FALSE
+  .verbose = TRUE
 )
 
 bad_stats <- attr(bad_schema, "walk_stats")
@@ -158,7 +158,7 @@ gpg <- metapath2vec(
   metapath = c("gene", "pathway", "gene"),
   embd_dim = 32L,
   metapath2vec_params = walk_params,
-  .verbose = FALSE
+  .verbose = TRUE
 )
 
 str(attr(gpg, "walk_stats"))
@@ -170,7 +170,7 @@ gpg_plus <- metapath2vec(
   embd_dim = 32L,
   metapath2vec_params = walk_params,
   metapath_plus = TRUE,
-  .verbose = FALSE
+  .verbose = TRUE
 )
 
 n2v <- node2vec(
@@ -181,7 +181,7 @@ n2v <- node2vec(
     walk_length = 40L,
     n_epochs = 10L
   ),
-  .verbose = FALSE
+  .verbose = TRUE
 )
 ```
 
@@ -310,7 +310,7 @@ pgp <- metapath2vec(
   metapath = c("pathway", "gene", "pathway"),
   embd_dim = 32L,
   metapath2vec_params = walk_params,
-  .verbose = FALSE
+  .verbose = TRUE
 )
 
 str(attr(pgp, "walk_stats"))
@@ -365,12 +365,14 @@ pca_dt <- as.data.table(pca_results$x[, 1:2], keep.rownames = "pathway") %>%
 
 ggplot(data = pca_dt, mapping = aes(x = PC1, y = PC2)) +
   geom_point(
-    mapping = aes(color = top_level_name),
-    size = 1,
-    alpha = 0.7
+    mapping = aes(fill = top_level_name),
+    size = 2,
+    alpha = 0.7,
+    shape = 21
   ) +
   theme_bw() +
-  labs(color = "Top-level pathway:")
+  labs(color = "Top-level pathway:") +
+  scale_fill_viridis_d(option = "turbo")
 ```
 
 Two components out of 32 are a blunt view, but the broad layout is there:

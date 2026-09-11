@@ -353,8 +353,8 @@ get_gw_data_filtered <- function(x, gene_ids) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
-#' @importFrom magrittr `%$%`
+#' @importFrom magrittr %>%
+#' @importFrom magrittr %$%
 get_gw_data_filtered.DataBuilder <- function(x, gene_ids) {
   # checks
   checkmate::assertClass(x, "DataBuilder")

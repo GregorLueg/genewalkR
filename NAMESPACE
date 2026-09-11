@@ -73,7 +73,7 @@ export(synthetic_genewalk_data)
 import(data.table)
 import(ggplot2)
 importFrom(magrittr,
-  `%$%`,
-  `%>%`
+  "%$%",
+  "%>%"
 )
 useDynLib(genewalkR, .registration = TRUE)
