@@ -128,7 +128,7 @@ get_db_connection <- function() {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_gene_info <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -157,7 +157,7 @@ get_gene_info <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_reactome_info <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -186,7 +186,7 @@ get_reactome_info <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_gene_ontology_info <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -217,7 +217,7 @@ get_gene_ontology_info <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_gene_to_go <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -247,7 +247,7 @@ get_gene_to_go <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_gene_to_reactome <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -281,7 +281,7 @@ get_gene_to_reactome <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_reactome_hierarchy <- function(
   relationship = c("child_of", "descendant_of", "parent_of", "ancestor_of"),
   head_only = FALSE
@@ -319,7 +319,7 @@ get_reactome_hierarchy <- function(
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_gene_ontology_hierarchy <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -351,7 +351,7 @@ get_gene_ontology_hierarchy <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_interactions_string <- function(threshold = NULL, head_only = FALSE) {
   checkmate::qassert(threshold, c("0", "N1[0, 1]"))
   checkmate::assert_flag(head_only)
@@ -389,7 +389,7 @@ get_interactions_string <- function(threshold = NULL, head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_interactions_signor <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -419,7 +419,7 @@ get_interactions_signor <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_interactions_reactome <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -451,7 +451,7 @@ get_interactions_reactome <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_interactions_intact <- function(
   threshold = NULL,
   physical_interactions = FALSE,
@@ -501,7 +501,7 @@ get_interactions_intact <- function(
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 get_interactions_pc <- function(head_only = FALSE) {
   checkmate::assert_flag(head_only)
 
@@ -536,7 +536,7 @@ get_interactions_pc <- function(head_only = FALSE) {
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 #'
 #' @references Barrio-Hernandez et al., Nat Gen, 2023
 get_interactions_combined <- function(head_only = FALSE) {

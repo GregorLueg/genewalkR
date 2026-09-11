@@ -320,7 +320,7 @@ calculate_genewalk_stats <- S7::new_generic(
 #'
 #' @export
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr %>%
 #' @import data.table
 S7::method(calculate_genewalk_stats, GeneWalk) <- function(
   object,

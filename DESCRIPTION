@@ -2,7 +2,7 @@ Package: genewalkR
 Title: 
     Graph-based computational algorithms in R, including diffusions and small 
     neural networks like node2vec.
-Version: 0.1.11
+Version: 0.2.0
 Authors@R: 
     c(
     person(
@@ -17,14 +17,13 @@ Authors@R:
         role = c("ctb"))
     )
 Description: 
-    Various graph-based methods commonly used in computational biology. 
-    Heat diffusions over networks, node2vec-based analyses over biological 
-    networks in R powered by Rust. Includes GeneWalkR and co-expression gene 
-    drift detection methods for the latter.
+    Various graph-based methods commonly used in computational biology. Heat 
+    diffusions over networks, node2vec and metapath2vec-based analyses over 
+    biologicals networks in R powered by Rust. Includes GeneWalkR and 
+    co-expression gene drift detection methods based on node2vec.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Config/rextendr/version: 0.4.2
 SystemRequirements: Cargo (Rust's package manager), rustc
 Imports: 
@@ -54,3 +53,4 @@ Suggests:
 VignetteBuilder: quarto
 LazyData: true
 URL: https://gregorlueg.github.io/genewalkR/
+Config/roxygen2/version: 8.1.0

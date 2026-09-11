@@ -114,6 +114,68 @@ checkNode2VecParams <- function(x) {
 #' @keywords internal
 assertNode2VecParam <- checkmate::makeAssertionFunction(checkNode2VecParams)
 
+## metapath2vec ----------------------------------------------------------------
+
+#' Check metapath2vec parameters
+#'
+#' @description Checkmate extension for checking the metapath2vec parameters.
+#'
+#' @param x The list to check/assert
+#'
+#' @return \code{TRUE} if the check was successful, otherwise an error message.
+#'
+#' @keywords internal
+checkMetapath2VecParams <- function(x) {
+  res <- checkmate::checkList(x)
+  if (!isTRUE(res)) {
+    return(res)
+  }
+  rules <- list(
+    "walks_per_node" = "I1[1,)",
+    "walk_length" = "I1[2,)",
+    "num_workers" = "I1[1,)",
+    "n_epochs" = "I1[1,)",
+    "n_negatives" = "I1[1,)",
+    "window_size" = "I1[1,)",
+    "lr" = "N1(0,)",
+    "sample" = "N1[0,)"
+  )
+  res <- checkmate::checkNames(names(x), must.include = names(rules))
+  if (!isTRUE(res)) {
+    return(res)
+  }
+  res <- purrr::map_lgl(names(rules), \(name) {
+    checkmate::qtest(x[[name]], rules[[name]])
+  })
+  if (!isTRUE(all(res))) {
+    broken_elem <- names(rules)[which(!res)][1]
+    return(sprintf(
+      "Element `%s` in metapath2vec parameters does not conform to `%s`.",
+      broken_elem,
+      rules[[broken_elem]]
+    ))
+  }
+  return(TRUE)
+}
+
+#' Assert metapath2vec parameters
+#'
+#' @description Checkmate extension for asserting the metapath2vec parameters.
+#'
+#' @inheritParams checkMetapath2VecParams
+#'
+#' @param .var.name Name of the checked object to print in assertions. Defaults
+#' to the heuristic implemented in checkmate.
+#' @param add Collection to store assertion messages. See
+#' [checkmate::makeAssertCollection()].
+#'
+#' @return Invisibly returns the checked object if the assertion is successful.
+#'
+#' @keywords internal
+assertMetapath2VecParams <- checkmate::makeAssertionFunction(
+  checkMetapath2VecParams
+)
+
 ## synthetic data parameter ----------------------------------------------------
 
 #' Check GeneWalk data parameters

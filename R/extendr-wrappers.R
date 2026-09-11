@@ -25,6 +25,46 @@ NULL
 #' @export
 rs_node2vec <- function(from, to, weights, node2vec_params, embd_dim, directed, seed, verbose) .Call(wrap__rs_node2vec, from, to, weights, node2vec_params, embd_dim, directed, seed, verbose)
 
+#' Generate metapath2vec embeddings
+#'
+#' @description Runs metapath-constrained random walks over a heterogeneous
+#' graph and trains the skip-gram model on them (metapath2vec, or
+#' metapath2vec++ with per-type negative sampling).
+#'
+#' @param node_ids Character vector. Node identifiers.
+#' @param node_types Character vector. Node type per node, same length as
+#'   `node_ids`.
+#' @param from Integer vector. 1-based indices into `node_ids` for edge
+#'   origins.
+#' @param to Integer vector. 1-based indices into `node_ids` for edge
+#'   destinations.
+#' @param weights Optional numeric vector. Edge weights.
+#' @param metapath String. Hyphen-separated metapath closing on its starting
+#'   type, e.g. `"gene-pathway-gene"`.
+#' @param metapath_plus Boolean. Per-type negative sampling
+#'   (metapath2vec++).
+#' @param metapath2vec_params Named list. Training parameters (walks_per_node,
+#'   walk_length, num_workers, n_epochs, n_negatives, window_size, lr,
+#'   sample).
+#' @param embd_dim Integer. Embedding dimension.
+#' @param directed Boolean. Treat graph as directed.
+#' @param seed Integer. Random seed.
+#' @param verbose Boolean. Controls verbosity.
+#'
+#' @return A list with:
+#' \itemize{
+#'   \item embedding - Matrix of n_nodes x embd_dim, rows in `node_names`
+#'   order.
+#'   \item node_names - Node identifiers in row order.
+#'   \item node_types - Node type per row.
+#'   \item visited - Logical per row. `FALSE` if no surviving walk touched
+#'   the node, i.e. its row is the random initialisation.
+#'   \item walk_stats - Named list with the walk generation statistics.
+#' }
+#'
+#' @export
+rs_metapath2vec <- function(node_ids, node_types, from, to, weights, metapath, metapath_plus, metapath2vec_params, embd_dim, directed, seed, verbose) .Call(wrap__rs_metapath2vec, node_ids, node_types, from, to, weights, metapath, metapath_plus, metapath2vec_params, embd_dim, directed, seed, verbose)
+
 #' Generate GeneWalk node embeddings (multiple reps)
 #'
 #' @description Trains node2vec on the original GeneWalk network `n_graph`
