@@ -7,11 +7,18 @@ pub mod graph;
 pub mod utils;
 
 use bixverse_rs::assert_same_dims;
+use bixverse_rs::core::base::cors_similarity::{parse_distance_type, two_matrices_dist};
 use bixverse_rs::core::math::stats::p_adjust_fdr;
+use bixverse_rs::graph::page_rank::{
+    constrained_personalised_page_rank_optimised, ConstrainedPageRankGraph,
+    ConstrainedPageRankWorkingMemory,
+};
 use bixverse_rs::prelude::*;
 use extendr_api::prelude::*;
 use faer::{Mat, MatRef};
 use rand::{rngs::StdRng, Rng, SeedableRng};
+use rayon::prelude::*;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::time::Instant;
 
 use crate::data::*;
@@ -39,6 +46,9 @@ extendr_module! {
     fn rs_diffusion_kernel;
     fn rs_diffuse;
     fn rs_kernel_node_names;
+    // diffusion profiles
+    fn rs_diffusion_profiles;
+    fn rs_profile_distances;
 }
 
 ///////////////////////
@@ -1132,6 +1142,129 @@ fn rs_diffuse(
         }
     }
     out
+}
+
+////////////////////////
+// Diffusion profiles //
+////////////////////////
+
+/// Generate diffusion profiles
+///
+/// @description
+/// `r lifecycle::badge("experimental")`
+/// Constrained personalised PageRank over a heterogeneous graph (Ruiz et al.,
+/// 2021). The graph is built once and one profile per seed is computed in
+/// parallel. The seed acts as a source; all other nodes of a sink type absorb
+/// mass.
+///
+/// @param node_types Character vector. Node type per node.
+/// @param from Integer vector. 1-based node indices for edge origins.
+/// @param to Integer vector. 1-based node indices for edge destinations.
+/// @param weights Optional numeric vector. Edge weights, defaults to 1.
+/// @param type_weight_names Optional character vector. Node types for
+///   `type_weight_values`. `NULL` gives the plain random walk.
+/// @param type_weight_values Optional numeric vector. Weight per node type.
+/// @param sink_types Character vector. Node types that act as sinks.
+/// @param seeds Integer vector. 1-based node indices; one profile per seed.
+/// @param directed Boolean. Treat the graph as directed.
+/// @param diffusion_profile_params Named list with `alpha`, `max_iter` and
+///   `tol`.
+///
+/// @returns Numeric matrix of n_nodes x n_seeds. Columns sum to 1.
+///
+/// @export
+#[extendr]
+#[allow(clippy::too_many_arguments)]
+fn rs_diffusion_profiles(
+    node_types: Vec<String>,
+    from: Vec<i32>,
+    to: Vec<i32>,
+    weights: Option<Vec<f64>>,
+    type_weight_names: Option<Vec<String>>,
+    type_weight_values: Option<Vec<f64>>,
+    sink_types: Vec<String>,
+    seeds: Vec<i32>,
+    directed: bool,
+    diffusion_profile_params: List,
+) -> extendr_api::Result<RMatrix<f64>> {
+    let to_err = |e: BixverseErrors| extendr_api::Error::Other(e.to_string());
+
+    // integers arrive as INTSXP, so as_real() alone would drop them
+    let get_f64 = |name: &str, default: f64| -> f64 {
+        diffusion_profile_params
+            .dollar(name)
+            .ok()
+            .and_then(|v| v.as_real().or_else(|| v.as_integer().map(|i| i as f64)))
+            .unwrap_or(default)
+    };
+    let alpha = get_f64("alpha", 0.85);
+    let max_iter = get_f64("max_iter", 100.0) as usize;
+    let tol = get_f64("tol", 1e-6);
+
+    let from: Vec<usize> = from.iter().map(|&i| (i - 1) as usize).collect();
+    let to: Vec<usize> = to.iter().map(|&i| (i - 1) as usize).collect();
+    let type_weights: Option<FxHashMap<String, f64>> = type_weight_names
+        .zip(type_weight_values)
+        .map(|(names, values)| names.into_iter().zip(values).collect());
+    let sinks: FxHashSet<String> = sink_types.into_iter().collect();
+
+    let graph = ConstrainedPageRankGraph::new(
+        &node_types,
+        &from,
+        &to,
+        weights.as_deref(),
+        type_weights.as_ref(),
+        &sinks,
+        !directed,
+    )
+    .map_err(to_err)?;
+    let n = graph.node_count();
+
+    if let Some(&s) = seeds.iter().find(|&&s| s < 1 || s as usize > n) {
+        return Err(extendr_api::Error::Other(format!(
+            "Seed index {s} is out of range for {n} nodes."
+        )));
+    }
+
+    let profiles: Vec<Vec<f64>> = seeds
+        .par_iter()
+        .map_init(ConstrainedPageRankWorkingMemory::new, |mem, &s| {
+            let mut p = vec![0.0; n];
+            p[(s - 1) as usize] = 1.0;
+            constrained_personalised_page_rank_optimised(&graph, alpha, &p, max_iter, tol, mem)
+        })
+        .collect::<Result<_, _>>()
+        .map_err(to_err)?;
+
+    Ok(RMatrix::new_matrix(n, profiles.len(), |r, c| profiles[c][r]))
+}
+
+/// Distances between the columns of two matrices
+///
+/// @description
+/// `r lifecycle::badge("experimental")`
+/// SIMD-accelerated distances between every column of `mat_a` and every
+/// column of `mat_b`.
+///
+/// @param mat_a Numeric matrix. Columns are the samples.
+/// @param mat_b Numeric matrix with the same number of rows as `mat_a`.
+/// @param metric String. One of `c("correlation", "canberra", "l1", "l2",
+///   "cosine")`.
+///
+/// @returns Numeric matrix of ncol(mat_a) x ncol(mat_b).
+///
+/// @export
+#[extendr]
+fn rs_profile_distances(
+    mat_a: RMatrix<f64>,
+    mat_b: RMatrix<f64>,
+    metric: &str,
+) -> extendr_api::Result<RMatrix<f64>> {
+    let dist = parse_distance_type(metric)
+        .ok_or_else(|| extendr_api::Error::Other(format!("Unknown metric '{metric}'.")))?;
+    let res = two_matrices_dist(r_matrix_to_faer(&mat_a), r_matrix_to_faer(&mat_b), &dist)
+        .map_err(|e| extendr_api::Error::Other(e.to_string()))?;
+    Ok(faer_to_r_matrix(res.as_ref()))
 }
 
 ///////////

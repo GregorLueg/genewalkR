@@ -1206,3 +1206,195 @@ S7::method(get_scores, DiffusionScores) <- function(object) {
   }
   return(scores)
 }
+
+## diffusion profiles ----------------------------------------------------------
+
+#' DiffusionProfiles
+#'
+#' @description
+#' S7 class for the diffusion profiles of Ruiz et al.: one constrained
+#' personalised PageRank per seed over a heterogeneous graph. The seed is a
+#' source; every other node of a sink type absorbs the walker. With type
+#' weights, the walker at node `i` first picks a neighbouring node type
+#' proportional to its weight, then a neighbour of that type.
+#'
+#' @section Properties:
+#' \describe{
+#'  \item{graph_dt}{data.table. The edge table with `from`, `to` and
+#'  optionally `weight`.}
+#'  \item{node_dt}{data.table. The node table with `id` and `type`.}
+#'  \item{sink_types}{Character vector. Node types that act as sinks.}
+#'  \item{type_weights}{Named numeric vector of weights per node type, or
+#'  `NULL` for the plain random walk.}
+#'  \item{profiles}{Numeric matrix of nodes x seeds. `NULL` until
+#'  [generate_profiles()] is called.}
+#'  \item{params}{Named list of the parameters used.}
+#' }
+#'
+#' @param graph_dt data.table. The edge table. Needs the columns `"from"` and
+#' `"to"`, optionally `"weight"` (non-negative). Every endpoint needs to be in
+#' `node_dt$id`.
+#' @param node_dt data.table. The node table with the columns `"id"` and
+#' `"type"`.
+#' @param sink_types Character vector. Node types that absorb the walker, e.g.
+#' `c("drug", "disease")`. Can be empty.
+#' @param type_weights Optional named numeric vector. Positive weight per node
+#' type; needs to cover every type in `node_dt`. `NULL` gives the plain
+#' (edge-weighted) random walk.
+#' @param directed Boolean. Treat the graph as directed. Defaults to `FALSE`.
+#'
+#' @return An initialised `DiffusionProfiles` object.
+#'
+#' @references Ruiz, Zitnik and Leskovec, Identification of disease treatment
+#' mechanisms through the multiscale interactome, Nat Commun 2021.
+#'
+#' @export
+DiffusionProfiles <- S7::new_class(
+  name = "DiffusionProfiles",
+  properties = list(
+    graph_dt = S7::class_any,
+    node_dt = S7::class_any,
+    sink_types = S7::class_character,
+    type_weights = S7::class_any,
+    profiles = S7::class_any,
+    params = S7::class_list
+  ),
+  constructor = function(
+    graph_dt,
+    node_dt,
+    sink_types,
+    type_weights = NULL,
+    directed = FALSE
+  ) {
+    checkmate::assertDataTable(graph_dt, min.rows = 1L)
+    checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
+    checkmate::assertDataTable(node_dt, min.rows = 1L)
+    checkmate::assertNames(names(node_dt), must.include = c("id", "type"))
+    checkmate::assertCharacter(
+      as.character(node_dt$id),
+      any.missing = FALSE,
+      unique = TRUE,
+      .var.name = "node_dt$id"
+    )
+    checkmate::assertCharacter(
+      as.character(node_dt$type),
+      any.missing = FALSE,
+      .var.name = "node_dt$type"
+    )
+    node_types <- unique(as.character(node_dt$type))
+    checkmate::assertCharacter(sink_types, any.missing = FALSE)
+    checkmate::assertSubset(sink_types, node_types)
+    checkmate::qassert(type_weights, c("N+(0,)", "0"))
+    if (!is.null(type_weights)) {
+      checkmate::assertNames(
+        names(type_weights),
+        type = "unique",
+        must.include = node_types,
+        .var.name = "names(type_weights)"
+      )
+    }
+    checkmate::qassert(directed, "B1")
+    if ("weight" %in% names(graph_dt)) {
+      checkmate::assertNumeric(
+        graph_dt$weight,
+        lower = 0,
+        finite = TRUE,
+        any.missing = FALSE,
+        .var.name = "graph_dt$weight"
+      )
+    }
+
+    node_ids <- as.character(node_dt$id)
+    if (
+      anyNA(match(as.character(graph_dt$from), node_ids)) ||
+        anyNA(match(as.character(graph_dt$to), node_ids))
+    ) {
+      stop(
+        "All edge endpoints in `graph_dt` need to be present in `node_dt$id`."
+      )
+    }
+
+    S7::new_object(
+      S7::S7_object(),
+      graph_dt = graph_dt,
+      node_dt = node_dt,
+      sink_types = sink_types,
+      type_weights = type_weights,
+      profiles = NULL,
+      params = list(directed = directed)
+    )
+  }
+)
+
+### primitives -----------------------------------------------------------------
+
+#' @method print DiffusionProfiles
+#'
+#' @keywords internal
+S7::method(print, DiffusionProfiles) <- function(x, ...) {
+  type_weights <- S7::prop(x, "type_weights")
+  sink_types <- S7::prop(x, "sink_types")
+  profiles <- S7::prop(x, "profiles")
+
+  cat("DiffusionProfiles\n")
+  cat(
+    "  Graph:",
+    nrow(S7::prop(x, "node_dt")),
+    "nodes |",
+    nrow(S7::prop(x, "graph_dt")),
+    "edges\n"
+  )
+  cat(
+    "  Sink types:",
+    if (length(sink_types)) paste(sink_types, collapse = ", ") else "none",
+    "\n"
+  )
+  cat(
+    "  Type weights:",
+    if (is.null(type_weights)) {
+      "none (plain random walk)"
+    } else {
+      paste(sprintf("%s = %g", names(type_weights), type_weights), collapse = ", ")
+    },
+    "\n"
+  )
+  if (is.null(profiles)) {
+    cat("  Profiles: not generated\n")
+  } else {
+    cat("  Profiles:", ncol(profiles), "seed(s)\n")
+  }
+
+  invisible(x)
+}
+
+### getters --------------------------------------------------------------------
+
+#' Get diffusion profiles
+#'
+#' @param object An object containing diffusion profiles.
+#'
+#' @return A numeric matrix of nodes x seeds.
+#'
+#' @export
+get_profiles <- S7::new_generic(
+  name = "get_profiles",
+  dispatch_args = "object",
+  fun = function(object) {
+    S7::S7_dispatch()
+  }
+)
+
+#' @method get_profiles DiffusionProfiles
+#'
+#' @export
+S7::method(get_profiles, DiffusionProfiles) <- function(object) {
+  checkmate::assertTRUE(S7::S7_inherits(object, DiffusionProfiles))
+  profiles <- S7::prop(object, "profiles")
+  if (is.null(profiles)) {
+    warning(
+      "No profiles found. Has generate_profiles() been run? Returning NULL"
+    )
+    return(NULL)
+  }
+  return(profiles)
+}

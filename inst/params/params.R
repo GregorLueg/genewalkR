@@ -131,7 +131,11 @@ spec_metapath2vec <- param_spec(
       )
     ),
     n_epochs = p_int(20L, range = "[1,)", doc = "Number of training epochs."),
-    n_negatives = p_int(5L, range = "[1,)", doc = "Number of negative samples."),
+    n_negatives = p_int(
+      5L,
+      range = "[1,)",
+      doc = "Number of negative samples."
+    ),
     window_size = p_int(2L, range = "[1,)", doc = "Context window size."),
     lr = p_dbl(1e-2, range = "(0,)", doc = "Learning rate."),
     sample = p_dbl(
@@ -259,4 +263,34 @@ spec_kernel <- param_spec(
       return("Parameter `p` must be a positive integer.")
     }
   })
+)
+
+# diffusion profiles -----------------------------------------------------------
+
+spec_diffusion_profiles <- param_spec(
+  name = "diffusion_profiles",
+  title = "Wrapper function for the diffusion profile parameters",
+  description = paste(
+    "Parameters for [generate_profiles()], i.e. the constrained personalised",
+    "PageRank behind the diffusion profiles of Ruiz et al."
+  ),
+  checker = "DiffusionProfiles",
+  label = "diffusion profile parameters",
+  fields = list(
+    alpha = p_dbl(
+      0.85,
+      range = "(0,1)",
+      doc = "Probability of continuing the walk instead of restarting at the seed."
+    ),
+    max_iter = p_int(
+      100L,
+      range = "[1,)",
+      doc = "Maximum number of power iterations."
+    ),
+    tol = p_dbl(
+      1e-6,
+      range = "(0,)",
+      doc = "Convergence threshold on the L1 change between two iterations."
+    )
+  )
 )
