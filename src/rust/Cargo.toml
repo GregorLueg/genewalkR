@@ -42,10 +42,3 @@ non_snake_case = "allow"
 [[bin]]
 name = "document"
 path = "document.rs"
-
-#########
-# Patch #
-#########
-
-[patch.crates-io]
-node2vec-rs = { git = "https://github.com/GregorLueg/node2vec-rs", branch = "feat-metapath2vec" }
