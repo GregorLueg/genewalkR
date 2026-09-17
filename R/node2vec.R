@@ -46,7 +46,7 @@ node2vec <- function(
   checkmate::assertDataTable(graph_dt)
   checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
   checkmate::qassert(embd_dim, "I1")
-  assertNode2VecParam(node2vec_params)
+  assertNode2VecParams(node2vec_params)
   checkmate::qassert(directed, "B1")
   checkmate::qassert(seed, "I1")
   checkmate::qassert(.verbose, "B1")

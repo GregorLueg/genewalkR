@@ -124,7 +124,7 @@ S7::method(generate_initial_emb, GeneWalk) <- function(
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
-  assertNode2VecParam(genewalk_params)
+  assertNode2VecParams(genewalk_params)
   checkmate::qassert(embd_dim, "I1[1,)")
   checkmate::qassert(n_graph, "I1[1,)")
   checkmate::qassert(directed, "B1")
