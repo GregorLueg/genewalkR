@@ -3,6 +3,10 @@
 \name{print.EmbedDrift}
 \alias{print.EmbedDrift}
 \title{print Method for EmbedDrift object}
+\usage{
+## S7 method for class <genewalkR::EmbedDrift>
+print(x, ...)
+}
 \arguments{
 \item{x}{An object of class \code{EmbedDrift}.}
 

@@ -56,7 +56,7 @@ S7::method(generate_initial_embeddings, EmbedDrift) <- function(
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, EmbedDrift))
-  assertNode2VecParam(node2vec_params)
+  assertNode2VecParams(node2vec_params)
   checkmate::qassert(embd_dim, "I1[1,)")
   checkmate::qassert(directed, "B1")
   checkmate::qassert(seed, "I1")

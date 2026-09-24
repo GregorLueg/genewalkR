@@ -3,6 +3,10 @@
 \name{print.GeneWalk}
 \alias{print.GeneWalk}
 \title{print Method for GeneWalk object}
+\usage{
+## S7 method for class <genewalkR::GeneWalk>
+print(x, ...)
+}
 \arguments{
 \item{x}{An object of class GeneWalk}
 

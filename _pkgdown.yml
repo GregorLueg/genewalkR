@@ -34,12 +34,18 @@ articles:
       - embedding_drift
       - genewalk
       - node2vec
+      - metapath2vec
 
 reference:
   - title: "Node2Vec"
     desc: "Run Node2Vec"
     contents:
       - node2vec
+  - title: "Metapath2Vec"
+    desc: "Run Metapath2Vec"
+    contents:
+      - metapath2vec
+      - params_metapath2vec
   - title: "GeneWalk workflow"
     desc: "Main classes and methods to run GeneWalk"
     contents:
@@ -123,6 +129,7 @@ reference:
       - rs_gene_walk_perm
       - rs_gene_walk_test
       - rs_kernel_node_names
+      - rs_metapath2vec
       - rs_procrustes_align
       - rs_node2vec
       - rs_node2vec_synthetic_data
