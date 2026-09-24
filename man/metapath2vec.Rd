@@ -66,9 +66,11 @@ node's own type (metapath2vec++).
 
 Walks start only on nodes of the metapath's first type. Nodes no walk ever
 reaches keep their random initialisation, so by default they are removed
-and listed in the \code{unvisited_nodes} attribute. Check the \code{walk_stats}
-attribute as well: a high share of truncated or dropped walks means the
-schema does not fit the graph.
+and listed in the \code{unvisited_nodes} attribute. The function warns when more
+than 10\% of walks are dropped or walks reach less than half the requested
+length on average: the schema does not fit the graph. Details are in the
+\code{walk_stats} attribute. A metapath over a single type warns as well; that
+is DeepWalk on a subgraph, so use \code{\link[=node2vec]{node2vec()}}.
 }
 \references{
 Dong, Chawla and Swami, metapath2vec: Scalable Representation

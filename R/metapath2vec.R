@@ -11,9 +11,11 @@
 #'
 #' Walks start only on nodes of the metapath's first type. Nodes no walk ever
 #' reaches keep their random initialisation, so by default they are removed
-#' and listed in the `unvisited_nodes` attribute. Check the `walk_stats`
-#' attribute as well: a high share of truncated or dropped walks means the
-#' schema does not fit the graph.
+#' and listed in the `unvisited_nodes` attribute. The function warns when more
+#' than 10% of walks are dropped or walks reach less than half the requested
+#' length on average: the schema does not fit the graph. Details are in the
+#' `walk_stats` attribute. A metapath over a single type warns as well; that
+#' is DeepWalk on a subgraph, so use [node2vec()].
 #'
 #' @param graph_dt data.table. The edge table. Needs to have the columns
 #' `"from"` and `"to"`, and can optionally have a `"weight"` column.
@@ -93,6 +95,17 @@ metapath2vec <- function(
       metapath[length(metapath)]
     ))
   }
+  if (length(unique(metapath)) == 1L) {
+    warning(sprintf(
+      paste(
+        "The metapath only uses the type '%s'. This is DeepWalk on the",
+        "'%s' subgraph and every other type stays unvisited. Consider",
+        "node2vec() on that subgraph instead."
+      ),
+      metapath[1],
+      metapath[1]
+    ))
+  }
 
   from_idx <- match(as.character(graph_dt$from), node_ids)
   to_idx <- match(as.character(graph_dt$to), node_ids)
@@ -122,6 +135,34 @@ metapath2vec <- function(
     seed = seed,
     verbose = .verbose
   )
+
+  # thresholds from Reactome + STRING: well-fitting schemas keep a length
+  # ratio of 1, mid-walk dead ends pushed it to 0.15 - 0.43
+  stats <- res$walk_stats
+  drop_share <- stats$dropped / stats$attempted
+  len_ratio <- stats$mean_length / stats$walk_length
+  if (drop_share > 0.1) {
+    warning(sprintf(
+      paste(
+        "%.1f%% of walks were dropped: their '%s' start node has no",
+        "'%s' neighbour. Check the metapath against the graph."
+      ),
+      100 * drop_share,
+      metapath[1],
+      metapath[2]
+    ))
+  }
+  if (len_ratio < 0.5) {
+    warning(sprintf(
+      paste(
+        "Walks reach %.0f%% of the requested length on average (%.1f of %i).",
+        "The metapath hits dead ends in the graph, check the schema."
+      ),
+      100 * len_ratio,
+      stats$mean_length,
+      stats$walk_length
+    ))
+  }
 
   keep <- if (filter_unvisited) res$visited else rep(TRUE, length(res$visited))
   unvisited <- res$node_names[!res$visited]
