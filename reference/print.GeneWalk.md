@@ -2,6 +2,13 @@
 
 Print a GeneWalk object.
 
+## Usage
+
+``` r
+## S7 method for class <genewalkR::GeneWalk>
+print(x, ...)
+```
+
 ## Arguments
 
 - x:

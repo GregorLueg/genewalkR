@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@
     <li><a class="dropdown-item" href="../articles/embedding_drift.html">Embedding Drift via node2vec</a></li>
     <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
     <li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
+    <li><a class="dropdown-item" href="../articles/metapath2vec.html">Metapath2vec</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -70,11 +71,11 @@
 
 
 <dl><dt id="arg-n-signal-genes">n_signal_genes<a class="anchor" aria-label="anchor" href="#arg-n-signal-genes"></a></dt>
-<dd><p>Integer. Number of signal genes. Defaults to <code>300L</code>.</p></dd>
+<dd><p>Integer. Number of signal genes. Defaults to <code>150L</code>.</p></dd>
 
 
 <dt id="arg-n-noise-genes">n_noise_genes<a class="anchor" aria-label="anchor" href="#arg-n-noise-genes"></a></dt>
-<dd><p>Integer. Number of noise genes. Defaults to <code>300L</code>.</p></dd>
+<dd><p>Integer. Number of noise genes. Defaults to <code>150L</code>.</p></dd>
 
 
 <dt id="arg-n-roots">n_roots<a class="anchor" aria-label="anchor" href="#arg-n-roots"></a></dt>
@@ -96,8 +97,8 @@ nodes. Defaults to <code>0.1</code>.</p></dd>
 
 
 <dt id="arg-p-ppi">p_ppi<a class="anchor" aria-label="anchor" href="#arg-p-ppi"></a></dt>
-<dd><p>Numeric. Probability of a PPI edge between any two genes in
-the same group. Defaults to <code>0.05</code>.</p></dd>
+<dd><p>Numeric. Probability of a PPI edge between any two genes in the
+same group. Defaults to <code>0.05</code>.</p></dd>
 
 
 <dt id="arg-min-annotations">min_annotations<a class="anchor" aria-label="anchor" href="#arg-min-annotations"></a></dt>
@@ -112,13 +113,28 @@ Defaults to <code>25L</code>.</p></dd>
 
 <dt id="arg-min-noise-subtrees">min_noise_subtrees<a class="anchor" aria-label="anchor" href="#arg-min-noise-subtrees"></a></dt>
 <dd><p>Integer. Minimum distinct ontology subtrees a noise
-gene must span. Defaults to <code>10L</code>.</p></dd>
+gene must span. Defaults to <code>15L</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with GeneWalk parameters.</p>
-    </div>
+    <p>A named list with the following elements:</p><ul><li><p>n_signal_genes - Integer. Number of signal genes. Defaults to <code>150L</code>.</p></li>
+<li><p>n_noise_genes - Integer. Number of noise genes. Defaults to <code>150L</code>.</p></li>
+<li><p>n_roots - Integer. Number of ontology root nodes. Defaults to <code>10L</code>.</p></li>
+<li><p>depth - Integer. Depth of each ontology subtree. Defaults to <code>3L</code>.</p></li>
+<li><p>branching - Integer. Base branching factor per ontology node. Defaults
+to <code>3L</code>.</p></li>
+<li><p>p_lateral - Numeric. Probability of a lateral edge between sibling
+nodes. Defaults to <code>0.1</code>.</p></li>
+<li><p>p_ppi - Numeric. Probability of a PPI edge between any two genes in
+the same group. Defaults to <code>0.05</code>.</p></li>
+<li><p>min_annotations - Integer. Minimum ontology term annotations per gene.
+Defaults to <code>10L</code>.</p></li>
+<li><p>max_annotations - Integer. Maximum ontology term annotations per gene.
+Defaults to <code>25L</code>.</p></li>
+<li><p>min_noise_subtrees - Integer. Minimum distinct ontology subtrees a
+noise gene must span. Defaults to <code>15L</code>.</p></li>
+</ul></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

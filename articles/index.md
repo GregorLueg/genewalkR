@@ -9,3 +9,4 @@
 - [Running
   GeneWalk](https://gregorlueg.github.io/genewalkR/articles/genewalk.md):
 - [Node2vec](https://gregorlueg.github.io/genewalkR/articles/node2vec.md):
+- [Metapath2vec](https://gregorlueg.github.io/genewalkR/articles/metapath2vec.md):

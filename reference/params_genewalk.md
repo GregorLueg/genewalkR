@@ -51,19 +51,44 @@ params_genewalk(
 
 - window_size:
 
-  Integer. Context window size. Defaults to `1L`. For GeneWalk you want
-  embedding from direct neighbours.
+  Integer. Context window size. For GeneWalk you want embeddings from
+  direct neighbours. Defaults to `1L`.
 
 - lr:
 
-  Numeric. Learning rate. Defaults to `1e-2`.
+  Numeric. Learning rate. Defaults to `0.01`.
 
 - num_workers:
 
-  Integer. Number of worker threads. Defaults to `1L` (for determinism.
-  If set to ≥1, the fitting is much faster at cost of deterministic
-  results.
+  Integer. Number of worker threads. Anything above `1L` makes the
+  fitting much faster, at the cost of reproducibility. Defaults to `1L`.
 
 ## Value
 
-A list with the (gene-walk) specific node2vec parameters.
+A named list with the following elements:
+
+- p - Numeric. Return parameter for biased random walks. Defaults to
+  `1.0`.
+
+- q - Numeric. In-out parameter for biased random walks. Defaults to
+  `1.0`.
+
+- walks_per_node - Integer. Number of random walks per node. Defaults to
+  `100L`.
+
+- walk_length - Integer. Length of each random walk. Defaults to `10L`.
+
+- num_workers - Integer. Number of worker threads. Anything above `1L`
+  makes the fitting much faster, at the cost of reproducibility.
+  Defaults to `1L`.
+
+- batch_size - Integer. Batch size for training. Defaults to `256L`.
+
+- n_epochs - Integer. Number of training epochs. Defaults to `5L`.
+
+- n_negatives - Integer. Number of negative samples. Defaults to `5L`.
+
+- window_size - Integer. Context window size. For GeneWalk you want
+  embeddings from direct neighbours. Defaults to `1L`.
+
+- lr - Numeric. Learning rate. Defaults to `0.01`.

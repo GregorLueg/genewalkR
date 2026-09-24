@@ -1,6 +1,7 @@
-# Check diffusion kernel parameters
+# Check kernel parameters
 
-Checkmate extension for checking the kernel parameters.
+Checkmate extension for the output of
+[`params_kernel()`](https://gregorlueg.github.io/genewalkR/reference/params_kernel.md).
 
 ## Usage
 
@@ -12,8 +13,9 @@ checkKernelParams(x)
 
 - x:
 
-  The list to check/assert
+  The object to check.
 
 ## Value
 
-`TRUE` if the check was successful, otherwise an error message.
+`TRUE` if the check was successful, otherwise a checkmate-style error
+string.

@@ -26,7 +26,7 @@ sets.
 
 ### Public methods
 
-- [`GeneWalkGenerator$new()`](#method-GeneWalkGenerator-new)
+- [`GeneWalkGenerator$new()`](#method-GeneWalkGenerator-initialize)
 
 - [`GeneWalkGenerator$print()`](#method-GeneWalkGenerator-print)
 
@@ -46,7 +46,7 @@ sets.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `GeneWalkGenerator$new()`
 
 Initialise the generator
 
@@ -56,7 +56,7 @@ Initialise the generator
 
 ------------------------------------------------------------------------
 
-### Method [`print()`](https://rdrr.io/r/base/print.html)
+### `GeneWalkGenerator$print()`
 
 Print for GeneWalkGenerator
 
@@ -72,7 +72,7 @@ Print for GeneWalkGenerator
 
 ------------------------------------------------------------------------
 
-### Method `add_pathways()`
+### `GeneWalkGenerator$add_pathways()`
 
 Add pathway sources to the network
 
@@ -97,7 +97,7 @@ Add pathway sources to the network
 
 ------------------------------------------------------------------------
 
-### Method `add_ppi()`
+### `GeneWalkGenerator$add_ppi()`
 
 Add PPI sources to the network
 
@@ -130,7 +130,7 @@ Add PPI sources to the network
 
 ------------------------------------------------------------------------
 
-### Method `build()`
+### `GeneWalkGenerator$build()`
 
 Build the full network from selected sources
 
@@ -146,7 +146,7 @@ Build the full network from selected sources
 
 ------------------------------------------------------------------------
 
-### Method `create_for_genes()`
+### `GeneWalkGenerator$create_for_genes()`
 
 Create a gene-specific GeneWalk object
 
@@ -166,7 +166,7 @@ Returns the initialised `GeneWalk`.
 
 ------------------------------------------------------------------------
 
-### Method `reset_choices()`
+### `GeneWalkGenerator$reset_choices()`
 
 Resets the internal choices and erases any stored network data.
 
@@ -176,7 +176,7 @@ Resets the internal choices and erases any stored network data.
 
 ------------------------------------------------------------------------
 
-### Method `return_full_network_dt()`
+### `GeneWalkGenerator$return_full_network_dt()`
 
 Returns the full network data.table.
 
@@ -190,7 +190,7 @@ data.table with the full internal network.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `GeneWalkGenerator$clone()`
 
 The objects of this class are cloneable with this method.
 

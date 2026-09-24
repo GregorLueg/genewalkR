@@ -2,6 +2,13 @@
 
 Print an EmbedDrift object.
 
+## Usage
+
+``` r
+## S7 method for class <genewalkR::EmbedDrift>
+print(x, ...)
+```
+
 ## Arguments
 
 - x:

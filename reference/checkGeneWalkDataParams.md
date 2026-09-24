@@ -1,6 +1,7 @@
 # Check GeneWalk data parameters
 
-Checkmate extension for checking GeneWalkData parameters.
+Checkmate extension for the output of
+[`params_genewalk_data()`](https://gregorlueg.github.io/genewalkR/reference/params_genewalk_data.md).
 
 ## Usage
 
@@ -12,8 +13,9 @@ checkGeneWalkDataParams(x)
 
 - x:
 
-  The list to check/assert.
+  The object to check.
 
 ## Value
 
-`TRUE` if the check was successful, otherwise an error message.
+`TRUE` if the check was successful, otherwise a checkmate-style error
+string.

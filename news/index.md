@@ -1,5 +1,9 @@
 # Changelog
 
+## genewalkR 0.2.0
+
+- metapath2vec wired into the package.
+
 ## genewalkR 0.1.11
 
 ### Features

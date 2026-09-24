@@ -1,6 +1,9 @@
 # Check node2vec parameters
 
-Checkmate extension for checking the node2vec parameters.
+Checkmate extension for the output of
+[`params_genewalk()`](https://gregorlueg.github.io/genewalkR/reference/params_genewalk.md)
+and
+[`params_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/params_node2vec.md).
 
 ## Usage
 
@@ -12,8 +15,9 @@ checkNode2VecParams(x)
 
 - x:
 
-  The list to check/assert
+  The object to check.
 
 ## Value
 
-`TRUE` if the check was successful, otherwise an error message.
+`TRUE` if the check was successful, otherwise a checkmate-style error
+string.

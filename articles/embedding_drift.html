@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,7 @@
     <li><a class="dropdown-item" href="../articles/embedding_drift.html">Embedding Drift via node2vec</a></li>
     <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
     <li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
+    <li><a class="dropdown-item" href="../articles/metapath2vec.html">Metapath2vec</a></li>
   </ul>
 </li>
       </ul>
@@ -74,7 +75,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Embedding Drift via node2vec</h1>
 
       <p class="author">Gregor Lueg</p>
-      <p class="date">2026-09-10</p>
+      <p class="date">2026-09-24</p>
 
 
       <div class="d-none name"><code></code></div>
@@ -255,11 +256,11 @@
 <span></span>
 <span><span class="va">embd_ls</span><span class="op">$</span><span class="va">embd_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;                dim_1      dim_2       dim_3        dim_4     dim_5</span></span>
-<span><span class="co">#&gt; bridge_001 0.4236002 -0.6399145 -0.09040221  0.215351254 0.4428740</span></span>
-<span><span class="co">#&gt; bridge_002 0.4460360 -0.6349131 -0.11709678  0.265914023 0.3931167</span></span>
-<span><span class="co">#&gt; comm2_000  0.5799674 -0.2835027 -0.02576946  0.231646448 0.2379999</span></span>
-<span><span class="co">#&gt; comm2_001  0.5230467 -0.3586811 -0.33446628 -0.067979530 0.5749604</span></span>
-<span><span class="co">#&gt; comm2_002  0.5493878 -0.3852732 -0.32868269  0.006399804 0.5274056</span></span></code></pre></div>
+<span><span class="co">#&gt; bridge_001 0.4101280 -0.6414422 -0.11182554  0.209725127 0.4435216</span></span>
+<span><span class="co">#&gt; bridge_002 0.4348919 -0.6339965 -0.13832949  0.261765659 0.3954695</span></span>
+<span><span class="co">#&gt; comm2_000  0.5814412 -0.2971575 -0.02882331  0.229585603 0.2176705</span></span>
+<span><span class="co">#&gt; comm2_001  0.5202645 -0.3657060 -0.34172320 -0.080989562 0.5709505</span></span>
+<span><span class="co">#&gt; comm2_002  0.5520049 -0.3974682 -0.33637878  0.004577302 0.5190591</span></span></code></pre></div>
 </div>
 </section><section class="level3"><h4 id="calculating-drift">Calculating drift<a class="anchor" aria-label="anchor" href="#calculating-drift"></a>
 </h4>
@@ -272,11 +273,11 @@
 <span><span class="va">stats</span></span>
 <span><span class="co">#&gt;             node cosine_similarity node_status</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;             &lt;num&gt;      &lt;char&gt;</span></span>
-<span><span class="co">#&gt;   1:  bridge_001         0.7588377      shared</span></span>
-<span><span class="co">#&gt;   2:  bridge_002         0.6951571      shared</span></span>
-<span><span class="co">#&gt;   3:   comm2_000         0.9179472      shared</span></span>
-<span><span class="co">#&gt;   4:   comm2_001         0.9870412      shared</span></span>
-<span><span class="co">#&gt;   5:   comm2_002         0.9943095      shared</span></span>
+<span><span class="co">#&gt;   1:  bridge_001         0.7509228      shared</span></span>
+<span><span class="co">#&gt;   2:  bridge_002         0.6863053      shared</span></span>
+<span><span class="co">#&gt;   3:   comm2_000         0.9210362      shared</span></span>
+<span><span class="co">#&gt;   4:   comm2_001         0.9887613      shared</span></span>
+<span><span class="co">#&gt;   5:   comm2_002         0.9951844      shared</span></span>
 <span><span class="co">#&gt;  ---                                          </span></span>
 <span><span class="co">#&gt; 161: g2_only_000         1.1000000     g2_only</span></span>
 <span><span class="co">#&gt; 162: g2_only_001         1.1000000     g2_only</span></span>

@@ -25,17 +25,32 @@ params_kernel(sigma2 = 1, add_diag = 1, a = 3, p = 5L)
 - a:
 
   Numeric. Regularisation parameter for the `pstep` kernel. Must be
-  `>= 2` (eigenvalues of the normalised Laplacian are in `[0, 2]`.
-  Defaults to `3.0`.
+  `>= 2`, since the eigenvalues of the normalised Laplacian sit in
+  `[0, 2]`. Defaults to `3.0`.
 
 - p:
 
-  Integer. Number of steps for the `pstep` kernel. Must be a positive
-  integer. Defaults to `5L`.
+  Integer. Number of steps for the `pstep` kernel. Must be positive.
+  Defaults to `5L`.
 
 ## Value
 
-A named list.
+A named list with the following elements:
+
+- sigma2 - Numeric. Bandwidth parameter controlling the extent of
+  diffusion. Used by `regularised_laplacian` and `diffusion` kernels.
+  Defaults to `1.0`.
+
+- add_diag - Numeric. Regularisation term added to the diagonal. Used by
+  `regularised_laplacian`. Must be positive for every connected
+  component to be invertible. Defaults to `1.0`.
+
+- a - Numeric. Regularisation parameter for the `pstep` kernel. Must be
+  `>= 2`, since the eigenvalues of the normalised Laplacian sit in
+  `[0, 2]`. Defaults to `3.0`.
+
+- p - Integer. Number of steps for the `pstep` kernel. Must be positive.
+  Defaults to `5L`.
 
 ## Details
 

@@ -7,6 +7,15 @@ Run Node2Vec
 - [`node2vec()`](https://gregorlueg.github.io/genewalkR/reference/node2vec.md)
   : Node2Vec
 
+## Metapath2Vec
+
+Run Metapath2Vec
+
+- [`metapath2vec()`](https://gregorlueg.github.io/genewalkR/reference/metapath2vec.md)
+  : Metapath2Vec
+- [`params_metapath2vec()`](https://gregorlueg.github.io/genewalkR/reference/params_metapath2vec.md)
+  : Wrapper function for the metapath2vec parameters
+
 ## GeneWalk workflow
 
 Main classes and methods to run GeneWalk
@@ -163,6 +172,8 @@ Everything rusty - only use this if you know what you are doing…
   : Calculate GeneWalk test statistics
 - [`rs_kernel_node_names()`](https://gregorlueg.github.io/genewalkR/reference/rs_kernel_node_names.md)
   : Pull out the node names from the kernel
+- [`rs_metapath2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_metapath2vec.md)
+  : Generate metapath2vec embeddings
 - [`rs_procrustes_align()`](https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.md)
   : Orthogonal Procrustes alignment and cosine similarity scoring
 - [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
