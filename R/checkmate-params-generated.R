@@ -254,4 +254,3 @@ checkMetapath2VecParams <- function(x) {
 assertMetapath2VecParams <- checkmate::makeAssertionFunction(
   checkMetapath2VecParams
 )
-
