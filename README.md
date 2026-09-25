@@ -26,6 +26,10 @@ For now, the following methods implemented:
   [Mostafavi et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/).
 - General node2vec to generate embeddings, please see this 
   [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
+- [metapath2vec](https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf)
+  (and metapath2vec++), the extension of node2vec to heterogeneous graphs. Walks
+  follow a metapath over node types, e.g. gene-pathway-gene. See this
+  [vignette](https://gregorlueg.github.io/genewalkR/articles/metapath2vec.html).
 - The GeneWalk approach from 
   [Ietswaart et al.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8) 
   (see GitHub [here](https://github.com/churchmanlab/genewalk)).
@@ -95,10 +99,8 @@ please use GitHub issues.
 While more complex graph neural networks that leverage edge and node
 information are in vogue at the moment, some simple methods in times tend to
 do quite well themselves, while not necessitating massive amounts of (GPU) 
-compute. One of the methods that could be quite interesting for heterogenous
-graphs and can likely still be run on CPU is [metapath2vec](https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf) – 
-an extension of node2vec over heterogenous graphs with different edge and node
-types. Additionally, a few additional graph-based methods are also already 
+compute. metapath2vec is the first step in that direction: heterogeneous graphs,
+still on CPU. A few additional graph-based methods are also already 
 implemented in [bixverse](https://github.com/GregorLueg/bixverse), here more
 with focus on PageRank-based ones and a lot of methods that use kNN graphs
 in some colour or shape (specifically for single cell).
