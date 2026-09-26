@@ -3,6 +3,54 @@
 
 # parameter checkers -----------------------------------------------------------
 
+#' Check diffusion profile parameters
+#'
+#' @description Checkmate extension for the output of
+#' [params_diffusion_profiles()].
+#'
+#' @param x The object to check.
+#'
+#' @returns `TRUE` if the check was successful, otherwise a
+#' checkmate-style error string.
+#'
+#' @keywords internal
+checkDiffusionProfilesParams <- function(x) {
+  res <- check_list_shape(x, c("alpha", "max_iter", "tol"))
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  res <- apply_qtest_rules(
+    x,
+    list(
+      alpha = "N1(0,1)",
+      max_iter = "I1[1,)",
+      tol = "N1(0,)"
+    ),
+    label = "diffusion profile parameters"
+  )
+  if (!isTRUE(res)) {
+    return(res)
+  }
+
+  return(TRUE)
+}
+
+#' Assert diffusion profile parameters
+#'
+#' @inheritParams checkDiffusionProfilesParams
+#' @param .var.name Name of the checked object to print in assertions.
+#' @param add Collection to store assertion messages. See
+#' [checkmate::makeAssertCollection()].
+#'
+#' @returns Invisibly returns the checked object if the assertion is
+#' successful.
+#'
+#' @keywords internal
+assertDiffusionProfilesParams <- checkmate::makeAssertionFunction(
+  checkDiffusionProfilesParams
+)
+
 #' Check node2vec parameters
 #'
 #' @description Checkmate extension for the output of [params_genewalk()] and

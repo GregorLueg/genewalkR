@@ -35,6 +35,7 @@ articles:
       - genewalk
       - node2vec
       - metapath2vec
+      - diffusion_profiles
 
 reference:
   - title: "Node2Vec"
@@ -71,6 +72,14 @@ reference:
       - diffuse_scores
       - get_scores
       - params_kernel
+  - title: "Diffusion profiles"
+    desc: "Constrained personalised PageRank (Ruiz et al.)"
+    contents:
+      - DiffusionProfiles
+      - generate_profiles
+      - calculate_profile_distances
+      - get_profiles
+      - params_diffusion_profiles
   - title: "Helpers and getters"
     desc: "Various getters and helper classes"
     contents:
@@ -125,11 +134,13 @@ reference:
       - rs_differential_graph_data
       - rs_diffuse
       - rs_diffusion_kernel
+      - rs_diffusion_profiles
       - rs_gene_walk
       - rs_gene_walk_perm
       - rs_gene_walk_test
       - rs_kernel_node_names
       - rs_metapath2vec
       - rs_procrustes_align
+      - rs_profile_distances
       - rs_node2vec
       - rs_node2vec_synthetic_data

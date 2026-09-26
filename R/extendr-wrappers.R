@@ -276,4 +276,48 @@ rs_diffuse <- function(kernel, scores, n_bkgd, n_inputs, bkgd_indices, method, n
 #' @export
 rs_kernel_node_names <- function(kernel) .Call(wrap__rs_kernel_node_names, kernel)
 
+#' Generate diffusion profiles
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#' Constrained personalised PageRank over a heterogeneous graph (Ruiz et al.,
+#' 2021). The graph is built once and one profile per seed is computed in
+#' parallel. The seed acts as a source; all other nodes of a sink type absorb
+#' mass.
+#'
+#' @param node_types Character vector. Node type per node.
+#' @param from Integer vector. 1-based node indices for edge origins.
+#' @param to Integer vector. 1-based node indices for edge destinations.
+#' @param weights Optional numeric vector. Edge weights, defaults to 1.
+#' @param type_weight_names Optional character vector. Node types for
+#'   `type_weight_values`. `NULL` gives the plain random walk.
+#' @param type_weight_values Optional numeric vector. Weight per node type.
+#' @param sink_types Character vector. Node types that act as sinks.
+#' @param seeds Integer vector. 1-based node indices; one profile per seed.
+#' @param directed Boolean. Treat the graph as directed.
+#' @param diffusion_profile_params Named list with `alpha`, `max_iter` and
+#'   `tol`.
+#'
+#' @returns Numeric matrix of n_nodes x n_seeds. Columns sum to 1.
+#'
+#' @export
+rs_diffusion_profiles <- function(node_types, from, to, weights, type_weight_names, type_weight_values, sink_types, seeds, directed, diffusion_profile_params) .Call(wrap__rs_diffusion_profiles, node_types, from, to, weights, type_weight_names, type_weight_values, sink_types, seeds, directed, diffusion_profile_params)
+
+#' Distances between the columns of two matrices
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#' SIMD-accelerated distances between every column of `mat_a` and every
+#' column of `mat_b`.
+#'
+#' @param mat_a Numeric matrix. Columns are the samples.
+#' @param mat_b Numeric matrix with the same number of rows as `mat_a`.
+#' @param metric String. One of `c("correlation", "canberra", "l1", "l2",
+#'   "cosine")`.
+#'
+#' @returns Numeric matrix of ncol(mat_a) x ncol(mat_b).
+#'
+#' @export
+rs_profile_distances <- function(mat_a, mat_b, metric) .Call(wrap__rs_profile_distances, mat_a, mat_b, metric)
+
 # nolint end
