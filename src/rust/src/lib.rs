@@ -1201,8 +1201,8 @@ fn rs_diffusion_profiles(
     let max_iter = get_f64("max_iter", 100.0) as usize;
     let tol = get_f64("tol", 1e-6);
 
-    let from: Vec<usize> = from.iter().map(|&i| (i - 1) as usize).collect();
-    let to: Vec<usize> = to.iter().map(|&i| (i - 1) as usize).collect();
+    let from: Vec<usize> = from.r_int_convert_shift();
+    let to: Vec<usize> = to.r_int_convert_shift();
     let type_weights: Option<FxHashMap<String, f64>> = type_weight_names
         .zip(type_weight_values)
         .map(|(names, values)| names.into_iter().zip(values).collect());
@@ -1225,12 +1225,13 @@ fn rs_diffusion_profiles(
             "Seed index {s} is out of range for {n} nodes."
         )));
     }
+    let seeds: Vec<usize> = seeds.r_int_convert_shift();
 
     let profiles: Vec<Vec<f64>> = seeds
         .par_iter()
         .map_init(ConstrainedPageRankWorkingMemory::new, |mem, &s| {
             let mut p = vec![0.0; n];
-            p[(s - 1) as usize] = 1.0;
+            p[s] = 1.0;
             constrained_personalised_page_rank_optimised(&graph, alpha, &p, max_iter, tol, mem)
         })
         .collect::<Result<_, _>>()
