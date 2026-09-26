@@ -52,7 +52,7 @@ gene_gene <- get_interactions_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpm3wxlz/duckdb
+#> ℹ /tmp/Rtmpp2A5qx/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -64,7 +64,7 @@ gene_pathway <- get_gene_to_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpm3wxlz/duckdb
+#> ℹ /tmp/Rtmpp2A5qx/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -76,7 +76,7 @@ pathway_pathway <- get_reactome_hierarchy("child_of")[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpm3wxlz/duckdb
+#> ℹ /tmp/Rtmpp2A5qx/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -127,7 +127,7 @@ node_labels <- rbind(
   )]
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpm3wxlz/duckdb
+#> ℹ /tmp/Rtmpp2A5qx/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -135,7 +135,7 @@ node_labels <- rbind(
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpm3wxlz/duckdb
+#> ℹ /tmp/Rtmpp2A5qx/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -325,9 +325,9 @@ purity <- data.table(
 purity
 #>                                method knn_purity
 #>                                <char>      <num>
-#> 1:                           node2vec   0.783050
-#> 2:   metapath2vec (gene-pathway-gene)   0.743600
-#> 3: metapath2vec++ (gene-pathway-gene)   0.741950
+#> 1:                           node2vec   0.783450
+#> 2:   metapath2vec (gene-pathway-gene)   0.743850
+#> 3: metapath2vec++ (gene-pathway-gene)   0.741900
 #> 4:                             random   0.088955
 ```
 
@@ -363,20 +363,20 @@ nearest(gpg, tp53, n = 15L)
 #>                  id cosine    type
 #>              <char>  <num>  <char>
 #>  1:   R-HSA-9723905  0.944 pathway
-#>  2:     R-HSA-69895  0.872 pathway
-#>  3:   R-HSA-6804754  0.849 pathway
+#>  2:     R-HSA-69895  0.873 pathway
+#>  3:   R-HSA-6804754  0.850 pathway
 #>  4:    R-HSA-111448  0.835 pathway
-#>  5:   R-HSA-6804116  0.786 pathway
-#>  6: ENSG00000161642  0.764    gene
-#>  7:    R-HSA-139915  0.763 pathway
-#>  8: ENSG00000104881  0.747    gene
-#>  9: ENSG00000151615  0.747    gene
-#> 10: ENSG00000152192  0.743    gene
-#> 11: ENSG00000140836  0.737    gene
-#> 12: ENSG00000165891  0.737    gene
-#> 13: ENSG00000116017  0.736    gene
-#> 14: ENSG00000129173  0.736    gene
-#> 15: ENSG00000169372  0.735    gene
+#>  5:   R-HSA-6804116  0.787 pathway
+#>  6: ENSG00000161642  0.767    gene
+#>  7:    R-HSA-139915  0.762 pathway
+#>  8: ENSG00000104881  0.749    gene
+#>  9: ENSG00000151615  0.748    gene
+#> 10: ENSG00000152192  0.744    gene
+#> 11: ENSG00000165891  0.737    gene
+#> 12:   R-HSA-6804759  0.737 pathway
+#> 13: ENSG00000140836  0.737    gene
+#> 14: ENSG00000116017  0.736    gene
+#> 15: ENSG00000129173  0.736    gene
 #>                                                                         label
 #>                                                                        <char>
 #>  1: Loss of function of TP53 in cancer due to loss of tetramerization ability
@@ -389,11 +389,11 @@ nearest(gpg, tp53, n = 15L)
 #>  8:                                                                  PPP1R13L
 #>  9:                                                                    POU4F2
 #> 10:                                                                    POU4F1
-#> 11:                                                                     ZFHX3
-#> 12:                                                                      E2F7
-#> 13:                                                                    ARID3A
-#> 14:                                                                      E2F8
-#> 15:                                                                     CRADD
+#> 11:                                                                      E2F7
+#> 12:           Regulation of TP53 Activity through Association with Co-factors
+#> 13:                                                                     ZFHX3
+#> 14:                                                                    ARID3A
+#> 15:                                                                      E2F8
 ```
 
 ### Pathway embeddings
@@ -468,11 +468,11 @@ nearest(pgp[pathway_ids, ], tnfr1)
 #>  2: R-HSA-5357905  0.914 pathway
 #>  3: R-HSA-9693928  0.900 pathway
 #>  4: R-HSA-9686347  0.847 pathway
-#>  5: R-HSA-5218900  0.844 pathway
-#>  6: R-HSA-9013957  0.839 pathway
-#>  7:  R-HSA-933543  0.838 pathway
-#>  8: R-HSA-3371378  0.836 pathway
-#>  9:   R-HSA-75157  0.829 pathway
+#>  5: R-HSA-5218900  0.845 pathway
+#>  6: R-HSA-9013957  0.840 pathway
+#>  7:  R-HSA-933543  0.839 pathway
+#>  8: R-HSA-3371378  0.837 pathway
+#>  9:   R-HSA-75157  0.830 pathway
 #> 10:   R-HSA-69416  0.822 pathway
 #>                                                                         label
 #>                                                                        <char>
