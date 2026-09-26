@@ -24,6 +24,11 @@ For now, the following methods implemented:
   [Vandin et al.](https://pubmed.ncbi.nlm.nih.gov/21385051/), 
   [Bersanelli et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5059623/) and
   [Mostafavi et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/).
+- Diffusion profiles from
+  [Ruiz et al.](https://www.nature.com/articles/s41467-021-21770-8): one
+  constrained personalised PageRank per seed over a heterogeneous graph, with
+  sink node types and type weights, then distances between the profiles. See
+  this [vignette](https://gregorlueg.github.io/genewalkR/articles/diffusion_profiles.html).
 - General node2vec to generate embeddings, please see this 
   [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
 - [metapath2vec](https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf)
@@ -99,11 +104,12 @@ please use GitHub issues.
 While more complex graph neural networks that leverage edge and node
 information are in vogue at the moment, some simple methods in times tend to
 do quite well themselves, while not necessitating massive amounts of (GPU) 
-compute. metapath2vec is the first step in that direction: heterogeneous graphs,
-still on CPU. A few additional graph-based methods are also already 
-implemented in [bixverse](https://github.com/GregorLueg/bixverse), here more
-with focus on PageRank-based ones and a lot of methods that use kNN graphs
-in some colour or shape (specifically for single cell).
+compute. metapath2vec and the diffusion profiles are the first steps in that
+direction: heterogeneous graphs, still on CPU. A few additional graph-based
+methods are also already implemented in 
+[bixverse](https://github.com/GregorLueg/bixverse), here more with focus on 
+PageRank-based ones and a lot of methods that use kNN graphs in some colour or
+shape (specifically for single cell).
 
 ## License
 

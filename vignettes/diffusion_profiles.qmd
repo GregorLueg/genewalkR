@@ -1,0 +1,313 @@
+---
+title: "Diffusion profiles"
+date: last-modified
+date-format: YYYY-MM-DD
+vignette: >
+  %\VignetteIndexEntry{Diffusion profiles}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+author:
+  Gregor Lueg
+---
+
+# Diffusion profiles
+
+## Setup
+
+```{r}
+#| label: setup
+library(genewalkR)
+library(data.table)
+library(magrittr)
+```
+
+## Background
+
+[Ruiz, Zitnik and Leskovec](https://www.nature.com/articles/s41467-021-21770-8)
+built the multiscale interactome: drugs and diseases hang off proteins, proteins
+talk to each other and to a hierarchy of biological functions. To explain how a
+drug treats a disease, they run one personalised PageRank per drug and per
+disease and compare the resulting visitation vectors, the diffusion profiles.
+Two drugs that hit the same biology end up with similar profiles, and a drug
+whose profile looks like a disease's is a candidate treatment.
+
+It's a personalised PageRank with two twists:
+
+- **Sinks.** The seed is a source. Every other node of a sink type absorbs the
+  walker: mass flows in, nothing flows out. In the paper drugs and diseases are
+  sinks, so a drug's profile doesn't leak through some other drug into its
+  targets.
+- **Type weights.** At each step the walker first picks one of the node types
+  among its neighbours, proportional to the type weight, then a neighbour of
+  that type. This lets you push the walk towards, say, biological functions,
+  no matter how many protein neighbours a node has.
+
+Leave `type_weights = NULL` and `sink_types` empty and you get the plain
+(edge-weighted) personalised PageRank. The graph is built once in Rust and the
+seeds run in parallel.
+
+## A toy interactome
+
+Two drugs, two diseases, six proteins in a chain and three functions. `drug_A`
+and `disease_X` share `P2`; `drug_B` and `disease_Y` sit at the other end of
+the chain.
+
+```{r}
+#| label: toy graph
+toy_nodes <- data.table(
+  id = c(
+    "drug_A",
+    "drug_B",
+    paste0("P", 1:6),
+    "F1",
+    "F2",
+    "F3",
+    "disease_X",
+    "disease_Y"
+  ),
+  type = c(
+    rep("drug", 2),
+    rep("protein", 6),
+    rep("function", 3),
+    rep("disease", 2)
+  )
+)
+
+toy_edges <- data.table(
+  from = c(
+    # drugs and diseases to proteins
+    "drug_A", "drug_A", "drug_B", "disease_X", "disease_X", "disease_Y",
+    # protein chain
+    "P1", "P2", "P3", "P4", "P5",
+    # proteins to functions
+    "P1", "P2", "P3", "P4", "P5", "P6"
+  ),
+  to = c(
+    "P1", "P2", "P5", "P2", "P3", "P6",
+    "P2", "P3", "P4", "P5", "P6",
+    "F1", "F1", "F2", "F2", "F3", "F3"
+  )
+)
+
+toy_seeds <- c("drug_A", "drug_B", "disease_X", "disease_Y")
+```
+
+First the plain personalised PageRank: no sinks, no type weights.
+
+```{r}
+#| label: toy plain
+plain <- DiffusionProfiles(
+  graph_dt = toy_edges,
+  node_dt = toy_nodes,
+  sink_types = character()
+) %>%
+  generate_profiles(seeds = toy_seeds, .verbose = FALSE)
+
+round(get_profiles(plain), 3)
+```
+
+Each column sums to 1. Look at `drug_A`: 0.075 of its mass sits on
+`disease_X`, and from there it keeps walking into `P3` and beyond. Now make
+drugs and diseases sinks and up-weight functions five-fold.
+
+```{r}
+#| label: toy constrained
+constrained <- DiffusionProfiles(
+  graph_dt = toy_edges,
+  node_dt = toy_nodes,
+  sink_types = c("drug", "disease"),
+  type_weights = c(drug = 1, protein = 1, `function` = 5, disease = 1)
+) %>%
+  generate_profiles(seeds = toy_seeds, .verbose = FALSE)
+
+constrained
+
+round(get_profiles(constrained), 3)
+```
+
+`F1` goes from 0.123 to 0.289 in the `drug_A` profile, and `F3` more than
+doubles in the `drug_B` one. The profiles are now dominated by the functions
+each drug touches, which is exactly what you want to compare on.
+
+Distances between profiles are computed in Rust as well. Lower means more
+similar. Ruiz et al. use the correlation distance to rank drug-disease pairs,
+which is the default here; `"canberra"`, `"l1"`, `"l2"` and `"cosine"` are
+also available.
+
+```{r}
+#| label: toy distances
+calculate_profile_distances(
+  constrained,
+  from = c("drug_A", "drug_B"),
+  to = c("disease_X", "disease_Y")
+) %>%
+  round(3)
+```
+
+`drug_A` pairs with `disease_X`, `drug_B` with `disease_Y`. Good.
+
+## Reactome and a MYC signature
+
+The DuckDB has no drugs or diseases, but Reactome gives us genes, pathways and
+the pathway hierarchy. We play the drug-disease game with gene signatures
+instead: a node for the MYC target genes that ship with the package, and a node
+for a random gene set of the same size as the control. Both get type
+`signature`, and signatures are sinks.
+
+```{r}
+#| label: reactome graph
+gene_gene <- get_interactions_reactome()[, .(
+  from = as.character(from),
+  to = as.character(to)
+)]
+gene_pathway <- get_gene_to_reactome()[, .(
+  from = as.character(from),
+  to = as.character(to)
+)]
+pathway_pathway <- get_reactome_hierarchy("child_of")[, .(
+  from = as.character(from),
+  to = as.character(to)
+)]
+
+all_genes <- unique(c(gene_gene$from, gene_gene$to, gene_pathway$from))
+
+set.seed(42L)
+myc_targets <- intersect(myc_genes$ensembl_gene, all_genes)
+random_genes <- sample(all_genes, length(myc_targets))
+
+signature_edges <- rbind(
+  data.table(from = "MYC_targets", to = myc_targets),
+  data.table(from = "random", to = random_genes)
+)
+
+edges <- rbind(gene_gene, gene_pathway, pathway_pathway, signature_edges) %>%
+  unique() %>%
+  .[from != to]
+
+nodes <- rbind(
+  data.table(id = all_genes, type = "gene"),
+  data.table(
+    id = unique(c(gene_pathway$to, pathway_pathway$from, pathway_pathway$to)),
+    type = "pathway"
+  ),
+  data.table(id = c("MYC_targets", "random"), type = "signature")
+) %>%
+  unique(by = "id")
+
+nodes[, .N, by = type]
+nrow(edges)
+```
+
+For readable output, the pathway names. A few pathway ids in the hierarchy
+have no name in the database; those keep their id.
+
+```{r}
+#| label: reactome labels
+pathway_labels <- get_reactome_info()[, .(
+  id = as.character(reactome_id),
+  label = as.character(reactome_name)
+)]
+
+label_pathways <- function(ids) {
+  fcoalesce(pathway_labels[match(ids, id), label], ids)
+}
+```
+
+We generate a profile for both signatures and for every single pathway. That's
+close to 3,000 PageRanks over more than 14k nodes.
+
+```{r}
+#| label: reactome profiles
+pathways <- nodes[type == "pathway", id]
+
+reactome_profiles <- DiffusionProfiles(
+  graph_dt = edges,
+  node_dt = nodes,
+  sink_types = "signature"
+)
+
+tictoc <- system.time(
+  reactome_profiles <- generate_profiles(
+    reactome_profiles,
+    seeds = c("MYC_targets", "random", pathways)
+  )
+)
+
+tictoc
+```
+
+A few seconds. Blazingly fast.
+
+### Where does the mass go?
+
+The obvious first look: which pathways soak up the most mass from each
+signature?
+
+```{r}
+#| label: top mass
+profiles <- get_profiles(reactome_profiles)
+
+top_mass <- function(seed, n = 8L) {
+  mass <- sort(profiles[pathways, seed], decreasing = TRUE)[seq_len(n)]
+  data.table(pathway = label_pathways(names(mass)), mass = signif(mass, 3))
+}
+
+top_mass("MYC_targets")
+top_mass("random")
+```
+
+MYC targets land on mRNA splicing, rRNA processing and nucleotide metabolism.
+MYC drives ribosome biogenesis and nucleotide synthesis, so that checks out.
+The random set lands on whatever is big and well connected: olfactory
+receptors, the generic transcription pathway, neutrophil degranulation. The
+latter also shows up for MYC. Raw mass is biased towards hubs.
+
+### Comparing profiles
+
+This is where the approach earns its keep. Instead of asking where the
+signature's walker ends up, ask which pathway's own profile looks most like
+the signature's.
+
+```{r}
+#| label: distances
+dists <- calculate_profile_distances(
+  reactome_profiles,
+  from = c("MYC_targets", "random"),
+  to = pathways
+)
+
+closest <- function(seed, n = 8L) {
+  d <- sort(dists[seed, ])[seq_len(n)]
+  data.table(pathway = label_pathways(names(d)), distance = round(d, 3))
+}
+
+closest("MYC_targets")
+closest("random")
+```
+
+The hubs are gone. For MYC you get pyrimidine and PRPP biosynthesis,
+nucleotide interconversion and polyamine metabolism (ODC1 is one of the
+classic MYC targets), i.e. the anabolic programme MYC is known for. The random
+set gives a grab bag of small pathways without a common theme.
+
+Don't overread the absolute numbers though. On a graph this size all the
+correlation distances sit between 0.8 and 0.9, and the random set's best hit
+(0.842) is barely further away than MYC's (0.826). The ranking within a
+signature carries the biology; whether a single distance is surprising needs a
+null, see below.
+
+## Caveats and next steps
+
+- Profiles are dense `nodes x seeds` matrices. 2,847 seeds over 14,295 nodes is
+  about 325 MB of doubles, so thousands of seeds on a large graph get painful
+  fast.
+- There's no permutation test yet. For a proper null you'd rewire the graph
+  (the configuration model used for GeneWalk would do) and regenerate the
+  profiles. Watch this space.
+- Type weights are a free parameter. Ruiz et al. tuned theirs on known
+  drug-disease pairs; without such a gold standard, leave them at `NULL` or
+  keep them flat.
