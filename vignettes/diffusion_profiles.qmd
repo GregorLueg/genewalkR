@@ -303,11 +303,95 @@ nucleotide interconversion and polyamine metabolism (ODC1 is one of the
 classic MYC targets), i.e. the anabolic programme MYC is known for. The random
 set gives a grab bag of small pathways without a common theme.
 
-Don't overread the absolute numbers though. On a graph this size all the
-correlation distances sit between 0.8 and 0.9, and the random set's best hit
-(0.842) is barely further away than MYC's (0.826). The ranking within a
-signature carries the biology; whether a single distance is surprising needs a
-null, see below.
+Don't overread the absolute numbers though. On a graph this size even the
+closest hits sit between 0.8 and 0.9, and the random set's best hit (0.842) is
+barely further away than MYC's (0.826). The ranking within a signature carries
+the biology; whether a single distance is surprising needs a null, see below.
+
+### Choosing a metric
+
+Which metric then? For a rough check we need something to score against. Take
+the Reactome pathways where the MYC targets are over-represented
+(hypergeometric test, BH < 0.05) and ask how high each metric ranks them, for
+MYC and for the random set.
+
+```{r}
+#| label: metric check
+gene_to_pathway <- unique(gene_pathway)
+n_genes <- uniqueN(gene_to_pathway$from)
+ora <- gene_to_pathway[,
+  .(k = sum(from %in% myc_targets), size = .N),
+  by = .(pathway = to)
+]
+ora[,
+  fdr := p.adjust(
+    phyper(k - 1, size, n_genes - size, length(myc_targets), lower.tail = FALSE),
+    method = "BH"
+  )
+]
+myc_pathways <- intersect(ora[fdr < 0.05, pathway], pathways)
+length(myc_pathways)
+
+# AUROC of the reference pathways when sorted by distance, lower = closer
+auroc <- function(d, pos) {
+  is_pos <- names(d) %in% pos
+  n_pos <- sum(is_pos)
+  n_neg <- length(d) - n_pos
+  1 - (sum(rank(d)[is_pos]) - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg)
+}
+
+metric_check <- lapply(
+  c("correlation", "cosine", "l1", "l2", "canberra"),
+  \(metric) {
+    d <- calculate_profile_distances(
+      reactome_profiles,
+      from = c("MYC_targets", "random"),
+      to = pathways,
+      metric = metric
+    )
+    top_myc <- names(sort(d["MYC_targets", ]))[1:20]
+    data.table(
+      metric = metric,
+      auroc_myc = round(auroc(d["MYC_targets", ], myc_pathways), 3),
+      auroc_random = round(auroc(d["random", ], myc_pathways), 3),
+      top20_myc = sum(top_myc %in% myc_pathways),
+      top20_random = sum(names(sort(d["random", ]))[1:20] %in% myc_pathways),
+      # parent pathways without direct member genes have no size
+      top20_median_size = median(
+        ora[match(top_myc, pathway), size],
+        na.rm = TRUE
+      )
+    )
+  }
+) %>%
+  rbindlist()
+
+metric_check
+median(ora[pathway %in% pathways, size])
+```
+
+Correlation and cosine are practically the same thing here: profiles sum to 1
+and are mostly near zero, so centring barely changes anything. Both give the
+best separation, with none of the reference pathways in the random set's top 20.
+L1 comes next. L2 drifts towards big pathways (look at the median size of its
+top 20 against the median pathway) and picks up the most reference pathways
+for the random set, i.e. it rewards size rather than specificity. Canberra
+weights every node's relative difference equally, so the long tail of
+near-zero entries drowns the signal on a graph this size.
+
+So: correlation as the default, L1 if you want a second opinion. Leave L2 out
+for ranking. Canberra makes sense when you compare a profile against something
+on a different scale, which is what Ruiz et al. use it for.
+
+Take the table with a pinch of salt:
+
+- The reference is partly circular. The signature node hangs off exactly the
+  genes the over-representation test counts, and the pathway nodes hang off
+  their member genes, so this rewards metrics that pick up direct gene overlap.
+- It's one signature, one random draw and one graph. On a different graph or
+  with type weights the order may change.
+- AUROC over 2,845 pathways says nothing about whether a single distance is
+  significant. That still needs a null.
 
 ## Caveats and next steps
 
