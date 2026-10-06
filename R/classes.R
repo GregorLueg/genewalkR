@@ -1305,13 +1305,27 @@ DiffusionProfiles <- S7::new_class(
     }
 
     node_ids <- as.character(node_dt$id)
-    if (
-      anyNA(match(as.character(graph_dt$from), node_ids)) ||
-        anyNA(match(as.character(graph_dt$to), node_ids))
-    ) {
+    from <- as.character(graph_dt$from)
+    to <- as.character(graph_dt$to)
+    if (anyNA(match(from, node_ids)) || anyNA(match(to, node_ids))) {
       stop(
         "All edge endpoints in `graph_dt` need to be present in `node_dt$id`."
       )
+    }
+    # parallel edges add up in the transition matrix
+    n_dup <- if (directed) {
+      sum(duplicated(data.table::data.table(from, to)))
+    } else {
+      sum(duplicated(data.table::data.table(pmin(from, to), pmax(from, to))))
+    }
+    if (n_dup > 0L) {
+      warning(sprintf(
+        paste(
+          "Found %i duplicate edge(s); each copy adds to the transition",
+          "weight. See dedup_edges()."
+        ),
+        n_dup
+      ))
     }
 
     S7::new_object(

@@ -78,6 +78,7 @@ reference:
       - DiffusionProfiles
       - generate_profiles
       - calculate_profile_distances
+      - dedup_edges
       - get_profiles
       - params_diffusion_profiles
   - title: "Helpers and getters"

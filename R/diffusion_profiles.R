@@ -1,5 +1,106 @@
 # diffusion profiles -----------------------------------------------------------
 
+## edge helpers ----------------------------------------------------------------
+
+#' Deduplicate edges
+#'
+#' @description
+#' Collapses duplicate edges into one. The constrained PageRank keeps parallel
+#' edges, so a pair listed twice (e.g. the same gene pair from two interaction
+#' sources, or `A-B` plus `B-A` in an undirected graph) gets twice the
+#' transition weight. Run this before [DiffusionProfiles()] unless that is
+#' what you want.
+#'
+#' @param graph_dt data.table. The edge table with `"from"`, `"to"` and
+#' optionally `"weight"` (non-negative).
+#' @param node_dt Optional data.table with the columns `"id"` and `"type"`. If
+#' supplied, the removed duplicates are reported per node-type pair.
+#' @param directed Boolean. If `FALSE`, `A-B` and `B-A` are the same edge.
+#' Defaults to `FALSE`.
+#' @param weight_agg String. How to combine the weights of duplicates. One of
+#' `c("max", "sum", "mean")`. Ignored without a `"weight"` column. Defaults to
+#' `"max"`, matching the deduplication in [node2vec()].
+#' @param .verbose Boolean. Controls verbosity. Defaults to `TRUE`.
+#'
+#' @return A data.table with the columns `"from"`, `"to"` and, if present in
+#' the input, `"weight"`. All other columns are dropped. For undirected graphs
+#' each edge is stored once with `from <= to` (lexicographically). Endpoints
+#' are returned as character.
+#'
+#' @export
+dedup_edges <- function(
+  graph_dt,
+  node_dt = NULL,
+  directed = FALSE,
+  weight_agg = c("max", "sum", "mean"),
+  .verbose = TRUE
+) {
+  weight_agg <- match.arg(weight_agg)
+
+  checkmate::assertDataTable(graph_dt)
+  checkmate::assertNames(names(graph_dt), must.include = c("from", "to"))
+  checkmate::assertDataTable(node_dt, null.ok = TRUE)
+  if (!is.null(node_dt)) {
+    checkmate::assertNames(names(node_dt), must.include = c("id", "type"))
+  }
+  checkmate::qassert(directed, "B1")
+  checkmate::assertChoice(weight_agg, c("max", "sum", "mean"))
+  checkmate::qassert(.verbose, "B1")
+  has_weight <- "weight" %in% names(graph_dt)
+  if (has_weight) {
+    checkmate::assertNumeric(
+      graph_dt$weight,
+      lower = 0,
+      finite = TRUE,
+      any.missing = FALSE,
+      .var.name = "graph_dt$weight"
+    )
+  }
+
+  from <- as.character(graph_dt$from)
+  to <- as.character(graph_dt$to)
+  edges <- if (directed) {
+    data.table::data.table(from = from, to = to)
+  } else {
+    data.table::data.table(from = pmin(from, to), to = pmax(from, to))
+  }
+
+  if (.verbose) {
+    dups <- edges[duplicated(edges, by = c("from", "to"))]
+    if (nrow(dups) == 0L) {
+      message("No duplicate edges found.")
+    } else if (is.null(node_dt)) {
+      message(sprintf("Removed %i duplicate edge(s).", nrow(dups)))
+    } else {
+      node_ids <- as.character(node_dt$id)
+      node_types <- as.character(node_dt$type)
+      type_from <- node_types[match(dups$from, node_ids)]
+      type_to <- node_types[match(dups$to, node_ids)]
+      type_pair <- if (directed) {
+        paste(type_from, type_to, sep = "-")
+      } else {
+        paste(pmin(type_from, type_to), pmax(type_from, type_to), sep = "-")
+      }
+      counts <- sort(table(type_pair), decreasing = TRUE)
+      message(sprintf(
+        "Removed %i duplicate edge(s):\n%s",
+        nrow(dups),
+        paste(sprintf("  %s: %i", names(counts), counts), collapse = "\n")
+      ))
+    }
+  }
+
+  if (!has_weight) {
+    return(unique(edges, by = c("from", "to")))
+  }
+
+  edges[, weight := as.numeric(graph_dt$weight)]
+  agg_fun <- switch(weight_agg, max = max, sum = sum, mean = mean)
+  res <- edges[, .(weight = agg_fun(weight)), by = .(from, to)]
+
+  return(res)
+}
+
 ## profile generation ----------------------------------------------------------
 
 #' Generate diffusion profiles
@@ -104,6 +205,23 @@ S7::method(generate_profiles, DiffusionProfiles) <- function(
 #' Lower means more similar. Ruiz et al. rank drug-disease pairs by the
 #' correlation distance on the multiscale interactome and by Canberra when
 #' comparing against gene expression signatures.
+#'
+#' @details
+#' Every profile sums to 1 and the seed keeps roughly `1 - alpha` of the mass
+#' on itself. What each metric weights:
+#' \itemize{
+#'   \item `"correlation"`: Pearson on the full vector. Driven by the large
+#'   entries, i.e. the immediate neighbourhood of the seed and hubs.
+#'   \item `"cosine"`: Without centring. Since all profiles sum to 1 and are
+#'   mostly near zero, it ranks almost identically to `"correlation"`.
+#'   \item `"l1"`: Twice the total variation distance between the two
+#'   distributions. Less dominated by the top entries than the above.
+#'   \item `"l2"`: Dominated by the largest entries; favours big,
+#'   well-connected nodes.
+#'   \item `"canberra"`: Relative differences per node, so the many
+#'   near-zero entries count as much as the large ones. Useful when the
+#'   profile is compared against a signature on a different scale.
+#' }
 #'
 #' @param object A `DiffusionProfiles` object with generated profiles.
 #' @param from Character vector. Seeds for the rows of the result.

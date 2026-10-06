@@ -166,3 +166,63 @@ expect_error(
   params_diffusion_profiles(alpha = 1),
   info = "alpha must be below 1"
 )
+
+### edge deduplication ---------------------------------------------------------
+
+dup_dt <- data.table::data.table(
+  from = c("p0", "p1", "p0", "g0"),
+  to = c("p1", "p0", "p1", "p0"),
+  weight = c(1, 2, 3, 4)
+)
+
+res <- dedup_edges(dup_dt, .verbose = FALSE)
+expect_equal(nrow(res), 2L, info = "undirected collapses A-B and B-A")
+expect_equal(res[from == "p0" & to == "p1", weight], 3, info = "max weight")
+expect_equal(
+  dedup_edges(dup_dt, weight_agg = "sum", .verbose = FALSE)[
+    from == "p0" & to == "p1",
+    weight
+  ],
+  6,
+  info = "summed weight"
+)
+expect_equal(
+  dedup_edges(dup_dt, weight_agg = "mean", .verbose = FALSE)[
+    from == "p0" & to == "p1",
+    weight
+  ],
+  2,
+  info = "mean weight"
+)
+expect_equal(
+  nrow(dedup_edges(dup_dt, directed = TRUE, .verbose = FALSE)),
+  3L,
+  info = "directed keeps A-B and B-A"
+)
+expect_equal(
+  names(dedup_edges(dup_dt[, .(from, to)], .verbose = FALSE)),
+  c("from", "to"),
+  info = "no weight column"
+)
+expect_message(
+  dedup_edges(dup_dt, node_dt = node_dt),
+  "protein-protein: 2",
+  info = "report per node-type pair"
+)
+
+expect_warning(
+  DiffusionProfiles(
+    graph_dt = dup_dt[, .(from, to)],
+    node_dt = node_dt,
+    sink_types = character()
+  ),
+  "duplicate",
+  info = "constructor warns on duplicates"
+)
+expect_silent(
+  DiffusionProfiles(
+    graph_dt = dedup_edges(dup_dt, .verbose = FALSE),
+    node_dt = node_dt,
+    sink_types = character()
+  )
+)

@@ -184,10 +184,6 @@ signature_edges <- rbind(
   data.table(from = "random", to = random_genes)
 )
 
-edges <- rbind(gene_gene, gene_pathway, pathway_pathway, signature_edges) %>%
-  unique() %>%
-  .[from != to]
-
 nodes <- rbind(
   data.table(id = all_genes, type = "gene"),
   data.table(
@@ -199,6 +195,19 @@ nodes <- rbind(
   unique(by = "id")
 
 nodes[, .N, by = type]
+```
+
+The PageRank keeps parallel edges, so an edge listed twice gets twice the
+transition weight. `unique()` won't catch it here: Reactome lists many gene
+pairs as both `A-B` and `B-A`, which is the same edge in an undirected graph.
+`dedup_edges()` handles that and tells you where the duplicates were.
+
+```{r}
+#| label: reactome edges
+edges <- rbind(gene_gene, gene_pathway, pathway_pathway, signature_edges) %>%
+  .[from != to] %>%
+  dedup_edges(node_dt = nodes)
+
 nrow(edges)
 ```
 
