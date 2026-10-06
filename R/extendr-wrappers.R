@@ -293,7 +293,8 @@ rs_kernel_node_names <- function(kernel) .Call(wrap__rs_kernel_node_names, kerne
 #'   `type_weight_values`. `NULL` gives the plain random walk.
 #' @param type_weight_values Optional numeric vector. Weight per node type.
 #' @param sink_types Character vector. Node types that act as sinks.
-#' @param seeds Integer vector. 1-based node indices; one profile per seed.
+#' @param seeds List of integer vectors. 1-based node indices; one profile
+#'   per element. A set restarts uniformly over its nodes.
 #' @param directed Boolean. Treat the graph as directed.
 #' @param diffusion_profile_params Named list with `alpha`, `max_iter` and
 #'   `tol`.

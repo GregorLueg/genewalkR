@@ -176,7 +176,7 @@ S7::method(generate_profiles, DiffusionProfiles) <- function(
       as.numeric(type_weights)
     },
     sink_types = S7::prop(object, "sink_types"),
-    seeds = match(seeds, node_ids),
+    seeds = as.list(match(seeds, node_ids)),
     directed = S7::prop(object, "params")[["directed"]],
     diffusion_profile_params = diffusion_profile_params
   )

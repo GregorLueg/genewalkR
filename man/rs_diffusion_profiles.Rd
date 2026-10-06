@@ -33,7 +33,8 @@ rs_diffusion_profiles(
 
 \item{sink_types}{Character vector. Node types that act as sinks.}
 
-\item{seeds}{Integer vector. 1-based node indices; one profile per seed.}
+\item{seeds}{List of integer vectors. 1-based node indices; one profile
+per element. A set restarts uniformly over its nodes.}
 
 \item{directed}{Boolean. Treat the graph as directed.}
 

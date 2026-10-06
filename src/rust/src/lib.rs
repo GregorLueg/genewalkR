@@ -1165,7 +1165,8 @@ fn rs_diffuse(
 ///   `type_weight_values`. `NULL` gives the plain random walk.
 /// @param type_weight_values Optional numeric vector. Weight per node type.
 /// @param sink_types Character vector. Node types that act as sinks.
-/// @param seeds Integer vector. 1-based node indices; one profile per seed.
+/// @param seeds List of integer vectors. 1-based node indices; one profile
+///   per element. A set restarts uniformly over its nodes.
 /// @param directed Boolean. Treat the graph as directed.
 /// @param diffusion_profile_params Named list with `alpha`, `max_iter` and
 ///   `tol`.
@@ -1183,7 +1184,7 @@ fn rs_diffusion_profiles(
     type_weight_names: Option<Vec<String>>,
     type_weight_values: Option<Vec<f64>>,
     sink_types: Vec<String>,
-    seeds: Vec<i32>,
+    seeds: List,
     directed: bool,
     diffusion_profile_params: List,
 ) -> extendr_api::Result<RMatrix<f64>> {
@@ -1220,18 +1221,30 @@ fn rs_diffusion_profiles(
     .map_err(to_err)?;
     let n = graph.node_count();
 
-    if let Some(&s) = seeds.iter().find(|&&s| s < 1 || s as usize > n) {
-        return Err(extendr_api::Error::Other(format!(
-            "Seed index {s} is out of range for {n} nodes."
-        )));
+    let mut seed_sets: Vec<Vec<usize>> = Vec::with_capacity(seeds.len());
+    for (_, v) in seeds.iter() {
+        let set = v.as_integer_vector().ok_or_else(|| {
+            extendr_api::Error::Other("Every seed set needs to be an integer vector.".into())
+        })?;
+        if set.is_empty() {
+            return Err(extendr_api::Error::Other("Empty seed set.".into()));
+        }
+        if let Some(&s) = set.iter().find(|&&s| s < 1 || s as usize > n) {
+            return Err(extendr_api::Error::Other(format!(
+                "Seed index {s} is out of range for {n} nodes."
+            )));
+        }
+        seed_sets.push(set.r_int_convert_shift());
     }
-    let seeds: Vec<usize> = seeds.r_int_convert_shift();
 
-    let profiles: Vec<Vec<f64>> = seeds
+    let profiles: Vec<Vec<f64>> = seed_sets
         .par_iter()
-        .map_init(ConstrainedPageRankWorkingMemory::new, |mem, &s| {
+        .map_init(ConstrainedPageRankWorkingMemory::new, |mem, set| {
             let mut p = vec![0.0; n];
-            p[s] = 1.0;
+            let w = 1.0 / set.len() as f64;
+            for &s in set {
+                p[s] += w;
+            }
             constrained_personalised_page_rank_optimised(&graph, alpha, &p, max_iter, tol, mem)
         })
         .collect::<Result<_, _>>()
