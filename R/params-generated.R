@@ -3,6 +3,47 @@
 
 # parameter wrappers -----------------------------------------------------------
 
+#' Wrapper function for the diffusion profile parameters
+#'
+#' @description Parameters for [generate_profiles()], i.e. the constrained
+#' personalised PageRank behind the diffusion profiles of Ruiz et al.
+#'
+#' @param alpha Numeric. Probability of continuing the walk instead of
+#' restarting at the seed. Defaults to `0.85`.
+#' @param max_iter Integer. Maximum number of power iterations. Defaults to
+#' `100L`.
+#' @param tol Numeric. Convergence threshold on the L1 change between two
+#' iterations. Defaults to `1e-06`.
+#'
+#' @returns A named list with the following elements:
+#' \itemize{
+#'  \item alpha - Numeric. Probability of continuing the walk instead of
+#'  restarting at the seed. Defaults to `0.85`.
+#'  \item max_iter - Integer. Maximum number of power iterations. Defaults to
+#'  `100L`.
+#'  \item tol - Numeric. Convergence threshold on the L1 change between two
+#'  iterations. Defaults to `1e-06`.
+#' }
+#'
+#' @export
+params_diffusion_profiles <- function(
+  alpha = 0.85,
+  max_iter = 100L,
+  tol = 1e-06
+) {
+  # Checks
+  checkmate::qassert(alpha, "N1(0,1)")
+  checkmate::qassert(max_iter, "I1[1,)")
+  checkmate::qassert(tol, "N1(0,)")
+
+  # Return
+  list(
+    alpha = alpha,
+    max_iter = max_iter,
+    tol = tol
+  )
+}
+
 #' Wrapper function for the GeneWalk-specific node2vec parameters
 #'
 #' @param p Numeric. Return parameter for biased random walks. Defaults to

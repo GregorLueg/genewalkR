@@ -420,12 +420,16 @@ ingest_string_interactions <- function(dir_data, threshold = 0.85) {
           interactionScore,
           UNNEST(interactionResources, recursive := true)
         FROM read_parquet('%s')
+        JOIN (
+          SELECT interactionId, targetA, targetB FROM read_parquet('%s')
+        ) USING (interactionId)
       )
       WHERE sourceDatabase = 'string'
         AND targetA IS NOT NULL
         AND targetB IS NOT NULL",
       threshold,
-      file.path(dir_data, "interactions/*.parquet")
+      file.path(dir_data, "interactions/*.parquet"),
+      file.path(dir_data, "interaction_pairs/*.parquet")
     )
   ) %>%
     setDT()
@@ -466,11 +470,15 @@ ingest_reactome_interactions <- function(dir_data) {
           interactionTypeShortName,
           UNNEST(interactionResources, recursive := true)
         FROM read_parquet('%s')
+        JOIN (
+          SELECT interactionId, targetA, targetB FROM read_parquet('%s')
+        ) USING (interactionId)
       )
       WHERE sourceDatabase = 'reactome'
         AND targetA IS NOT NULL
         AND targetB IS NOT NULL",
-      file.path(dir_data, "interactions/*.parquet")
+      file.path(dir_data, "interactions/*.parquet"),
+      file.path(dir_data, "interaction_pairs/*.parquet")
     )
   ) %>%
     setDT()
@@ -511,11 +519,15 @@ ingest_signor_interactions <- function(dir_data) {
           interactionTypeShortName,
           UNNEST(interactionResources, recursive := true)
         FROM read_parquet('%s')
+        JOIN (
+          SELECT interactionId, targetA, targetB FROM read_parquet('%s')
+        ) USING (interactionId)
       )
       WHERE sourceDatabase = 'signor'
         AND targetA IS NOT NULL
         AND targetB IS NOT NULL",
-      file.path(dir_data, "interactions/*.parquet")
+      file.path(dir_data, "interactions/*.parquet"),
+      file.path(dir_data, "interaction_pairs/*.parquet")
     )
   ) %>%
     setDT()
@@ -558,12 +570,16 @@ ingest_intact_interaction <- function(dir_data) {
           interactionTypeShortName,
           UNNEST(interactionResources, recursive := true)
         FROM read_parquet('%s')
+        JOIN (
+          SELECT interactionId, targetA, targetB FROM read_parquet('%s')
+        ) USING (interactionId)
       )
       WHERE sourceDatabase = 'intact'
         AND targetA IS NOT NULL
         AND targetB IS NOT NULL
       GROUP BY targetA, targetB, interactionScore",
-      file.path(dir_data, "interactions/*.parquet")
+      file.path(dir_data, "interactions/*.parquet"),
+      file.path(dir_data, "interaction_pairs/*.parquet")
     )
   ) %>%
     setDT()

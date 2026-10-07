@@ -1,3 +1,9 @@
+# genewalkR 0.2.1
+
+- Diffusion profiles (constrained personalised PageRank) from Ruiz et al.:
+  `DiffusionProfiles()`, `generate_profiles()` and
+  `calculate_profile_distances()`, plus a vignette.
+
 # genewalkR 0.2.0
 
 - metapath2vec wired into the package.
