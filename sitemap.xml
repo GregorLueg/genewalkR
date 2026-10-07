@@ -3,6 +3,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/CLAUDE.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/LICENSE-text.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/diffusion.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/articles/diffusion_profiles.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/embedding_drift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/genewalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/articles/index.html</loc></url>
@@ -11,12 +12,14 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/authors.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/index.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/news/index.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/DiffusionProfiles.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/DiffusionScores.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/EmbedDrift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/GeneWalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/GeneWalkGenerator.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/apply_choice_rules.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/apply_qtest_rules.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/assertDiffusionProfilesParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkDataParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkDataTable.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/assertGeneWalkGraphDt.html</loc></url>
@@ -26,6 +29,8 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/build_kernel.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/calculate_drift.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/calculate_genewalk_stats.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/calculate_profile_distances.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/checkDiffusionProfilesParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkDataParams.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkDataTable.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/checkGeneWalkGraphDt.html</loc></url>
@@ -35,6 +40,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/check_degree_distribution.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/check_list_shape.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/db_path.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/dedup_edges.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/differential_graph_test_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/diffuse_scores.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/diffusion_test_lattice.html</loc></url>
@@ -50,6 +56,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_initial_emb.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_initial_embeddings.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_permuted_emb.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/generate_profiles.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_aligned_embd.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_db_connection.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_embedding.html</loc></url>
@@ -70,6 +77,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_interactions_reactome.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_interactions_signor.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_interactions_string.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/get_profiles.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_reactome_hierarchy.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_reactome_info.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/get_scores.html</loc></url>
@@ -95,6 +103,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/node2vec_test_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/obo_parser.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/opentargets_source.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/params_diffusion_profiles.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/params_genewalk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/params_genewalk_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/params_kernel.html</loc></url>
@@ -112,6 +121,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_differential_graph_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_diffuse.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_kernel.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_profiles.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_perm.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_test.html</loc></url>
@@ -120,6 +130,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/rs_profile_distances.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/synthetic_genewalk_data.html</loc></url>
 </urlset>
 

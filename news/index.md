@@ -1,5 +1,15 @@
 # Changelog
 
+## genewalkR 0.2.1
+
+- Diffusion profiles (constrained personalised PageRank) from Ruiz et
+  al.:
+  [`DiffusionProfiles()`](https://gregorlueg.github.io/genewalkR/reference/DiffusionProfiles.md),
+  [`generate_profiles()`](https://gregorlueg.github.io/genewalkR/reference/generate_profiles.md)
+  and
+  [`calculate_profile_distances()`](https://gregorlueg.github.io/genewalkR/reference/calculate_profile_distances.md),
+  plus a vignette.
+
 ## genewalkR 0.2.0
 
 - metapath2vec wired into the package.

@@ -52,7 +52,7 @@ gene_gene <- get_interactions_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmppZuBvd/duckdb
+#> ℹ /tmp/RtmpRvKzwi/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -64,7 +64,7 @@ gene_pathway <- get_gene_to_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmppZuBvd/duckdb
+#> ℹ /tmp/RtmpRvKzwi/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -76,7 +76,7 @@ pathway_pathway <- get_reactome_hierarchy("child_of")[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmppZuBvd/duckdb
+#> ℹ /tmp/RtmpRvKzwi/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -103,10 +103,10 @@ nodes <- rbind(
 nodes[, .N, by = type]
 #>       type     N
 #>     <char> <int>
-#> 1:    gene 11473
-#> 2: pathway  2870
+#> 1:    gene 11490
+#> 2: pathway  2883
 nrow(edges)
-#> [1] 102292
+#> [1] 102888
 ```
 
 metapath2vec wants two tables: the edges with `from` and `to` (and
@@ -127,7 +127,7 @@ node_labels <- rbind(
   )]
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmppZuBvd/duckdb
+#> ℹ /tmp/RtmpRvKzwi/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -135,7 +135,7 @@ node_labels <- rbind(
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmppZuBvd/duckdb
+#> ℹ /tmp/RtmpRvKzwi/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -167,16 +167,16 @@ bad_schema <- metapath2vec(
 #> Warning in metapath2vec(graph_dt = edges, node_dt = nodes, metapath = c("gene",
 #> : Walks reach 15% of the requested length on average (6.0 of 40). The metapath
 #> hits dead ends in the graph, check the schema.
-#> 179 nodes were never visited by a walk and were removed.
+#> 161 nodes were never visited by a walk and were removed.
 
 bad_stats <- attr(bad_schema, "walk_stats")
 str(bad_stats)
 #> List of 6
-#>  $ start_nodes: int 11473
-#>  $ attempted  : int 57365
-#>  $ truncated  : int 57152
-#>  $ dropped    : int 85
-#>  $ mean_length: num 6
+#>  $ start_nodes: int 11490
+#>  $ attempted  : int 57450
+#>  $ truncated  : int 57214
+#>  $ dropped    : int 90
+#>  $ mean_length: num 6.05
 #>  $ walk_length: int 40
 ```
 
@@ -209,14 +209,14 @@ gpg <- metapath2vec(
   metapath2vec_params = walk_params,
   .verbose = TRUE
 )
-#> 589 nodes were never visited by a walk and were removed.
+#> 590 nodes were never visited by a walk and were removed.
 
 str(attr(gpg, "walk_stats"))
 #> List of 6
-#>  $ start_nodes: int 11473
-#>  $ attempted  : int 229460
-#>  $ truncated  : int 340
-#>  $ dropped    : int 340
+#>  $ start_nodes: int 11490
+#>  $ attempted  : int 229800
+#>  $ truncated  : int 360
+#>  $ dropped    : int 360
 #>  $ mean_length: num 41
 #>  $ walk_length: int 41
 
@@ -229,7 +229,7 @@ gpg_plus <- metapath2vec(
   metapath_plus = TRUE,
   .verbose = TRUE
 )
-#> 589 nodes were never visited by a walk and were removed.
+#> 590 nodes were never visited by a walk and were removed.
 
 n2v <- node2vec(
   graph_dt = edges,
@@ -286,7 +286,7 @@ gene_top_level <- merge(
 gene_top_level <- gene_top_level[, if (.N == 1L) .SD, by = gene]
 
 nrow(gene_top_level)
-#> [1] 6542
+#> [1] 6508
 ```
 
 The score is kNN purity: for each gene, the share of its 10 nearest
@@ -325,10 +325,10 @@ purity <- data.table(
 purity
 #>                                method knn_purity
 #>                                <char>      <num>
-#> 1:                           node2vec   0.783250
-#> 2:   metapath2vec (gene-pathway-gene)   0.744150
-#> 3: metapath2vec++ (gene-pathway-gene)   0.742000
-#> 4:                             random   0.088955
+#> 1:                           node2vec  0.7746000
+#> 2:   metapath2vec (gene-pathway-gene)  0.7422500
+#> 3: metapath2vec++ (gene-pathway-gene)  0.7434000
+#> 4:                             random  0.0850795
 ```
 
 All three are miles above random and within a few points of each other.
@@ -362,37 +362,37 @@ tp53 <- node_labels[label == "TP53", id][1]
 nearest(gpg, tp53, n = 15L)
 #>                  id cosine    type
 #>              <char>  <num>  <char>
-#>  1:   R-HSA-9723905  0.943 pathway
-#>  2:     R-HSA-69895  0.873 pathway
-#>  3:   R-HSA-6804754  0.849 pathway
+#>  1:   R-HSA-9723905  0.941 pathway
+#>  2:   R-HSA-6804754  0.887 pathway
+#>  3:     R-HSA-69895  0.855 pathway
 #>  4:    R-HSA-111448  0.835 pathway
-#>  5:   R-HSA-6804116  0.787 pathway
-#>  6: ENSG00000161642  0.765    gene
-#>  7:    R-HSA-139915  0.762 pathway
-#>  8: ENSG00000104881  0.748    gene
-#>  9: ENSG00000151615  0.747    gene
-#> 10: ENSG00000152192  0.743    gene
-#> 11: ENSG00000165891  0.737    gene
-#> 12: ENSG00000116017  0.737    gene
-#> 13: ENSG00000129173  0.736    gene
-#> 14: ENSG00000140836  0.736    gene
-#> 15: ENSG00000169372  0.735    gene
+#>  5:   R-HSA-9988426  0.812 pathway
+#>  6:    R-HSA-139915  0.784 pathway
+#>  7:   R-HSA-6804116  0.749 pathway
+#>  8:   R-HSA-6803207  0.734 pathway
+#>  9:   R-HSA-2559584  0.728 pathway
+#> 10: ENSG00000118900  0.726    gene
+#> 11: ENSG00000161642  0.722    gene
+#> 12: ENSG00000149948  0.720    gene
+#> 13: ENSG00000111875  0.718    gene
+#> 14: ENSG00000149311  0.711    gene
+#> 15: ENSG00000169372  0.711    gene
 #>                                                                         label
 #>                                                                        <char>
 #>  1: Loss of function of TP53 in cancer due to loss of tetramerization ability
-#>  2:                 Transcriptional  activation of  cell cycle inhibitor p21 
-#>  3:                                             Regulation of TP53 Expression
+#>  2:                                             Regulation of TP53 Expression
+#>  3:                 Transcriptional  activation of  cell cycle inhibitor p21 
 #>  4:                      Activation of NOXA and translocation to mitochondria
-#>  5:    TP53 Regulates Transcription of Genes Involved in G1 Cell Cycle Arrest
-#>  6:                                                                   ZNF385A
-#>  7:                      Activation of PUMA and translocation to mitochondria
-#>  8:                                                                  PPP1R13L
-#>  9:                                                                    POU4F2
-#> 10:                                                                    POU4F1
-#> 11:                                                                      E2F7
-#> 12:                                                                    ARID3A
-#> 13:                                                                      E2F8
-#> 14:                                                                     ZFHX3
+#>  5:                 Negative transcriptional regulation of urea cycle enzymes
+#>  6:                      Activation of PUMA and translocation to mitochondria
+#>  7:    TP53 Regulates Transcription of Genes Involved in G1 Cell Cycle Arrest
+#>  8:           TP53 Regulates Transcription of Caspase Activators and Caspases
+#>  9:            Formation of Senescence-Associated Heterochromatin Foci (SAHF)
+#> 10:                                                                      UBN1
+#> 11:                                                                   ZNF385A
+#> 12:                                                                     HMGA2
+#> 13:                                                                     ASF1A
+#> 14:                                                                       ATM
 #> 15:                                                                     CRADD
 ```
 
@@ -415,14 +415,14 @@ pgp <- metapath2vec(
   .verbose = TRUE
 )
 #> Warning in metapath2vec(graph_dt = edges, node_dt = nodes, metapath =
-#> c("pathway", : 19.9% of walks were dropped: their 'pathway' start node has no
+#> c("pathway", : 19.8% of walks were dropped: their 'pathway' start node has no
 #> 'gene' neighbour. Check the metapath against the graph.
-#> 608 nodes were never visited by a walk and were removed.
+#> 610 nodes were never visited by a walk and were removed.
 
 str(attr(pgp, "walk_stats"))
 #> List of 6
-#>  $ start_nodes: int 2870
-#>  $ attempted  : int 57400
+#>  $ start_nodes: int 2883
+#>  $ attempted  : int 57660
 #>  $ truncated  : int 11440
 #>  $ dropped    : int 11440
 #>  $ mean_length: num 41
@@ -445,10 +445,10 @@ unvisited <- attr(pgp, "unvisited_nodes")
 nodes[id %in% unvisited, .N, by = type]
 #>       type     N
 #>     <char> <int>
-#> 1:    gene    36
+#> 1:    gene    38
 #> 2: pathway   572
 dim(pgp)
-#> [1] 13735    32
+#> [1] 13763    32
 
 pathway_ids <- intersect(rownames(pgp), nodes[type == "pathway", id])
 ```
@@ -464,28 +464,28 @@ tnfr1 <- node_labels[label == "TNFR1-induced proapoptotic signaling", id][1]
 nearest(pgp[pathway_ids, ], tnfr1)
 #>                id cosine    type
 #>            <char>  <num>  <char>
-#>  1: R-HSA-5357956  0.923 pathway
-#>  2: R-HSA-5357905  0.914 pathway
-#>  3: R-HSA-9693928  0.900 pathway
-#>  4: R-HSA-9686347  0.847 pathway
-#>  5: R-HSA-5218900  0.845 pathway
-#>  6: R-HSA-9013957  0.839 pathway
-#>  7:  R-HSA-933543  0.839 pathway
-#>  8: R-HSA-3371378  0.836 pathway
-#>  9:   R-HSA-75157  0.830 pathway
-#> 10:   R-HSA-69416  0.822 pathway
+#>  1: R-HSA-5357905  0.920 pathway
+#>  2: R-HSA-5357956  0.910 pathway
+#>  3: R-HSA-9693928  0.906 pathway
+#>  4: R-HSA-9013957  0.850 pathway
+#>  5:  R-HSA-933543  0.848 pathway
+#>  6: R-HSA-5218900  0.842 pathway
+#>  7: R-HSA-9692913  0.842 pathway
+#>  8:   R-HSA-75157  0.841 pathway
+#>  9: R-HSA-3371378  0.841 pathway
+#> 10: R-HSA-9686347  0.829 pathway
 #>                                                                         label
 #>                                                                        <char>
-#>  1:                                TNFR1-induced NF-kappa-B signaling pathway
-#>  2:                                             Regulation of TNFR1 signaling
+#>  1:                                             Regulation of TNFR1 signaling
+#>  2:                                TNFR1-induced NF-kappa-B signaling pathway
 #>  3:                               Defective RIPK1-mediated regulated necrosis
-#>  4:                 Microbial modulation of RIPK1-mediated regulated necrosis
-#>  5:                                               CASP8 activity is inhibited
-#>  6:                      TLR3-mediated TICAM1-dependent programmed cell death
-#>  7: NF-kB activation through FADD/RIP-1 pathway mediated by caspase-8 and -10
-#>  8:                                                      Regulation by c-FLIP
-#>  9:                                                     FasL/ CD95L signaling
-#> 10:                                              Dimerization of procaspase-8
+#>  4:                      TLR3-mediated TICAM1-dependent programmed cell death
+#>  5: NF-kB activation through FADD/RIP-1 pathway mediated by caspase-8 and -10
+#>  6:                                               CASP8 activity is inhibited
+#>  7:                      SARS-CoV-1-mediated effects on programmed cell death
+#>  8:                                                     FasL/ CD95L signaling
+#>  9:                                                      Regulation by c-FLIP
+#> 10:                 Microbial modulation of RIPK1-mediated regulated necrosis
 ```
 
 A PCA over the pathway rows, coloured by the eight largest top-level

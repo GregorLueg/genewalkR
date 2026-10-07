@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,7 @@
     <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
     <li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
     <li><a class="dropdown-item" href="../articles/metapath2vec.html">Metapath2vec</a></li>
+    <li><a class="dropdown-item" href="../articles/diffusion_profiles.html">Diffusion profiles</a></li>
   </ul>
 </li>
       </ul>
@@ -75,7 +76,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Metapath2vec</h1>
 
       <p class="author">Gregor Lueg</p>
-      <p class="date">2026-10-06</p>
+      <p class="date">2026-10-07</p>
 
 
       <div class="d-none name"><code></code></div>
@@ -120,7 +121,7 @@
 <span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">to</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; ℹ /tmp/RtmppZuBvd/duckdb</span></span>
+<span><span class="co">#&gt; ℹ /tmp/RtmpRvKzwi/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; • Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; • Secrets are lost.</span></span>
@@ -132,7 +133,7 @@
 <span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">to</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; ℹ /tmp/RtmppZuBvd/duckdb</span></span>
+<span><span class="co">#&gt; ℹ /tmp/RtmpRvKzwi/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; • Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; • Secrets are lost.</span></span>
@@ -144,7 +145,7 @@
 <span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">to</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; ℹ /tmp/RtmppZuBvd/duckdb</span></span>
+<span><span class="co">#&gt; ℹ /tmp/RtmpRvKzwi/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; • Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; • Secrets are lost.</span></span>
@@ -171,10 +172,10 @@
 <span><span class="va">nodes</span><span class="op">[</span>, <span class="va">.N</span>, by <span class="op">=</span> <span class="va">type</span><span class="op">]</span></span>
 <span><span class="co">#&gt;       type     N</span></span>
 <span><span class="co">#&gt;     &lt;char&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:    gene 11473</span></span>
-<span><span class="co">#&gt; 2: pathway  2870</span></span>
+<span><span class="co">#&gt; 1:    gene 11490</span></span>
+<span><span class="co">#&gt; 2: pathway  2883</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">edges</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 102292</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 102888</span></span></code></pre></div>
 </div>
 <p>metapath2vec wants two tables: the edges with <code>from</code> and <code>to</code> (and optionally <code>weight</code>), and the nodes with <code>id</code> and <code>type</code>. Every edge endpoint needs to be in the node table. For readable output later on, we also pull the gene symbols and pathway names.</p>
 <div class="cell">
@@ -190,7 +191,7 @@
 <span>  <span class="op">)</span><span class="op">]</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; ℹ /tmp/RtmppZuBvd/duckdb</span></span>
+<span><span class="co">#&gt; ℹ /tmp/RtmpRvKzwi/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; • Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; • Secrets are lost.</span></span>
@@ -198,7 +199,7 @@
 <span><span class="co">#&gt; ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).</span></span>
 <span><span class="co">#&gt; ℹ See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; ℹ /tmp/RtmppZuBvd/duckdb</span></span>
+<span><span class="co">#&gt; ℹ /tmp/RtmpRvKzwi/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; • Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; • Secrets are lost.</span></span>
@@ -224,16 +225,16 @@
 <span><span class="co">#&gt; Warning in metapath2vec(graph_dt = edges, node_dt = nodes, metapath = c("gene",</span></span>
 <span><span class="co">#&gt; : Walks reach 15% of the requested length on average (6.0 of 40). The metapath</span></span>
 <span><span class="co">#&gt; hits dead ends in the graph, check the schema.</span></span>
-<span><span class="co">#&gt; 179 nodes were never visited by a walk and were removed.</span></span>
+<span><span class="co">#&gt; 161 nodes were never visited by a walk and were removed.</span></span>
 <span></span>
 <span><span class="va">bad_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">bad_schema</span>, <span class="st">"walk_stats"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">bad_stats</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 6</span></span>
-<span><span class="co">#&gt;  $ start_nodes: int 11473</span></span>
-<span><span class="co">#&gt;  $ attempted  : int 57365</span></span>
-<span><span class="co">#&gt;  $ truncated  : int 57152</span></span>
-<span><span class="co">#&gt;  $ dropped    : int 85</span></span>
-<span><span class="co">#&gt;  $ mean_length: num 6</span></span>
+<span><span class="co">#&gt;  $ start_nodes: int 11490</span></span>
+<span><span class="co">#&gt;  $ attempted  : int 57450</span></span>
+<span><span class="co">#&gt;  $ truncated  : int 57214</span></span>
+<span><span class="co">#&gt;  $ dropped    : int 90</span></span>
+<span><span class="co">#&gt;  $ mean_length: num 6.05</span></span>
 <span><span class="co">#&gt;  $ walk_length: int 40</span></span></code></pre></div>
 </div>
 <p>99.6% of the walks dead-end before they reach the requested length, and the mean realised length is 6 instead of 40. Genes are mostly annotated to the leaves of the Reactome hierarchy, so the parent pathway you land on has no genes of its own to hop to. The schema is fine on paper; it just doesn’t match how this graph is wired.</p>
@@ -256,14 +257,14 @@
 <span>  metapath2vec_params <span class="op">=</span> <span class="va">walk_params</span>,</span>
 <span>  .verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; 589 nodes were never visited by a walk and were removed.</span></span>
+<span><span class="co">#&gt; 590 nodes were never visited by a walk and were removed.</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">gpg</span>, <span class="st">"walk_stats"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 6</span></span>
-<span><span class="co">#&gt;  $ start_nodes: int 11473</span></span>
-<span><span class="co">#&gt;  $ attempted  : int 229460</span></span>
-<span><span class="co">#&gt;  $ truncated  : int 340</span></span>
-<span><span class="co">#&gt;  $ dropped    : int 340</span></span>
+<span><span class="co">#&gt;  $ start_nodes: int 11490</span></span>
+<span><span class="co">#&gt;  $ attempted  : int 229800</span></span>
+<span><span class="co">#&gt;  $ truncated  : int 360</span></span>
+<span><span class="co">#&gt;  $ dropped    : int 360</span></span>
 <span><span class="co">#&gt;  $ mean_length: num 41</span></span>
 <span><span class="co">#&gt;  $ walk_length: int 41</span></span>
 <span></span>
@@ -276,7 +277,7 @@
 <span>  metapath_plus <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  .verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; 589 nodes were never visited by a walk and were removed.</span></span>
+<span><span class="co">#&gt; 590 nodes were never visited by a walk and were removed.</span></span>
 <span></span>
 <span><span class="va">n2v</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/node2vec.html">node2vec</a></span><span class="op">(</span></span>
 <span>  graph_dt <span class="op">=</span> <span class="va">edges</span>,</span>
@@ -325,7 +326,7 @@
 <span><span class="va">gene_top_level</span> <span class="op">&lt;-</span> <span class="va">gene_top_level</span><span class="op">[</span>, <span class="kw">if</span> <span class="op">(</span><span class="va">.N</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="va">.SD</span>, by <span class="op">=</span> <span class="va">gene</span><span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">gene_top_level</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 6542</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 6508</span></span></code></pre></div>
 </div>
 <p>The score is kNN purity: for each gene, the share of its 10 nearest neighbours (cosine) with the same top-level pathway. To keep this quick we sample 2,000 of the labelled genes.</p>
 <div class="cell">
@@ -360,10 +361,10 @@
 <span><span class="va">purity</span></span>
 <span><span class="co">#&gt;                                method knn_purity</span></span>
 <span><span class="co">#&gt;                                &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:                           node2vec   0.783250</span></span>
-<span><span class="co">#&gt; 2:   metapath2vec (gene-pathway-gene)   0.744150</span></span>
-<span><span class="co">#&gt; 3: metapath2vec++ (gene-pathway-gene)   0.742000</span></span>
-<span><span class="co">#&gt; 4:                             random   0.088955</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:                           node2vec  0.7746000</span></span>
+<span><span class="co">#&gt; 2:   metapath2vec (gene-pathway-gene)  0.7422500</span></span>
+<span><span class="co">#&gt; 3: metapath2vec++ (gene-pathway-gene)  0.7434000</span></span>
+<span><span class="co">#&gt; 4:                             random  0.0850795</span></span></code></pre></div>
 </div>
 <p>All three are miles above random and within a few points of each other. The order shuffles between runs, since Hogwild training isn’t deterministic. That node2vec keeps up is no surprise: it sees the pathway edges as well, plus the interactions and the hierarchy, and the label is derived from the hierarchy. metapath2vec gets there from membership alone. metapath2vec++ barely moves the needle on this graph, since there are only two types and the gene side dominates the walks anyway. So what’s the point? You get to pick what “similar” means. With node2vec, you get whatever the graph mix gives you.</p>
 </section><section class="level3"><h4 id="nearest-neighbours">Nearest neighbours<a class="anchor" aria-label="anchor" href="#nearest-neighbours"></a>
@@ -385,37 +386,37 @@
 <span><span class="fu">nearest</span><span class="op">(</span><span class="va">gpg</span>, <span class="va">tp53</span>, n <span class="op">=</span> <span class="fl">15L</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                  id cosine    type</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;  &lt;num&gt;  &lt;char&gt;</span></span>
-<span><span class="co">#&gt;  1:   R-HSA-9723905  0.943 pathway</span></span>
-<span><span class="co">#&gt;  2:     R-HSA-69895  0.873 pathway</span></span>
-<span><span class="co">#&gt;  3:   R-HSA-6804754  0.849 pathway</span></span>
+<span><span class="co">#&gt;  1:   R-HSA-9723905  0.941 pathway</span></span>
+<span><span class="co">#&gt;  2:   R-HSA-6804754  0.887 pathway</span></span>
+<span><span class="co">#&gt;  3:     R-HSA-69895  0.855 pathway</span></span>
 <span><span class="co">#&gt;  4:    R-HSA-111448  0.835 pathway</span></span>
-<span><span class="co">#&gt;  5:   R-HSA-6804116  0.787 pathway</span></span>
-<span><span class="co">#&gt;  6: ENSG00000161642  0.765    gene</span></span>
-<span><span class="co">#&gt;  7:    R-HSA-139915  0.762 pathway</span></span>
-<span><span class="co">#&gt;  8: ENSG00000104881  0.748    gene</span></span>
-<span><span class="co">#&gt;  9: ENSG00000151615  0.747    gene</span></span>
-<span><span class="co">#&gt; 10: ENSG00000152192  0.743    gene</span></span>
-<span><span class="co">#&gt; 11: ENSG00000165891  0.737    gene</span></span>
-<span><span class="co">#&gt; 12: ENSG00000116017  0.737    gene</span></span>
-<span><span class="co">#&gt; 13: ENSG00000129173  0.736    gene</span></span>
-<span><span class="co">#&gt; 14: ENSG00000140836  0.736    gene</span></span>
-<span><span class="co">#&gt; 15: ENSG00000169372  0.735    gene</span></span>
+<span><span class="co">#&gt;  5:   R-HSA-9988426  0.812 pathway</span></span>
+<span><span class="co">#&gt;  6:    R-HSA-139915  0.784 pathway</span></span>
+<span><span class="co">#&gt;  7:   R-HSA-6804116  0.749 pathway</span></span>
+<span><span class="co">#&gt;  8:   R-HSA-6803207  0.734 pathway</span></span>
+<span><span class="co">#&gt;  9:   R-HSA-2559584  0.728 pathway</span></span>
+<span><span class="co">#&gt; 10: ENSG00000118900  0.726    gene</span></span>
+<span><span class="co">#&gt; 11: ENSG00000161642  0.722    gene</span></span>
+<span><span class="co">#&gt; 12: ENSG00000149948  0.720    gene</span></span>
+<span><span class="co">#&gt; 13: ENSG00000111875  0.718    gene</span></span>
+<span><span class="co">#&gt; 14: ENSG00000149311  0.711    gene</span></span>
+<span><span class="co">#&gt; 15: ENSG00000169372  0.711    gene</span></span>
 <span><span class="co">#&gt;                                                                         label</span></span>
 <span><span class="co">#&gt;                                                                        &lt;char&gt;</span></span>
 <span><span class="co">#&gt;  1: Loss of function of TP53 in cancer due to loss of tetramerization ability</span></span>
-<span><span class="co">#&gt;  2:                 Transcriptional  activation of  cell cycle inhibitor p21 </span></span>
-<span><span class="co">#&gt;  3:                                             Regulation of TP53 Expression</span></span>
+<span><span class="co">#&gt;  2:                                             Regulation of TP53 Expression</span></span>
+<span><span class="co">#&gt;  3:                 Transcriptional  activation of  cell cycle inhibitor p21 </span></span>
 <span><span class="co">#&gt;  4:                      Activation of NOXA and translocation to mitochondria</span></span>
-<span><span class="co">#&gt;  5:    TP53 Regulates Transcription of Genes Involved in G1 Cell Cycle Arrest</span></span>
-<span><span class="co">#&gt;  6:                                                                   ZNF385A</span></span>
-<span><span class="co">#&gt;  7:                      Activation of PUMA and translocation to mitochondria</span></span>
-<span><span class="co">#&gt;  8:                                                                  PPP1R13L</span></span>
-<span><span class="co">#&gt;  9:                                                                    POU4F2</span></span>
-<span><span class="co">#&gt; 10:                                                                    POU4F1</span></span>
-<span><span class="co">#&gt; 11:                                                                      E2F7</span></span>
-<span><span class="co">#&gt; 12:                                                                    ARID3A</span></span>
-<span><span class="co">#&gt; 13:                                                                      E2F8</span></span>
-<span><span class="co">#&gt; 14:                                                                     ZFHX3</span></span>
+<span><span class="co">#&gt;  5:                 Negative transcriptional regulation of urea cycle enzymes</span></span>
+<span><span class="co">#&gt;  6:                      Activation of PUMA and translocation to mitochondria</span></span>
+<span><span class="co">#&gt;  7:    TP53 Regulates Transcription of Genes Involved in G1 Cell Cycle Arrest</span></span>
+<span><span class="co">#&gt;  8:           TP53 Regulates Transcription of Caspase Activators and Caspases</span></span>
+<span><span class="co">#&gt;  9:            Formation of Senescence-Associated Heterochromatin Foci (SAHF)</span></span>
+<span><span class="co">#&gt; 10:                                                                      UBN1</span></span>
+<span><span class="co">#&gt; 11:                                                                   ZNF385A</span></span>
+<span><span class="co">#&gt; 12:                                                                     HMGA2</span></span>
+<span><span class="co">#&gt; 13:                                                                     ASF1A</span></span>
+<span><span class="co">#&gt; 14:                                                                       ATM</span></span>
 <span><span class="co">#&gt; 15:                                                                     CRADD</span></span></code></pre></div>
 </div>
 </section></section><section class="level2"><h3 id="pathway-embeddings">Pathway embeddings<a class="anchor" aria-label="anchor" href="#pathway-embeddings"></a>
@@ -432,14 +433,14 @@
 <span>  .verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in metapath2vec(graph_dt = edges, node_dt = nodes, metapath =</span></span>
-<span><span class="co">#&gt; c("pathway", : 19.9% of walks were dropped: their 'pathway' start node has no</span></span>
+<span><span class="co">#&gt; c("pathway", : 19.8% of walks were dropped: their 'pathway' start node has no</span></span>
 <span><span class="co">#&gt; 'gene' neighbour. Check the metapath against the graph.</span></span>
-<span><span class="co">#&gt; 608 nodes were never visited by a walk and were removed.</span></span>
+<span><span class="co">#&gt; 610 nodes were never visited by a walk and were removed.</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">pgp</span>, <span class="st">"walk_stats"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 6</span></span>
-<span><span class="co">#&gt;  $ start_nodes: int 2870</span></span>
-<span><span class="co">#&gt;  $ attempted  : int 57400</span></span>
+<span><span class="co">#&gt;  $ start_nodes: int 2883</span></span>
+<span><span class="co">#&gt;  $ attempted  : int 57660</span></span>
 <span><span class="co">#&gt;  $ truncated  : int 11440</span></span>
 <span><span class="co">#&gt;  $ dropped    : int 11440</span></span>
 <span><span class="co">#&gt;  $ mean_length: num 41</span></span>
@@ -453,10 +454,10 @@
 <span><span class="va">nodes</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">unvisited</span>, <span class="va">.N</span>, by <span class="op">=</span> <span class="va">type</span><span class="op">]</span></span>
 <span><span class="co">#&gt;       type     N</span></span>
 <span><span class="co">#&gt;     &lt;char&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:    gene    36</span></span>
+<span><span class="co">#&gt; 1:    gene    38</span></span>
 <span><span class="co">#&gt; 2: pathway   572</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">pgp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 13735    32</span></span>
+<span><span class="co">#&gt; [1] 13763    32</span></span>
 <span></span>
 <span><span class="va">pathway_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">pgp</span><span class="op">)</span>, <span class="va">nodes</span><span class="op">[</span><span class="va">type</span> <span class="op">==</span> <span class="st">"pathway"</span>, <span class="va">id</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -468,28 +469,28 @@
 <span><span class="fu">nearest</span><span class="op">(</span><span class="va">pgp</span><span class="op">[</span><span class="va">pathway_ids</span>, <span class="op">]</span>, <span class="va">tnfr1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                id cosine    type</span></span>
 <span><span class="co">#&gt;            &lt;char&gt;  &lt;num&gt;  &lt;char&gt;</span></span>
-<span><span class="co">#&gt;  1: R-HSA-5357956  0.923 pathway</span></span>
-<span><span class="co">#&gt;  2: R-HSA-5357905  0.914 pathway</span></span>
-<span><span class="co">#&gt;  3: R-HSA-9693928  0.900 pathway</span></span>
-<span><span class="co">#&gt;  4: R-HSA-9686347  0.847 pathway</span></span>
-<span><span class="co">#&gt;  5: R-HSA-5218900  0.845 pathway</span></span>
-<span><span class="co">#&gt;  6: R-HSA-9013957  0.839 pathway</span></span>
-<span><span class="co">#&gt;  7:  R-HSA-933543  0.839 pathway</span></span>
-<span><span class="co">#&gt;  8: R-HSA-3371378  0.836 pathway</span></span>
-<span><span class="co">#&gt;  9:   R-HSA-75157  0.830 pathway</span></span>
-<span><span class="co">#&gt; 10:   R-HSA-69416  0.822 pathway</span></span>
+<span><span class="co">#&gt;  1: R-HSA-5357905  0.920 pathway</span></span>
+<span><span class="co">#&gt;  2: R-HSA-5357956  0.910 pathway</span></span>
+<span><span class="co">#&gt;  3: R-HSA-9693928  0.906 pathway</span></span>
+<span><span class="co">#&gt;  4: R-HSA-9013957  0.850 pathway</span></span>
+<span><span class="co">#&gt;  5:  R-HSA-933543  0.848 pathway</span></span>
+<span><span class="co">#&gt;  6: R-HSA-5218900  0.842 pathway</span></span>
+<span><span class="co">#&gt;  7: R-HSA-9692913  0.842 pathway</span></span>
+<span><span class="co">#&gt;  8:   R-HSA-75157  0.841 pathway</span></span>
+<span><span class="co">#&gt;  9: R-HSA-3371378  0.841 pathway</span></span>
+<span><span class="co">#&gt; 10: R-HSA-9686347  0.829 pathway</span></span>
 <span><span class="co">#&gt;                                                                         label</span></span>
 <span><span class="co">#&gt;                                                                        &lt;char&gt;</span></span>
-<span><span class="co">#&gt;  1:                                TNFR1-induced NF-kappa-B signaling pathway</span></span>
-<span><span class="co">#&gt;  2:                                             Regulation of TNFR1 signaling</span></span>
+<span><span class="co">#&gt;  1:                                             Regulation of TNFR1 signaling</span></span>
+<span><span class="co">#&gt;  2:                                TNFR1-induced NF-kappa-B signaling pathway</span></span>
 <span><span class="co">#&gt;  3:                               Defective RIPK1-mediated regulated necrosis</span></span>
-<span><span class="co">#&gt;  4:                 Microbial modulation of RIPK1-mediated regulated necrosis</span></span>
-<span><span class="co">#&gt;  5:                                               CASP8 activity is inhibited</span></span>
-<span><span class="co">#&gt;  6:                      TLR3-mediated TICAM1-dependent programmed cell death</span></span>
-<span><span class="co">#&gt;  7: NF-kB activation through FADD/RIP-1 pathway mediated by caspase-8 and -10</span></span>
-<span><span class="co">#&gt;  8:                                                      Regulation by c-FLIP</span></span>
-<span><span class="co">#&gt;  9:                                                     FasL/ CD95L signaling</span></span>
-<span><span class="co">#&gt; 10:                                              Dimerization of procaspase-8</span></span></code></pre></div>
+<span><span class="co">#&gt;  4:                      TLR3-mediated TICAM1-dependent programmed cell death</span></span>
+<span><span class="co">#&gt;  5: NF-kB activation through FADD/RIP-1 pathway mediated by caspase-8 and -10</span></span>
+<span><span class="co">#&gt;  6:                                               CASP8 activity is inhibited</span></span>
+<span><span class="co">#&gt;  7:                      SARS-CoV-1-mediated effects on programmed cell death</span></span>
+<span><span class="co">#&gt;  8:                                                     FasL/ CD95L signaling</span></span>
+<span><span class="co">#&gt;  9:                                                      Regulation by c-FLIP</span></span>
+<span><span class="co">#&gt; 10:                 Microbial modulation of RIPK1-mediated regulated necrosis</span></span></code></pre></div>
 </div>
 <p>A PCA over the pathway rows, coloured by the eight largest top-level pathways:</p>
 <div class="cell">

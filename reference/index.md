@@ -61,6 +61,23 @@ Main classes and methods to run a gene/embedding drift
 - [`params_kernel()`](https://gregorlueg.github.io/genewalkR/reference/params_kernel.md)
   : Wrapper function for the diffusion kernel parameters
 
+## Diffusion profiles
+
+Constrained personalised PageRank (Ruiz et al.)
+
+- [`DiffusionProfiles()`](https://gregorlueg.github.io/genewalkR/reference/DiffusionProfiles.md)
+  : DiffusionProfiles
+- [`generate_profiles()`](https://gregorlueg.github.io/genewalkR/reference/generate_profiles.md)
+  : Generate diffusion profiles
+- [`calculate_profile_distances()`](https://gregorlueg.github.io/genewalkR/reference/calculate_profile_distances.md)
+  : Calculate distances between diffusion profiles
+- [`dedup_edges()`](https://gregorlueg.github.io/genewalkR/reference/dedup_edges.md)
+  : Deduplicate edges
+- [`get_profiles()`](https://gregorlueg.github.io/genewalkR/reference/get_profiles.md)
+  : Get diffusion profiles
+- [`params_diffusion_profiles()`](https://gregorlueg.github.io/genewalkR/reference/params_diffusion_profiles.md)
+  : Wrapper function for the diffusion profile parameters
+
 ## Helpers and getters
 
 Various getters and helper classes
@@ -164,6 +181,8 @@ Everything rusty - only use this if you know what you are doing…
   : Run diffusion scoring on a precomputed kernel
 - [`rs_diffusion_kernel()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_kernel.md)
   : Build the diffusion kernel from sparse adjacency components
+- [`rs_diffusion_profiles()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_profiles.md)
+  **\[experimental\]** : Generate diffusion profiles
 - [`rs_gene_walk()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.md)
   : Generate GeneWalk node embeddings (multiple reps)
 - [`rs_gene_walk_perm()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_perm.md)
@@ -176,6 +195,8 @@ Everything rusty - only use this if you know what you are doing…
   : Generate metapath2vec embeddings
 - [`rs_procrustes_align()`](https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.md)
   : Orthogonal Procrustes alignment and cosine similarity scoring
+- [`rs_profile_distances()`](https://gregorlueg.github.io/genewalkR/reference/rs_profile_distances.md)
+  **\[experimental\]** : Distances between the columns of two matrices
 - [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
   : Generate a node2vec embeddings
 - [`rs_node2vec_synthetic_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.md)

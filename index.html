@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,7 @@
     <li><a class="dropdown-item" href="articles/genewalk.html">Running GeneWalk</a></li>
     <li><a class="dropdown-item" href="articles/node2vec.html">Node2vec</a></li>
     <li><a class="dropdown-item" href="articles/metapath2vec.html">Metapath2vec</a></li>
+    <li><a class="dropdown-item" href="articles/diffusion_profiles.html">Diffusion profiles</a></li>
   </ul>
 </li>
       </ul>
@@ -88,6 +89,7 @@
 <p>For now, the following methods implemented:</p>
 <ul>
 <li>Various diffusion methods for “guilty-by-association” approaches, see <a href="https://pubmed.ncbi.nlm.nih.gov/16204126/" class="external-link">Tsuda et al.</a>, <a href="https://pubmed.ncbi.nlm.nih.gov/21385051/" class="external-link">Vandin et al.</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5059623/" class="external-link">Bersanelli et al.</a> and <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/" class="external-link">Mostafavi et al.</a>.</li>
+<li>Diffusion profiles from <a href="https://www.nature.com/articles/s41467-021-21770-8" class="external-link">Ruiz et al.</a>: one constrained personalised PageRank per seed over a heterogeneous graph, with sink node types and type weights, then distances between the profiles. See this <a href="https://gregorlueg.github.io/genewalkR/articles/diffusion_profiles.html">vignette</a>.</li>
 <li>General node2vec to generate embeddings, please see this <a href="https://gregorlueg.github.io/genewalkR/articles/node2vec.html">vignette</a>.</li>
 <li>
 <a href="https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf" class="external-link">metapath2vec</a> (and metapath2vec++), the extension of node2vec to heterogeneous graphs. Walks follow a metapath over node types, e.g. gene-pathway-gene. See this <a href="https://gregorlueg.github.io/genewalkR/articles/metapath2vec.html">vignette</a>.</li>
@@ -140,7 +142,7 @@
 <div class="section level2">
 <h2 id="roadmap">Roadmap<a class="anchor" aria-label="anchor" href="#roadmap"></a>
 </h2>
-<p>While more complex graph neural networks that leverage edge and node information are in vogue at the moment, some simple methods in times tend to do quite well themselves, while not necessitating massive amounts of (GPU) compute. metapath2vec is the first step in that direction: heterogeneous graphs, still on CPU. A few additional graph-based methods are also already implemented in <a href="https://github.com/GregorLueg/bixverse" class="external-link">bixverse</a>, here more with focus on PageRank-based ones and a lot of methods that use kNN graphs in some colour or shape (specifically for single cell).</p>
+<p>While more complex graph neural networks that leverage edge and node information are in vogue at the moment, some simple methods in times tend to do quite well themselves, while not necessitating massive amounts of (GPU) compute. metapath2vec and the diffusion profiles are the first steps in that direction: heterogeneous graphs, still on CPU. A few additional graph-based methods are also already implemented in <a href="https://github.com/GregorLueg/bixverse" class="external-link">bixverse</a>, here more with focus on PageRank-based ones and a lot of methods that use kNN graphs in some colour or shape (specifically for single cell).</p>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>

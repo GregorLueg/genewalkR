@@ -27,6 +27,12 @@ For now, the following methods implemented:
   al.](https://pubmed.ncbi.nlm.nih.gov/21385051/), [Bersanelli et
   al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5059623/) and [Mostafavi
   et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC2447538/).
+- Diffusion profiles from [Ruiz et
+  al.](https://www.nature.com/articles/s41467-021-21770-8): one
+  constrained personalised PageRank per seed over a heterogeneous graph,
+  with sink node types and type weights, then distances between the
+  profiles. See this
+  [vignette](https://gregorlueg.github.io/genewalkR/articles/diffusion_profiles.html).
 - General node2vec to generate embeddings, please see this
   [vignette](https://gregorlueg.github.io/genewalkR/articles/node2vec.html).
 - [metapath2vec](https://ericdongyx.github.io/papers/KDD17-dong-chawla-swami-metapath2vec.pdf)
@@ -113,9 +119,9 @@ use GitHub issues.
 While more complex graph neural networks that leverage edge and node
 information are in vogue at the moment, some simple methods in times
 tend to do quite well themselves, while not necessitating massive
-amounts of (GPU) compute. metapath2vec is the first step in that
-direction: heterogeneous graphs, still on CPU. A few additional
-graph-based methods are also already implemented in
+amounts of (GPU) compute. metapath2vec and the diffusion profiles are
+the first steps in that direction: heterogeneous graphs, still on CPU. A
+few additional graph-based methods are also already implemented in
 [bixverse](https://github.com/GregorLueg/bixverse), here more with focus
 on PageRank-based ones and a lot of methods that use kNN graphs in some
 colour or shape (specifically for single cell).
@@ -205,6 +211,23 @@ Main classes and methods to run a gene/embedding drift
   : Get scores
 - [`params_kernel()`](https://gregorlueg.github.io/genewalkR/reference/params_kernel.md)
   : Wrapper function for the diffusion kernel parameters
+
+## Diffusion profiles
+
+Constrained personalised PageRank (Ruiz et al.)
+
+- [`DiffusionProfiles()`](https://gregorlueg.github.io/genewalkR/reference/DiffusionProfiles.md)
+  : DiffusionProfiles
+- [`generate_profiles()`](https://gregorlueg.github.io/genewalkR/reference/generate_profiles.md)
+  : Generate diffusion profiles
+- [`calculate_profile_distances()`](https://gregorlueg.github.io/genewalkR/reference/calculate_profile_distances.md)
+  : Calculate distances between diffusion profiles
+- [`dedup_edges()`](https://gregorlueg.github.io/genewalkR/reference/dedup_edges.md)
+  : Deduplicate edges
+- [`get_profiles()`](https://gregorlueg.github.io/genewalkR/reference/get_profiles.md)
+  : Get diffusion profiles
+- [`params_diffusion_profiles()`](https://gregorlueg.github.io/genewalkR/reference/params_diffusion_profiles.md)
+  : Wrapper function for the diffusion profile parameters
 
 ## Helpers and getters
 
@@ -309,6 +332,8 @@ Everything rusty - only use this if you know what you are doing…
   : Run diffusion scoring on a precomputed kernel
 - [`rs_diffusion_kernel()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_kernel.md)
   : Build the diffusion kernel from sparse adjacency components
+- [`rs_diffusion_profiles()`](https://gregorlueg.github.io/genewalkR/reference/rs_diffusion_profiles.md)
+  **\[experimental\]** : Generate diffusion profiles
 - [`rs_gene_walk()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk.md)
   : Generate GeneWalk node embeddings (multiple reps)
 - [`rs_gene_walk_perm()`](https://gregorlueg.github.io/genewalkR/reference/rs_gene_walk_perm.md)
@@ -321,6 +346,8 @@ Everything rusty - only use this if you know what you are doing…
   : Generate metapath2vec embeddings
 - [`rs_procrustes_align()`](https://gregorlueg.github.io/genewalkR/reference/rs_procrustes_align.md)
   : Orthogonal Procrustes alignment and cosine similarity scoring
+- [`rs_profile_distances()`](https://gregorlueg.github.io/genewalkR/reference/rs_profile_distances.md)
+  **\[experimental\]** : Distances between the columns of two matrices
 - [`rs_node2vec()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec.md)
   : Generate a node2vec embeddings
 - [`rs_node2vec_synthetic_data()`](https://gregorlueg.github.io/genewalkR/reference/rs_node2vec_synthetic_data.md)
@@ -338,3 +365,5 @@ Everything rusty - only use this if you know what you are doing…
   GeneWalk](https://gregorlueg.github.io/genewalkR/articles/genewalk.md):
 - [Node2vec](https://gregorlueg.github.io/genewalkR/articles/node2vec.md):
 - [Metapath2vec](https://gregorlueg.github.io/genewalkR/articles/metapath2vec.md):
+- [Diffusion
+  profiles](https://gregorlueg.github.io/genewalkR/articles/diffusion_profiles.md):

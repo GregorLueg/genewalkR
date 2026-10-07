@@ -45,12 +45,12 @@ str(gene_walk_syn_data)
 #>   ..$ from: chr [1:8237] "term_0001" "term_0001" "term_0002" "term_0002" ...
 #>   ..$ to  : chr [1:8237] "term_0002" "term_0003" "term_0004" "term_0005" ...
 #>   ..$ type: chr [1:8237] "hierarchy" "hierarchy" "hierarchy" "hierarchy" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ea43465b80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
 #>  $ gene_to_pathways:Classes 'data.table' and 'data.frame':   6399 obs. of  3 variables:
 #>   ..$ from: chr [1:6399] "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" ...
 #>   ..$ to  : chr [1:6399] "term_0025" "term_0019" "term_0024" "term_0017" ...
 #>   ..$ type: chr [1:6399] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ea43465b80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
 #>  $ gene_ids        : chr [1:444] "gene_signal_0001" "gene_signal_0002" "gene_signal_0003" "gene_signal_0004" ...
 #>  $ pathway_ids     : chr [1:355] "term_0001" "term_0002" "term_0003" "term_0004" ...
 ```
@@ -278,10 +278,8 @@ gw_factory <- GeneWalkGenerator$new()
 gw_factory$add_pathways() # will add GO to the builder
 gw_factory$add_ppi(source = "combined") # will add the combined one
 gw_factory$build() # will load the data into the factory
-#> Downloading database...
-#> Download complete
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -289,7 +287,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -297,7 +295,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -305,7 +303,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -313,14 +311,14 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
 #> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
-#> Built network with 2327933 edges and 61400 nodes
+#> Built network with 2329388 edges and 61253 nodes
 ```
 
 The idea of the factory is to easily iterate through various bags of
@@ -339,11 +337,11 @@ myc_gwn <- gw_factory$create_for_genes(genes = myc_genes$ensembl_gene)
 myc_gwn
 #> GeneWalk
 #>   Represented genes ENSG00000004779 | ENSG00000013275 | ENSG00000041357 ; Total of 200 genes. 
-#>   Number of edges: 84511 
+#>   Number of edges: 84150 
 #>   Edge distribution:
 #>     Interaction (5359)
-#>     Part of (5121)
-#>     Hierarchy (74031)
+#>     Part of (5159)
+#>     Hierarchy (73632)
 #>   Embedding generated: no 
 #>   Permutations generated: no 
 #>   Statistics calculated: no
@@ -361,7 +359,7 @@ check_degree_distribution(myc_gwn)
 #> 
 #> --- hierarchy ---
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   1.000   3.000   3.871   4.000 439.000
+#>   1.000   1.000   3.000   3.866   4.000 439.000
 #> 
 #> --- interaction ---
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -369,7 +367,7 @@ check_degree_distribution(myc_gwn)
 #> 
 #> --- part_of ---
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#>   1.000   1.000   1.000   5.405   4.000 194.000
+#>   1.000   1.000   1.000   5.431   4.000 194.000
 ```
 
 We can appreciate quite a few interactions between the genes and also
@@ -458,7 +456,7 @@ gene_symbol_translation <- setNames(
 # get the go data
 go_info <- get_gene_ontology_info()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -477,42 +475,42 @@ myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
 )]
 
 head(myc_gwn_res_translated, 10L)
-#>        gene                                pathway similarity      sem_sim
-#>      <char>                                 <char>      <num>        <num>
-#>  1:  SNRPB2        U2-type prespliceosome assembly  0.9961458 0.0005632553
-#>  2:  SNRPB2   U2-type catalytic step 2 spliceosome  0.9960229 0.0008673756
-#>  3:  SNRPB2               precatalytic spliceosome  0.9956093 0.0008559036
-#>  4:    MCM5            3'-5' DNA helicase activity  0.9953374 0.0011584441
-#>  5:  SNRPB2 post-mRNA release spliceosomal complex  0.9951206 0.0021067517
-#>  6:  TXNL4A               precatalytic spliceosome  0.9947821 0.0003105959
-#>  7:  SNRPB2   U2-type catalytic step 1 spliceosome  0.9946118 0.0014858218
-#>  8: HNRNPA3                    mRNA 3'-UTR binding  0.9942661 0.0022511261
-#>  9:   RPL14                     cytosolic ribosome  0.9941861 0.0024525532
-#> 10:   RPLP0                     cytosolic ribosome  0.9941778 0.0033032651
+#>       gene                                     pathway similarity      sem_sim
+#>     <char>                                      <char>      <num>        <num>
+#>  1: TXNL4A                    precatalytic spliceosome  0.9970149 0.0006540579
+#>  2:  RPS10                          cytosolic ribosome  0.9967450 0.0001772282
+#>  3: SNRPB2                    precatalytic spliceosome  0.9960024 0.0012732309
+#>  4:  RPL18           cytosolic large ribosomal subunit  0.9957134 0.0015945207
+#>  5:   MCM5                 3'-5' DNA helicase activity  0.9956955 0.0012088962
+#>  6:   MCM6 single-stranded 3'-5' DNA helicase activity  0.9956378 0.0007531514
+#>  7: SNRPB2      post-mRNA release spliceosomal complex  0.9955702 0.0017411232
+#>  8: TXNL4A            U2-type precatalytic spliceosome  0.9950254 0.0022140394
+#>  9:  SRSF3                               nuclear speck  0.9949848 0.0004358542
+#> 10: SNRPB2             U2-type prespliceosome assembly  0.9949528 0.0013939951
 #>         avg_pval pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
 #>            <num>         <num>         <num>          <num>               <num>
-#>  1: 5.437329e-13  1.009002e-19  2.930078e-06   7.903141e-11        2.333000e-17
-#>  2: 1.478771e-09  2.744147e-16  7.968828e-03   1.926657e-07        3.209769e-14
-#>  3: 1.478771e-09  2.744147e-16  7.968828e-03   1.926657e-07        3.209769e-14
-#>  4: 1.863135e-09  2.743411e-16  1.265312e-02   2.203244e-07        8.656722e-14
-#>  5: 7.842428e-13  7.099663e-20  8.662900e-06   8.862685e-11        2.279782e-17
-#>  6: 4.021022e-06  4.021022e-06  4.021022e-06   4.789620e-04        3.360351e-04
-#>  7: 3.075968e-09  2.784640e-16  3.397774e-02   1.936266e-07        3.210455e-14
-#>  8: 8.631809e-13  6.475338e-20  1.150645e-05   6.945479e-11        9.951767e-18
-#>  9: 2.528663e-09  2.702963e-16  2.365603e-02   1.726631e-07        2.934760e-14
-#> 10: 1.087566e-12  5.187322e-20  2.280173e-05   6.945479e-11        9.951767e-18
+#>  1: 5.445034e-13  1.007632e-19  2.942383e-06   6.572533e-11        2.928259e-17
+#>  2: 1.482964e-09  2.744302e-16  8.013629e-03   1.094442e-07        4.117376e-14
+#>  3: 1.482964e-09  2.744302e-16  8.013629e-03   1.094442e-07        4.117376e-14
+#>  4: 5.445034e-13  1.007632e-19  2.942383e-06   6.442250e-11        2.985069e-17
+#>  5: 5.445034e-13  1.007632e-19  2.942383e-06   6.572533e-11        2.928259e-17
+#>  6: 4.038136e-06  4.038136e-06  4.038136e-06   2.003709e-04        1.839998e-04
+#>  7: 1.868418e-09  2.743568e-16  1.272425e-02   1.203305e-07        6.313149e-14
+#>  8: 1.868418e-09  2.743568e-16  1.272425e-02   1.094442e-07        4.117376e-14
+#>  9: 4.038136e-06  4.038136e-06  4.038136e-06   2.003709e-04        1.839998e-04
+#> 10: 1.868418e-09  2.743568e-16  1.272425e-02   1.094442e-07        4.117376e-14
 #>     global_fdr_ci_upper avg_gene_fdr gene_fdr_ci_lower gene_fdr_ci_upper
 #>                   <num>        <num>             <num>             <num>
-#>  1:        0.0002677225 3.124968e-12      1.091469e-18      8.947047e-06
-#>  2:        1.0000000000 6.442398e-09      6.251337e-16      6.639299e-02
-#>  3:        1.0000000000 6.442398e-09      6.251337e-16      6.639299e-02
-#>  4:        0.5607529740 2.385892e-08      2.906216e-15      1.958725e-01
-#>  5:        0.0003445381 2.655503e-12      2.682989e-19      2.628298e-05
-#>  6:        0.0006826806 3.555257e-05      2.620138e-05      4.824117e-05
-#>  7:        1.0000000000 8.019110e-09      6.282826e-16      1.023522e-01
-#>  8:        0.0004847348 5.250549e-12      2.682794e-19      1.027595e-04
-#>  9:        1.0000000000 3.556821e-08      3.176273e-15      3.982963e-01
-#> 10:        0.0004847348 9.921371e-12      3.923261e-19      2.508974e-04
+#>  1:        0.0001475218 2.803985e-12      4.449015e-19      1.767208e-05
+#>  2:        0.2909140094 1.053574e-08      1.176440e-15      9.435390e-02
+#>  3:        0.2909140094 6.261921e-09      6.462984e-16      6.067114e-02
+#>  4:        0.0001390339 6.401967e-12      7.803382e-19      5.252233e-05
+#>  5:        0.0001475218 4.535113e-12      6.984626e-19      2.944645e-05
+#>  6:        0.0002181987 7.055274e-05      5.413368e-05      9.195178e-05
+#>  7:        0.2293533249 8.193580e-09      3.053725e-15      2.198454e-02
+#>  8:        0.2909140094 5.900799e-09      9.582471e-16      3.633658e-02
+#>  9:        0.0002181987 2.422882e-05      1.105821e-05      5.308597e-05
+#> 10:        0.2909140094 6.485748e-09      6.473764e-16      6.497755e-02
 ```
 
 Why is so much significant here? Is this not just pathway enrichment?
@@ -529,7 +527,7 @@ enrichment. Nonetheless, let’s check what happens with noisy data…
 genes <- get_gene_info() %>%
   .[biotype == "protein_coding"]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -543,19 +541,19 @@ random_gene_set <- sample(genes$ensembl_id, 200L)
 
 random_gwn <- gw_factory$create_for_genes(genes = random_gene_set)
 #> Warning in get_gw_data_filtered.DataBuilder(x = private$gene_walk_data, : 8
-#> gene(s) had no edges in the network and were excluded: ENSG00000273003,
-#> ENSG00000189064, ENSG00000288646, ENSG00000254229, ENSG00000121104,
-#> ENSG00000173728, ENSG00000281887, ENSG00000270946
+#> gene(s) had no edges in the network and were excluded: ENSG00000285943,
+#> ENSG00000255524, ENSG00000291239, ENSG00000064489, ENSG00000203783,
+#> ENSG00000283977, ENSG00000278289, ENSG00000269590
 
 # we can appreciate that we only have very few interactions between the genes
 random_gwn
 #> GeneWalk
-#>   Represented genes ENSG00000015285 | ENSG00000023287 | ENSG00000044115 ; Total of 192 genes. 
-#>   Number of edges: 77506 
+#>   Represented genes ENSG00000000419 | ENSG00000008441 | ENSG00000011052 ; Total of 192 genes. 
+#>   Number of edges: 76503 
 #>   Edge distribution:
-#>     Interaction (238)
-#>     Part of (3237)
-#>     Hierarchy (74031)
+#>     Interaction (202)
+#>     Part of (2669)
+#>     Hierarchy (73632)
 #>   Embedding generated: no 
 #>   Permutations generated: no 
 #>   Statistics calculated: no
@@ -621,7 +619,7 @@ terms of the internally stored Reactome data.
 # package
 reactome_genes <- get_gene_to_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -630,7 +628,7 @@ reactome_genes <- get_gene_to_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_ppi <- get_interactions_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -639,7 +637,7 @@ reactome_ppi <- get_interactions_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_hierarchy <- get_reactome_hierarchy(relationship = "parent_of")
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmpv0mjGc/duckdb
+#> ℹ /tmp/RtmpKr62DG/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -662,12 +660,12 @@ verification:
 get_gw_data(data_builder) %>% head()
 #>               from              to        type
 #>             <char>          <char>      <char>
-#> 1: ENSG00000171094 ENSG00000121879 interaction
-#> 2: ENSG00000110799 ENSG00000127314 interaction
-#> 3: ENSG00000010671 ENSG00000136869 interaction
-#> 4: ENSG00000119688 ENSG00000168216 interaction
-#> 5: ENSG00000148459 ENSG00000148459 interaction
-#> 6: ENSG00000186469 ENSG00000276231 interaction
+#> 1: ENSG00000010610 ENSG00000160654 interaction
+#> 2: ENSG00000278637 ENSG00000203811 interaction
+#> 3: ENSG00000287080 ENSG00000276966 interaction
+#> 4: ENSG00000134086 ENSG00000116016 interaction
+#> 5: ENSG00000275379 ENSG00000132522 interaction
+#> 6: ENSG00000169375 ENSG00000197153 interaction
 ```
 
 If you want to subset to your bag of genes of interest, you can run the
@@ -681,18 +679,18 @@ gwr_data <- get_gw_data_filtered(data_builder, genes_of_interest)
 
 str(gwr_data)
 #> List of 4
-#>  $ gwn                 :Classes 'data.table' and 'data.frame':   4059 obs. of  3 variables:
-#>   ..$ from: chr [1:4059] "ENSG00000155846" "ENSG00000171720" "ENSG00000204231" "ENSG00000196498" ...
-#>   ..$ to  : chr [1:4059] "ENSG00000173153" "ENSG00000131408" "ENSG00000101849" "ENSG00000131408" ...
-#>   ..$ type: chr [1:4059] "interaction" "interaction" "interaction" "interaction" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ea43465b80> 
-#>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   911 obs. of  3 variables:
-#>   ..$ from: chr [1:911] "ENSG00000146072" "ENSG00000146072" "ENSG00000146072" "ENSG00000146072" ...
-#>   ..$ to  : chr [1:911] "R-HSA-1989781" "R-HSA-3371511" "R-HSA-3371568" "R-HSA-3371453" ...
-#>   ..$ type: chr [1:911] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x55ea43465b80> 
-#>  $ represented_genes   : chr [1:116] "ENSG00000155846" "ENSG00000171720" "ENSG00000204231" "ENSG00000196498" ...
-#>  $ represented_pathways: chr [1:2870] "R-HSA-1989781" "R-HSA-3371511" "R-HSA-3371568" "R-HSA-3371453" ...
+#>  $ gwn                 :Classes 'data.table' and 'data.frame':   4078 obs. of  3 variables:
+#>   ..$ from: chr [1:4078] "ENSG00000141027" "ENSG00000198911" "ENSG00000204231" "ENSG00000066136" ...
+#>   ..$ to  : chr [1:4078] "ENSG00000186350" "ENSG00000198911" "ENSG00000132522" "ENSG00000198911" ...
+#>   ..$ type: chr [1:4078] "interaction" "interaction" "interaction" "interaction" ...
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
+#>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   917 obs. of  3 variables:
+#>   ..$ from: chr [1:917] "ENSG00000101255" "ENSG00000101255" "ENSG00000101255" "ENSG00000101255" ...
+#>   ..$ to  : chr [1:917] "R-HSA-1989781" "R-HSA-9633012" "R-HSA-9648895" "R-HSA-5218920" ...
+#>   ..$ type: chr [1:917] "part_of" "part_of" "part_of" "part_of" ...
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
+#>  $ represented_genes   : chr [1:116] "ENSG00000141027" "ENSG00000198911" "ENSG00000204231" "ENSG00000066136" ...
+#>  $ represented_pathways: chr [1:2883] "R-HSA-1989781" "R-HSA-9633012" "R-HSA-9648895" "R-HSA-5218920" ...
 ```
 
 The data can be easily supplied now:

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,7 @@
     <li><a class="dropdown-item" href="../articles/genewalk.html">Running GeneWalk</a></li>
     <li><a class="dropdown-item" href="../articles/node2vec.html">Node2vec</a></li>
     <li><a class="dropdown-item" href="../articles/metapath2vec.html">Metapath2vec</a></li>
+    <li><a class="dropdown-item" href="../articles/diffusion_profiles.html">Diffusion profiles</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -222,6 +223,57 @@
 
         </dt>
         <dd>Wrapper function for the diffusion kernel parameters</dd>
+      </dl></div><div class="section level2">
+      <h2 id="diffusion-profiles">Diffusion profiles<a class="anchor" aria-label="anchor" href="#diffusion-profiles"></a></h2>
+
+      <div class="section-desc"><p>Constrained personalised PageRank (Ruiz et al.)</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="DiffusionProfiles.html">DiffusionProfiles()</a></code>
+
+        </dt>
+        <dd>DiffusionProfiles</dd>
+
+        <dt>
+
+          <code><a href="generate_profiles.html">generate_profiles()</a></code>
+
+        </dt>
+        <dd>Generate diffusion profiles</dd>
+
+        <dt>
+
+          <code><a href="calculate_profile_distances.html">calculate_profile_distances()</a></code>
+
+        </dt>
+        <dd>Calculate distances between diffusion profiles</dd>
+
+        <dt>
+
+          <code><a href="dedup_edges.html">dedup_edges()</a></code>
+
+        </dt>
+        <dd>Deduplicate edges</dd>
+
+        <dt>
+
+          <code><a href="get_profiles.html">get_profiles()</a></code>
+
+        </dt>
+        <dd>Get diffusion profiles</dd>
+
+        <dt>
+
+          <code><a href="params_diffusion_profiles.html">params_diffusion_profiles()</a></code>
+
+        </dt>
+        <dd>Wrapper function for the diffusion profile parameters</dd>
       </dl></div><div class="section level2">
       <h2 id="helpers-and-getters">Helpers and getters<a class="anchor" aria-label="anchor" href="#helpers-and-getters"></a></h2>
 
@@ -550,6 +602,13 @@
 
         <dt>
 
+          <code><a href="rs_diffusion_profiles.html">rs_diffusion_profiles()</a></code>
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
+        </dt>
+        <dd>Generate diffusion profiles</dd>
+
+        <dt>
+
           <code><a href="rs_gene_walk.html">rs_gene_walk()</a></code>
 
         </dt>
@@ -589,6 +648,13 @@
 
         </dt>
         <dd>Orthogonal Procrustes alignment and cosine similarity scoring</dd>
+
+        <dt>
+
+          <code><a href="rs_profile_distances.html">rs_profile_distances()</a></code>
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
+        </dt>
+        <dd>Distances between the columns of two matrices</dd>
 
         <dt>
 
