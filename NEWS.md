@@ -1,3 +1,11 @@
+# genewalkR 0.2.2
+
+- Rust side moved onto the split bixverse-rs 0.8.0 crates, pulled in via
+  `bixverse-r`. Along with it: faer 0.24, ann-search-rs 0.11 and node2vec-rs
+  0.4, so the build carries a single faer again.
+- `rs_procrustes_align()` returns an R error on mismatched dimensions instead
+  of panicking.
+
 # genewalkR 0.2.1
 
 - Diffusion profiles (constrained personalised PageRank) from Ruiz et al.:
