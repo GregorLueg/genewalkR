@@ -6,14 +6,13 @@ pub mod embedding;
 pub mod graph;
 pub mod utils;
 
-use bixverse_rs::assert_same_dims;
-use bixverse_rs::core::base::cors_similarity::{parse_distance_type, two_matrices_dist};
-use bixverse_rs::core::math::stats::p_adjust_fdr;
-use bixverse_rs::graph::page_rank::{
+use bixverse_r::core::base::cors_similarity::{parse_distance_type, two_matrices_dist};
+use bixverse_r::core::math::stats::p_adjust_fdr;
+use bixverse_r::graph::page_rank::{
     constrained_personalised_page_rank_optimised, ConstrainedPageRankGraph,
     ConstrainedPageRankWorkingMemory,
 };
-use bixverse_rs::prelude::*;
+use bixverse_r::prelude::*;
 use extendr_api::prelude::*;
 use faer::{Mat, MatRef};
 use rand::{rngs::StdRng, Rng, SeedableRng};
@@ -908,10 +907,17 @@ fn rs_procrustes_align(
     embd1: RMatrix<f64>,
     embd2: RMatrix<f64>,
 ) -> Result<List, extendr_api::Error> {
-    assert_same_dims!(embd1, embd2);
-
     let k = embd1.nrows();
     let d = embd1.ncols();
+    if (k, d) != (embd2.nrows(), embd2.ncols()) {
+        return Err(Error::Other(format!(
+            "Matrices have different dimensions: {}x{} != {}x{}",
+            k,
+            d,
+            embd2.nrows(),
+            embd2.ncols()
+        )));
+    }
 
     let s1 = r_matrix_to_faer(&embd1);
     let s2 = r_matrix_to_faer(&embd2);
@@ -1188,7 +1194,7 @@ fn rs_diffusion_profiles(
     directed: bool,
     diffusion_profile_params: List,
 ) -> extendr_api::Result<RMatrix<f64>> {
-    let to_err = |e: BixverseErrors| extendr_api::Error::Other(e.to_string());
+    let to_err = |e: MethodsErrors| extendr_api::Error::Other(e.to_string());
 
     // integers arrive as INTSXP, so as_real() alone would drop them
     let get_f64 = |name: &str, default: f64| -> f64 {
