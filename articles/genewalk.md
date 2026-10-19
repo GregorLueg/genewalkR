@@ -45,12 +45,12 @@ str(gene_walk_syn_data)
 #>   ..$ from: chr [1:8237] "term_0001" "term_0001" "term_0002" "term_0002" ...
 #>   ..$ to  : chr [1:8237] "term_0002" "term_0003" "term_0004" "term_0005" ...
 #>   ..$ type: chr [1:8237] "hierarchy" "hierarchy" "hierarchy" "hierarchy" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
 #>  $ gene_to_pathways:Classes 'data.table' and 'data.frame':   6399 obs. of  3 variables:
 #>   ..$ from: chr [1:6399] "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" ...
 #>   ..$ to  : chr [1:6399] "term_0025" "term_0019" "term_0024" "term_0017" ...
 #>   ..$ type: chr [1:6399] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
 #>  $ gene_ids        : chr [1:444] "gene_signal_0001" "gene_signal_0002" "gene_signal_0003" "gene_signal_0004" ...
 #>  $ pathway_ids     : chr [1:355] "term_0001" "term_0002" "term_0003" "term_0004" ...
 ```
@@ -279,7 +279,7 @@ gw_factory$add_pathways() # will add GO to the builder
 gw_factory$add_ppi(source = "combined") # will add the combined one
 gw_factory$build() # will load the data into the factory
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -287,7 +287,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -295,7 +295,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -303,7 +303,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -311,7 +311,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -456,7 +456,7 @@ gene_symbol_translation <- setNames(
 # get the go data
 go_info <- get_gene_ontology_info()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -527,7 +527,7 @@ enrichment. Nonetheless, let’s check what happens with noisy data…
 genes <- get_gene_info() %>%
   .[biotype == "protein_coding"]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -619,7 +619,7 @@ terms of the internally stored Reactome data.
 # package
 reactome_genes <- get_gene_to_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -628,7 +628,7 @@ reactome_genes <- get_gene_to_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_ppi <- get_interactions_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -637,7 +637,7 @@ reactome_ppi <- get_interactions_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_hierarchy <- get_reactome_hierarchy(relationship = "parent_of")
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpKr62DG/duckdb
+#> ℹ /tmp/Rtmp4YQCeP/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -683,12 +683,12 @@ str(gwr_data)
 #>   ..$ from: chr [1:4078] "ENSG00000141027" "ENSG00000198911" "ENSG00000204231" "ENSG00000066136" ...
 #>   ..$ to  : chr [1:4078] "ENSG00000186350" "ENSG00000198911" "ENSG00000132522" "ENSG00000198911" ...
 #>   ..$ type: chr [1:4078] "interaction" "interaction" "interaction" "interaction" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
 #>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   917 obs. of  3 variables:
 #>   ..$ from: chr [1:917] "ENSG00000101255" "ENSG00000101255" "ENSG00000101255" "ENSG00000101255" ...
 #>   ..$ to  : chr [1:917] "R-HSA-1989781" "R-HSA-9633012" "R-HSA-9648895" "R-HSA-5218920" ...
 #>   ..$ type: chr [1:917] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x5599718e1b80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
 #>  $ represented_genes   : chr [1:116] "ENSG00000141027" "ENSG00000198911" "ENSG00000204231" "ENSG00000066136" ...
 #>  $ represented_pathways: chr [1:2883] "R-HSA-1989781" "R-HSA-9633012" "R-HSA-9648895" "R-HSA-5218920" ...
 ```

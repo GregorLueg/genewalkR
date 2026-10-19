@@ -52,7 +52,7 @@ gene_gene <- get_interactions_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpRvKzwi/duckdb
+#> ℹ /tmp/RtmprfDjdv/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -64,7 +64,7 @@ gene_pathway <- get_gene_to_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpRvKzwi/duckdb
+#> ℹ /tmp/RtmprfDjdv/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -76,7 +76,7 @@ pathway_pathway <- get_reactome_hierarchy("child_of")[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpRvKzwi/duckdb
+#> ℹ /tmp/RtmprfDjdv/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -127,7 +127,7 @@ node_labels <- rbind(
   )]
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpRvKzwi/duckdb
+#> ℹ /tmp/RtmprfDjdv/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -135,7 +135,7 @@ node_labels <- rbind(
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpRvKzwi/duckdb
+#> ℹ /tmp/RtmprfDjdv/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -325,9 +325,9 @@ purity <- data.table(
 purity
 #>                                method knn_purity
 #>                                <char>      <num>
-#> 1:                           node2vec  0.7746000
-#> 2:   metapath2vec (gene-pathway-gene)  0.7422500
-#> 3: metapath2vec++ (gene-pathway-gene)  0.7434000
+#> 1:                           node2vec  0.7745000
+#> 2:   metapath2vec (gene-pathway-gene)  0.7421000
+#> 3: metapath2vec++ (gene-pathway-gene)  0.7432500
 #> 4:                             random  0.0850795
 ```
 
@@ -362,21 +362,21 @@ tp53 <- node_labels[label == "TP53", id][1]
 nearest(gpg, tp53, n = 15L)
 #>                  id cosine    type
 #>              <char>  <num>  <char>
-#>  1:   R-HSA-9723905  0.941 pathway
-#>  2:   R-HSA-6804754  0.887 pathway
+#>  1:   R-HSA-9723905  0.942 pathway
+#>  2:   R-HSA-6804754  0.888 pathway
 #>  3:     R-HSA-69895  0.855 pathway
-#>  4:    R-HSA-111448  0.835 pathway
-#>  5:   R-HSA-9988426  0.812 pathway
-#>  6:    R-HSA-139915  0.784 pathway
-#>  7:   R-HSA-6804116  0.749 pathway
-#>  8:   R-HSA-6803207  0.734 pathway
+#>  4:    R-HSA-111448  0.836 pathway
+#>  5:   R-HSA-9988426  0.811 pathway
+#>  6:    R-HSA-139915  0.785 pathway
+#>  7:   R-HSA-6804116  0.751 pathway
+#>  8:   R-HSA-6803207  0.735 pathway
 #>  9:   R-HSA-2559584  0.728 pathway
-#> 10: ENSG00000118900  0.726    gene
-#> 11: ENSG00000161642  0.722    gene
-#> 12: ENSG00000149948  0.720    gene
+#> 10: ENSG00000118900  0.727    gene
+#> 11: ENSG00000149948  0.722    gene
+#> 12: ENSG00000161642  0.722    gene
 #> 13: ENSG00000111875  0.718    gene
-#> 14: ENSG00000149311  0.711    gene
-#> 15: ENSG00000169372  0.711    gene
+#> 14: ENSG00000169372  0.712    gene
+#> 15: ENSG00000149311  0.711    gene
 #>                                                                         label
 #>                                                                        <char>
 #>  1: Loss of function of TP53 in cancer due to loss of tetramerization ability
@@ -389,11 +389,11 @@ nearest(gpg, tp53, n = 15L)
 #>  8:           TP53 Regulates Transcription of Caspase Activators and Caspases
 #>  9:            Formation of Senescence-Associated Heterochromatin Foci (SAHF)
 #> 10:                                                                      UBN1
-#> 11:                                                                   ZNF385A
-#> 12:                                                                     HMGA2
+#> 11:                                                                     HMGA2
+#> 12:                                                                   ZNF385A
 #> 13:                                                                     ASF1A
-#> 14:                                                                       ATM
-#> 15:                                                                     CRADD
+#> 14:                                                                     CRADD
+#> 15:                                                                       ATM
 ```
 
 ### Pathway embeddings
@@ -464,16 +464,16 @@ tnfr1 <- node_labels[label == "TNFR1-induced proapoptotic signaling", id][1]
 nearest(pgp[pathway_ids, ], tnfr1)
 #>                id cosine    type
 #>            <char>  <num>  <char>
-#>  1: R-HSA-5357905  0.920 pathway
-#>  2: R-HSA-5357956  0.910 pathway
-#>  3: R-HSA-9693928  0.906 pathway
+#>  1: R-HSA-5357905  0.919 pathway
+#>  2: R-HSA-5357956  0.909 pathway
+#>  3: R-HSA-9693928  0.907 pathway
 #>  4: R-HSA-9013957  0.850 pathway
-#>  5:  R-HSA-933543  0.848 pathway
-#>  6: R-HSA-5218900  0.842 pathway
-#>  7: R-HSA-9692913  0.842 pathway
-#>  8:   R-HSA-75157  0.841 pathway
+#>  5:  R-HSA-933543  0.849 pathway
+#>  6: R-HSA-5218900  0.843 pathway
+#>  7: R-HSA-9692913  0.843 pathway
+#>  8:   R-HSA-75157  0.842 pathway
 #>  9: R-HSA-3371378  0.841 pathway
-#> 10: R-HSA-9686347  0.829 pathway
+#> 10: R-HSA-9686347  0.830 pathway
 #>                                                                         label
 #>                                                                        <char>
 #>  1:                                             Regulation of TNFR1 signaling

@@ -198,7 +198,7 @@ gene_gene <- get_interactions_reactome()[, .(
 #> Downloading database...
 #> Download complete
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpFtsWvP/duckdb
+#> ℹ /tmp/RtmprmH0e6/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -210,7 +210,7 @@ gene_pathway <- get_gene_to_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpFtsWvP/duckdb
+#> ℹ /tmp/RtmprmH0e6/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -222,7 +222,7 @@ pathway_pathway <- get_reactome_hierarchy("child_of")[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpFtsWvP/duckdb
+#> ℹ /tmp/RtmprmH0e6/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -288,7 +288,7 @@ pathway_labels <- get_reactome_info()[, .(
   label = as.character(reactome_name)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpFtsWvP/duckdb
+#> ℹ /tmp/RtmprmH0e6/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -324,7 +324,7 @@ tictoc <- system.time(
 
 tictoc
 #>    user  system elapsed 
-#>  84.403   0.332  21.897
+#>  68.646   0.239  17.745
 ```
 
 A few seconds. Blazingly fast.

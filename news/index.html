@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,12 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.2" id="genewalkr-022">genewalkR 0.2.2<a class="anchor" aria-label="anchor" href="#genewalkr-022"></a></h2>
+<ul><li>Rust side moved onto the split bixverse-rs 0.8.0 crates, pulled in via <code>bixverse-r</code>. Along with it: faer 0.24, ann-search-rs 0.11 and node2vec-rs 0.4, so the build carries a single faer again.</li>
+<li>
+<code><a href="../reference/rs_procrustes_align.html">rs_procrustes_align()</a></code> returns an R error on mismatched dimensions instead of panicking.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="genewalkr-021">genewalkR 0.2.1<a class="anchor" aria-label="anchor" href="#genewalkr-021"></a></h2>
 <ul><li>Diffusion profiles (constrained personalised PageRank) from Ruiz et al.: <code><a href="../reference/DiffusionProfiles.html">DiffusionProfiles()</a></code>, <code><a href="../reference/generate_profiles.html">generate_profiles()</a></code> and <code><a href="../reference/calculate_profile_distances.html">calculate_profile_distances()</a></code>, plus a vignette.</li>
