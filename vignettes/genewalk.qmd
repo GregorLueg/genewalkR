@@ -315,7 +315,7 @@ of `gene <> pathway` connections.
 
 ```{r}
 #| label: plot the results
-plot_gw_results(myc_gwn, fdr_treshold = 0.05)
+plot_gw_results(myc_gwn, fdr_threshold = 0.05)
 ```
 
 Other options are to plot for individual genes the significantly associated
@@ -413,7 +413,7 @@ plot_similarities(random_gwn)
 # some genes still reach significance - this is likely driven by the
 # structure provided, by the gene ontology graph, but one can appreciate
 # that for random genes, the thresholds fall apart
-plot_gw_results(random_gwn, fdr_treshold = 0.05)
+plot_gw_results(random_gwn, fdr_threshold = 0.05)
 ```
 
 ## Using your own data 

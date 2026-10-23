@@ -10,7 +10,7 @@ GeneWalk(graph_dt, gene_to_pathway_dt, gene_ids, pathway_ids)
 \item{graph_dt}{A data.table with the graph information. Needs to have
 the columns \code{"from"}, \code{"to"} and \code{"type"}; type must include \code{"hierarchy"}
 for the pathways, \code{"interaction"} for interactions and \code{"part_of"} for
-gene/pathway interactions, and optionally a weight.}
+gene/pathway interactions, and optionally a \code{"weight"} column.}
 
 \item{gene_to_pathway_dt}{A data.table with the gene to pathway information.
 Needs to have \code{"from"} (gene) and \code{"to"} (pathway).}

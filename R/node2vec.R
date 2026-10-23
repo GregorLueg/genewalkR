@@ -53,7 +53,7 @@ node2vec <- function(
 
   # funtion body
   weights <- if ("weight" %in% names(graph_dt)) {
-    graph_dt[["weights"]]
+    graph_dt[["weight"]]
   } else {
     NULL
   }

@@ -15,7 +15,7 @@ The \code{EmbedDrift} object with \code{aligned_embd} and \code{stats} populated
 \code{node_status} (\code{"shared"}, \code{"g1_only"}, \code{"g2_only"}).
 }
 \description{
-Aligns the embedding of graph 2 onto the reference embedding of graph 1
+Aligns the embedding of graph 1 onto the reference embedding of graph 2
 via orthogonal Procrustes, then computes per-node cosine similarities as a
 measure of context drift. Nodes shared between both graphs receive a cosine
 similarity in \verb{[-1, 1]}. Nodes exclusive to graph 1 are assigned \code{-1.1} and

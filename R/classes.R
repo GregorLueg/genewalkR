@@ -28,7 +28,7 @@
 #' @param graph_dt A data.table with the graph information. Needs to have
 #' the columns `"from"`, `"to"` and `"type"`; type must include `"hierarchy"`
 #' for the pathways, `"interaction"` for interactions and `"part_of"` for
-#' gene/pathway interactions, and optionally a weight.
+#' gene/pathway interactions, and optionally a `"weight"` column.
 #' @param gene_to_pathway_dt A data.table with the gene to pathway information.
 #' Needs to have `"from"` (gene) and `"to"` (pathway).
 #' @param gene_ids String. The "bag of genes" you are testing.
@@ -57,7 +57,7 @@ GeneWalk <- S7::new_class(
   # constructor
   constructor = function(graph_dt, gene_to_pathway_dt, gene_ids, pathway_ids) {
     # checks
-    checkGeneWalkGraphDt(graph_dt)
+    assertGeneWalkGraphDt(graph_dt)
     assertGeneWalkDataTable(gene_to_pathway_dt)
     checkmate::qassert(gene_ids, "S+")
     checkmate::qassert(pathway_ids, "S+")
@@ -546,35 +546,31 @@ GeneWalkGenerator <- R6::R6Class(
 
     #' @description Add pathway sources to the network
     #'
-    #' @param source Character vector of sources: `"go"`, `"reactome"`. Defaults
-    #' to `"go"` only by default.
+    #' @param source Character vector. Any of `c("go", "reactome")`. Defaults
+    #' to `"go"`.
     #' @param go_namespace Character vector. Specifically for GO. Choices
     #' are `c("biological_process", "molecular_function", "cellular_component")`
     add_pathways = function(
-      source = c("go", "reactome"),
+      source = "go",
       go_namespace = c(
         "biological_process",
         "molecular_function",
         "cellular_component"
       )
     ) {
-      # checks
-      checkmate::checkTRUE(all(source %in% c("go", "reactome")))
-      checkmate::checkTRUE(all(
-        go_namespace %in%
-          c(
-            "biological_process",
-            "molecular_function",
-            "cellular_component"
-          )
-      ))
+      go_namespace <- match.arg(go_namespace, several.ok = TRUE)
 
-      # multi match
-      source <- match.arg(source)
+      # checks
+      checkmate::assertCharacter(source, min.len = 1L)
+      checkmate::assertSubset(source, c("go", "reactome"))
+      checkmate::assertSubset(
+        go_namespace,
+        c("biological_process", "molecular_function", "cellular_component")
+      )
+
       self$pathway_sources <- union(self$pathway_sources, source)
 
       if ("go" %in% source) {
-        go_namespace <- match.arg(go_namespace, several.ok = TRUE)
         self$pathway_namespaces$go <- union(
           self$pathway_namespaces$go,
           go_namespace
@@ -585,19 +581,25 @@ GeneWalkGenerator <- R6::R6Class(
 
     #' @description Add PPI sources to the network
     #'
-    #' @param source Character vector of sources
+    #' @param source Character vector. Any of
+    #' `c("combined", "string", "signor", "reactome", "intact")`. Defaults to
+    #' `"combined"`.
     #' @param string_threshold Numeric threshold for STRING scores
     #' @param intact_threshold Numeric threshold for Intact scores
     #' @param intact_physical_only Logical, only physical interactions from
     #' Intact
     add_ppi = function(
-      source = c("combined", "string", "signor", "reactome", "intact"),
+      source = "combined",
       string_threshold = NULL,
       intact_threshold = NULL,
       intact_physical_only = FALSE
     ) {
-      source <- match.arg(source)
-
+      # checks
+      checkmate::assertCharacter(source, min.len = 1L)
+      checkmate::assertSubset(
+        source,
+        c("combined", "string", "signor", "reactome", "intact")
+      )
       checkmate::qassert(string_threshold, c("0", "N1[0, 1]"))
       checkmate::qassert(intact_threshold, c("0", "N1[0, 1]"))
       checkmate::qassert(intact_physical_only, "B1")
@@ -1116,7 +1118,8 @@ S7::method(print, EmbedDrift) <- function(x, ...) {
 #'  and diffusion.}
 #' }
 #'
-#' @param graph An igraph object.
+#' @param graph An igraph object with vertex names. An optional `"weight"` edge
+#' attribute (non-negative) is used as edge weights by [build_kernel()].
 #'
 #' @return An initialised `DiffusionScores` object.
 #'
@@ -1368,7 +1371,10 @@ S7::method(print, DiffusionProfiles) <- function(x, ...) {
     if (is.null(type_weights)) {
       "none (plain random walk)"
     } else {
-      paste(sprintf("%s = %g", names(type_weights), type_weights), collapse = ", ")
+      paste(
+        sprintf("%s = %g", names(type_weights), type_weights),
+        collapse = ", "
+      )
     },
     "\n"
   )

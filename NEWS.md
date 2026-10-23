@@ -1,3 +1,23 @@
+# genewalkR 0.2.3
+
+- Agent skill: `install_agent_skill()` copies a skill into Claude Code, Codex
+  or any other agent so it knows how to use the package. Lives in
+  `inst/skills/genewalkr` and is versioned with the package.
+- `node2vec()` now uses the `weight` column; before it checked for `weight` but
+  read `weights`, so every run was unweighted.
+- `GeneWalk` reads edge weights from `weight` instead of `weights`, in line with
+  the rest of the package. A `weights` column is now ignored.
+- `GeneWalk()` errors on a `graph_dt` missing any of the `interaction`,
+  `part_of` or `hierarchy` edge types. It ran the check but never acted on it.
+- `GeneWalkGenerator$add_pathways()` and `$add_ppi()` take several sources in
+  one call. `add_pathways(c("go", "reactome"))` used to keep GO only. Defaults
+  stay `"go"` and `"combined"`.
+- `plot_gw_results()`: `fdr_treshold` renamed to `fdr_threshold`.
+- `calculate_drift()` docs: graph 1 is aligned onto graph 2, not the reverse.
+- `build_kernel()` uses the `weight` edge attribute of the igraph if present
+  (non-negative, validated). Before, every edge counted as 1. Unweighted graphs
+  give identical results.
+
 # genewalkR 0.2.2
 
 - Rust side moved onto the split bixverse-rs 0.8.0 crates, pulled in via
