@@ -105,8 +105,7 @@ Runtime data is a DuckDB file downloaded on first use from a GitHub release into
 `tools::R_user_dir("genewalkR", "cache")`. `get_db_connection()` opens it
 read-only, `reload_db()` wipes and re-fetches. The `get_*` accessors in `R/data.R`
 are raw SQL through `DBI::dbGetQuery()`, coerced to `data.table` with factor
-columns turned into character (despite the helper being called
-`.string_cols_to_factors()`).
+columns turned into character.
 
 The `ingest_*`, `obo_parser()` and `download_*` functions in `R/data_processing.R`
 are not exported and never run at analysis time. They build the DuckDB file, and

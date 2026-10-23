@@ -53,19 +53,18 @@ A warning here means the stage didn't run. Don't carry on as if it did.
 out, no class.
 
 `GeneWalkGenerator` is R6, not S7. Its methods mutate in place and chain with
-`$`: `gen$add_pathways("go")$add_ppi("combined")$build()`.
+`$`: `gen$add_pathways(c("go", "reactome"))$add_ppi("combined")$build()`.
 
 ## Edge and node tables
 
 Everything takes a `data.table` (not a plain `data.frame`, except
 `EmbedDrift()`, which accepts either).
 
-- Edges: columns `from` and `to`, optionally a weight column (see the weight
-  trap in `SKILL.md`). Use character IDs.
+- Edges: columns `from` and `to`, optionally a non-negative `weight`. Use
+  character IDs.
 - `GeneWalk` additionally needs `type` on every edge: `"interaction"` (gene to
   gene), `"part_of"` (gene to pathway) or `"hierarchy"` (pathway to pathway),
-  and all three have to be present. The constructor does not currently enforce
-  this, so check `graph_dt[, .N, by = type]` yourself.
+  and all three have to be present. The constructor errors otherwise.
 - `metapath2vec()` and `DiffusionProfiles()` need a node table with `id`
   (unique) and `type`. Every edge endpoint has to be in `id`.
 - Graphs are undirected unless `directed = TRUE`.

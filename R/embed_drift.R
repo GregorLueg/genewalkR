@@ -6,7 +6,7 @@
 #'
 #' @description
 #' Runs node2vec independently on both graphs using identical hyperparameters,
-#' storing the resulting embedding matrices in the object. Graph 1 serves as
+#' storing the resulting embedding matrices in the object. Graph 2 serves as
 #' the reference for subsequent Procrustes alignment. For details on the
 #' node2vec algorithm, see Grover & Leskovec. For the approach generally
 #' speaking, see Amir, et al.
@@ -113,7 +113,7 @@ S7::method(generate_initial_embeddings, EmbedDrift) <- function(
 #' Calculate embedding drift between two graphs
 #'
 #' @description
-#' Aligns the embedding of graph 2 onto the reference embedding of graph 1
+#' Aligns the embedding of graph 1 onto the reference embedding of graph 2
 #' via orthogonal Procrustes, then computes per-node cosine similarities as a
 #' measure of context drift. Nodes shared between both graphs receive a cosine
 #' similarity in `[-1, 1]`. Nodes exclusive to graph 1 are assigned `-1.1` and

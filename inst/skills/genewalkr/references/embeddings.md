@@ -18,7 +18,7 @@ embd <- node2vec(
 Returns a nodes x `embd_dim` matrix with node IDs as rownames. `p` (return) and
 `q` (in-out) in the bundle bias the walk; `p = q = 1` is DeepWalk.
 
-It's unweighted at the moment, see the weight trap in `SKILL.md`.
+Add a `weight` column for a weighted walk.
 
 Sanity check on known structure: `node2vec_test_data()` generates barbell,
 caveman or stochastic block graphs with cluster labels, and

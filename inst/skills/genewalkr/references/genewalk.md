@@ -27,12 +27,12 @@ gw
 check_degree_distribution(gw)
 ```
 
-- **One source per call.** `$add_pathways()` and `$add_ppi()` accumulate across
-  calls, so call them once per source. `add_pathways(c("go", "reactome"))`
-  silently gives you GO alone.
-- Pathway sources: `"go"`, `"reactome"`. GO namespaces default to all three;
-  pass `go_namespace` to restrict.
-- PPI sources: `"combined"`, `"string"`, `"signor"`, `"reactome"`, `"intact"`.
+- `$add_pathways()` and `$add_ppi()` take one or several sources and
+  accumulate across calls. Unknown sources error.
+- Pathway sources: `"go"` (default), `"reactome"`. GO namespaces default to all
+  three; pass `go_namespace` to restrict.
+- PPI sources: `"combined"` (default), `"string"`, `"signor"`, `"reactome"`,
+  `"intact"`.
   `string_threshold` and `intact_threshold` (0 to 1) and `intact_physical_only`
   apply to their source. Unthresholded STRING is ~13M edges; set a threshold.
 - `$build()` errors without at least one pathway and one PPI source. The whole
@@ -122,9 +122,8 @@ res[, `:=`(
 - `plot_similarities(gw)`: cosine similarity of the real pairs next to each
   permutation null. A real distribution that looks like the null means no
   signal.
-- `plot_gw_results(gw, fdr_treshold = 0.25)`: per gene, the share of
-  annotations passing `avg_gene_fdr` against the number of annotations. The
-  argument really is spelt `fdr_treshold`.
+- `plot_gw_results(gw, fdr_threshold = 0.25)`: per gene, the share of
+  annotations passing `avg_gene_fdr` against the number of annotations.
 
 ## Synthetic data
 

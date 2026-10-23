@@ -137,8 +137,8 @@ S7::method(generate_initial_emb, GeneWalk) <- function(
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
 
-  weights <- if ("weights" %in% names(graph_dt)) {
-    graph_dt$weights
+  weights <- if ("weight" %in% names(graph_dt)) {
+    graph_dt$weight
   } else {
     NULL
   }
@@ -244,8 +244,8 @@ S7::method(generate_permuted_emb, GeneWalk) <- function(
   from_idx <- match(graph_dt$from, nodes)
   to_idx <- match(graph_dt$to, nodes)
 
-  weights <- if ("weights" %in% names(graph_dt)) {
-    graph_dt$weights
+  weights <- if ("weight" %in% names(graph_dt)) {
+    graph_dt$weight
   } else {
     NULL
   }

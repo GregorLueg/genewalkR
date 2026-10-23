@@ -87,10 +87,10 @@ head(get_stats(gw))
   `ENSG...` IDs. Feed symbols to `$create_for_genes()` and every gene gets
   dropped with a warning, then `GeneWalk()` errors on empty `gene_ids`.
   Translate with `get_gene_info()` first.
-- **The weight column name differs by function.** `GeneWalk` reads `weights`;
-  `EmbedDrift`, `metapath2vec()`, `DiffusionProfiles()` and `dedup_edges()` read
-  `weight`. `node2vec()` checks for `weight` but reads `weights`, so its weights
-  are ignored either way at the moment: treat it as unweighted.
+- **Edge weights go in a column called `weight`.** Every edge-table function
+  reads that name. Anything else (`weights`, `score`) is silently ignored and
+  the graph is treated as unweighted. `DiffusionScores` is the exception: it
+  takes an igraph and builds an unweighted adjacency, ignoring edge weights.
 - **Multi-threaded training is not reproducible.** `params_genewalk()` defaults
   to `num_workers = 1L` for that reason. `params_node2vec()` and
   `params_metapath2vec()` default to all cores minus two. Set

@@ -21,7 +21,7 @@
 
 ## utils -----------------------------------------------------------------------
 
-#' Transform string to factor columns
+#' Transform factor columns to strings
 #'
 #' @param table data.table. The data.table for which to transform the factor
 #' columns into strings.
@@ -29,7 +29,7 @@
 #' @returns The data.table with the factor columns transformed to strings.
 #'
 #' @keywords internal
-.string_cols_to_factors <- function(table) {
+.factor_cols_to_strings <- function(table) {
   # checks
   checkmate::assertDataTable(table)
 
@@ -142,7 +142,7 @@ get_gene_info <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -171,7 +171,7 @@ get_reactome_info <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -200,7 +200,7 @@ get_gene_ontology_info <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -231,7 +231,7 @@ get_gene_to_go <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -261,7 +261,7 @@ get_gene_to_reactome <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -304,7 +304,7 @@ get_reactome_hierarchy <- function(
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -333,7 +333,7 @@ get_gene_ontology_hierarchy <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -374,7 +374,7 @@ get_interactions_string <- function(threshold = NULL, head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -403,7 +403,7 @@ get_interactions_signor <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -433,7 +433,7 @@ get_interactions_reactome <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -486,7 +486,7 @@ get_interactions_intact <- function(
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -515,7 +515,7 @@ get_interactions_pc <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }
@@ -552,7 +552,7 @@ get_interactions_combined <- function(head_only = FALSE) {
 
   table <- DBI::dbGetQuery(conn = con, statement = query) %>%
     data.table::setDT() %>%
-    .string_cols_to_factors()
+    .factor_cols_to_strings()
 
   return(table)
 }

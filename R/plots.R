@@ -102,7 +102,7 @@ S7::method(plot_similarities, GeneWalk) <- function(object) {
 #'
 #' @param object The `GeneWalk` class. The stats need to be available in the
 #' object.
-#' @param fdr_treshold Numeric. The FDR approach you wish to apply. GeneWalk
+#' @param fdr_threshold Numeric. The FDR approach you wish to apply. GeneWalk
 #' is quite stringent, so, setting this to lower values can make sense.
 #'
 #' @returns ggplot2 object with the plot for the gene
@@ -113,7 +113,7 @@ plot_gw_results <- S7::new_generic(
   dispatch_args = "object",
   fun = function(
     object,
-    fdr_treshold = 0.25
+    fdr_threshold = 0.25
   ) {
     S7::S7_dispatch()
   }
@@ -124,11 +124,11 @@ plot_gw_results <- S7::new_generic(
 #' @import ggplot2
 S7::method(plot_gw_results, GeneWalk) <- function(
   object,
-  fdr_treshold = 0.25
+  fdr_threshold = 0.25
 ) {
   # checks
   checkmate::assertTRUE(S7::S7_inherits(object, GeneWalk))
-  checkmate::qassert(fdr_treshold, "N1[0, 1]")
+  checkmate::qassert(fdr_threshold, "N1[0, 1]")
 
   # early return
   if (suppressWarnings(nrow(get_stats(object)) == 0)) {
@@ -148,7 +148,7 @@ S7::method(plot_gw_results, GeneWalk) <- function(
 
   plot_dt <- results[,
     .(
-      ratio = sum(avg_gene_fdr <= fdr_treshold) / length(pathway),
+      ratio = sum(avg_gene_fdr <= fdr_threshold) / length(pathway),
       pathway_connections = length(pathway)
     ),
     .(gene)

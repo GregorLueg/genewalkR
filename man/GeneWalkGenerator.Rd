@@ -73,7 +73,7 @@ Supports building a master network once and subsetting to multiple gene sets.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GeneWalkGenerator$add_pathways(
-  source = c("go", "reactome"),
+  source = "go",
   go_namespace = c("biological_process", "molecular_function", "cellular_component")
 )}
     \if{html}{\out{</div>}}
@@ -81,8 +81,8 @@ Supports building a master network once and subsetting to multiple gene sets.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{source}}{Character vector of sources: \code{"go"}, \code{"reactome"}. Defaults
-to \code{"go"} only by default.}
+      \item{\code{source}}{Character vector. Any of \code{c("go", "reactome")}. Defaults
+to \code{"go"}.}
       \item{\code{go_namespace}}{Character vector. Specifically for GO. Choices
 are \code{c("biological_process", "molecular_function", "cellular_component")}}
     }
@@ -98,7 +98,7 @@ are \code{c("biological_process", "molecular_function", "cellular_component")}}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{GeneWalkGenerator$add_ppi(
-  source = c("combined", "string", "signor", "reactome", "intact"),
+  source = "combined",
   string_threshold = NULL,
   intact_threshold = NULL,
   intact_physical_only = FALSE
@@ -108,7 +108,9 @@ are \code{c("biological_process", "molecular_function", "cellular_component")}}
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{source}}{Character vector of sources}
+      \item{\code{source}}{Character vector. Any of
+\code{c("combined", "string", "signor", "reactome", "intact")}. Defaults to
+\code{"combined"}.}
       \item{\code{string_threshold}}{Numeric threshold for STRING scores}
       \item{\code{intact_threshold}}{Numeric threshold for Intact scores}
       \item{\code{intact_physical_only}}{Logical, only physical interactions from

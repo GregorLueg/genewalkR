@@ -39,6 +39,7 @@ often as you like.
   or a restart; rebuild it.
 - The graph needs vertex names (`igraph::V(g)$name`). Inputs, background and
   outputs are all keyed by them.
+- The adjacency is unweighted: an igraph `weight` edge attribute is ignored.
 
 ### Scoring
 
