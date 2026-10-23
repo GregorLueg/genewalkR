@@ -14,6 +14,9 @@
   stay `"go"` and `"combined"`.
 - `plot_gw_results()`: `fdr_treshold` renamed to `fdr_threshold`.
 - `calculate_drift()` docs: graph 1 is aligned onto graph 2, not the reverse.
+- `build_kernel()` uses the `weight` edge attribute of the igraph if present
+  (non-negative, validated). Before, every edge counted as 1. Unweighted graphs
+  give identical results.
 
 # genewalkR 0.2.2
 

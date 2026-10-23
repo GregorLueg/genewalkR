@@ -7,7 +7,9 @@
 #' @description
 #' Constructs the graph Laplacian and runs the spectral decomposition,
 #' then applies the chosen kernel transform. The result is stored as an
-#' external pointer for subsequent calls to `diffuse()`.
+#' external pointer for subsequent calls to `diffuse()`. If the graph has a
+#' `"weight"` edge attribute, the Laplacian is built from the weighted
+#' adjacency; otherwise every edge counts as 1. Parallel edges are summed.
 #'
 #' @param object A `DiffusionScores` object, see [DiffusionScores()].
 #' @param kernel Character. One of `"regularised_laplacian"`,
@@ -87,8 +89,22 @@ S7::method(build_kernel, DiffusionScores) <- function(
   checkmate::qassert(.verbose, "B1")
 
   g <- S7::prop(object, "graph")
-  adj <- igraph::as_adjacency_matrix(g, sparse = TRUE)
-  node_names <- rownames(adj)
+  # negative weights break the PSD Laplacian the kernels rely on
+  weighted <- "weight" %in% igraph::edge_attr_names(g)
+  if (weighted) {
+    checkmate::assertNumeric(
+      igraph::E(g)$weight,
+      lower = 0,
+      finite = TRUE,
+      any.missing = FALSE,
+      .var.name = "E(graph)$weight"
+    )
+  }
+  adj <- igraph::as_adjacency_matrix(
+    g,
+    attr = if (weighted) "weight" else NULL,
+    sparse = TRUE
+  )
 
   ptr <- rs_diffusion_kernel(
     i = adj@i,
@@ -113,7 +129,8 @@ S7::method(build_kernel, DiffusionScores) <- function(
     kernel_params = kernel_params,
     normalised = normalised,
     strategy = strategy,
-    k = k
+    k = k,
+    weighted = weighted
   )
 
   return(object)

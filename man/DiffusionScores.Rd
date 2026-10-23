@@ -7,7 +7,8 @@
 DiffusionScores(graph)
 }
 \arguments{
-\item{graph}{An igraph object.}
+\item{graph}{An igraph object with vertex names. An optional \code{"weight"} edge
+attribute (non-negative) is used as edge weights by \code{\link[=build_kernel]{build_kernel()}}.}
 }
 \value{
 An initialised \code{DiffusionScores} object.

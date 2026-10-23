@@ -39,7 +39,12 @@ often as you like.
   or a restart; rebuild it.
 - The graph needs vertex names (`igraph::V(g)$name`). Inputs, background and
   outputs are all keyed by them.
-- The adjacency is unweighted: an igraph `weight` edge attribute is ignored.
+- A `weight` edge attribute (non-negative) makes the Laplacian weighted;
+  without it every edge counts as 1. Parallel edges are summed, so
+  `dedup_edges()` before building the igraph if that's not what you want. With
+  `normalised = TRUE` a constant rescale of all weights gives the same scores;
+  with `normalised = FALSE` it doesn't, and `sigma2`/`add_diag` have to match
+  the weight scale. `params$kernel$weighted` records which one you got.
 
 ### Scoring
 

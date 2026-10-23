@@ -1118,7 +1118,8 @@ S7::method(print, EmbedDrift) <- function(x, ...) {
 #'  and diffusion.}
 #' }
 #'
-#' @param graph An igraph object.
+#' @param graph An igraph object with vertex names. An optional `"weight"` edge
+#' attribute (non-negative) is used as edge weights by [build_kernel()].
 #'
 #' @return An initialised `DiffusionScores` object.
 #'

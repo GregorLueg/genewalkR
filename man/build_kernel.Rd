@@ -43,5 +43,7 @@ populated.
 \description{
 Constructs the graph Laplacian and runs the spectral decomposition,
 then applies the chosen kernel transform. The result is stored as an
-external pointer for subsequent calls to \code{diffuse()}.
+external pointer for subsequent calls to \code{diffuse()}. If the graph has a
+\code{"weight"} edge attribute, the Laplacian is built from the weighted
+adjacency; otherwise every edge counts as 1. Parallel edges are summed.
 }
