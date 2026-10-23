@@ -127,6 +127,10 @@ reference:
       - params_genewalk
       - params_node2vec
       - params_genewalk_data
+  - title: "Agent skill"
+    desc: "Teach your coding agent how to use the package"
+    contents:
+      - install_agent_skill
   - title: "Rust wrappers"
     desc: "Everything rusty - only use this if you know what you are doing..."
     contents:

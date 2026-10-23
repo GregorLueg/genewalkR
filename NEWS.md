@@ -1,3 +1,9 @@
+# genewalkR 0.2.3
+
+- Agent skill: `install_agent_skill()` copies a skill into Claude Code, Codex
+  or any other agent so it knows how to use the package. Lives in
+  `inst/skills/genewalkr` and is versioned with the package.
+
 # genewalkR 0.2.2
 
 - Rust side moved onto the split bixverse-rs 0.8.0 crates, pulled in via
