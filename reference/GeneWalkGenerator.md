@@ -79,7 +79,7 @@ Add pathway sources to the network
 #### Usage
 
     GeneWalkGenerator$add_pathways(
-      source = c("go", "reactome"),
+      source = "go",
       go_namespace = c("biological_process", "molecular_function", "cellular_component")
     )
 
@@ -87,8 +87,7 @@ Add pathway sources to the network
 
 - `source`:
 
-  Character vector of sources: `"go"`, `"reactome"`. Defaults to `"go"`
-  only by default.
+  Character vector. Any of `c("go", "reactome")`. Defaults to `"go"`.
 
 - `go_namespace`:
 
@@ -104,7 +103,7 @@ Add PPI sources to the network
 #### Usage
 
     GeneWalkGenerator$add_ppi(
-      source = c("combined", "string", "signor", "reactome", "intact"),
+      source = "combined",
       string_threshold = NULL,
       intact_threshold = NULL,
       intact_physical_only = FALSE
@@ -114,7 +113,9 @@ Add PPI sources to the network
 
 - `source`:
 
-  Character vector of sources
+  Character vector. Any of
+  `c("combined", "string", "signor", "reactome", "intact")`. Defaults to
+  `"combined"`.
 
 - `string_threshold`:
 

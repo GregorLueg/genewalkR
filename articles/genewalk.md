@@ -45,12 +45,12 @@ str(gene_walk_syn_data)
 #>   ..$ from: chr [1:8237] "term_0001" "term_0001" "term_0002" "term_0002" ...
 #>   ..$ to  : chr [1:8237] "term_0002" "term_0003" "term_0004" "term_0005" ...
 #>   ..$ type: chr [1:8237] "hierarchy" "hierarchy" "hierarchy" "hierarchy" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560d54392b80> 
 #>  $ gene_to_pathways:Classes 'data.table' and 'data.frame':   6399 obs. of  3 variables:
 #>   ..$ from: chr [1:6399] "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" "gene_signal_0001" ...
 #>   ..$ to  : chr [1:6399] "term_0025" "term_0019" "term_0024" "term_0017" ...
 #>   ..$ type: chr [1:6399] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560d54392b80> 
 #>  $ gene_ids        : chr [1:444] "gene_signal_0001" "gene_signal_0002" "gene_signal_0003" "gene_signal_0004" ...
 #>  $ pathway_ids     : chr [1:355] "term_0001" "term_0002" "term_0003" "term_0004" ...
 ```
@@ -145,28 +145,28 @@ statistics <- get_stats(genewalk_obj)
 head(statistics)
 #>                  gene   pathway similarity     sem_sim     avg_pval
 #>                <char>    <char>      <num>       <num>        <num>
-#> 1: gene_anchor_1_0015 term_0070  0.9551685 0.018602670 0.0002835193
-#> 2: gene_anchor_1_0003 term_0070  0.9539591 0.013286701 0.0004367785
-#> 3: gene_anchor_4_0010 term_0156  0.9343595 0.017084461 0.0011255221
-#> 4: gene_anchor_4_0005 term_0156  0.9317033 0.006857934 0.0015102091
-#> 5: gene_anchor_4_0002 term_0156  0.9297757 0.014733484 0.0016251556
-#> 6: gene_anchor_1_0004 term_0082  0.9269293 0.014422567 0.0017465073
+#> 1: gene_anchor_1_0015 term_0070  0.9551707 0.018602565 0.0002820349
+#> 2: gene_anchor_1_0003 term_0070  0.9539655 0.013284438 0.0004367785
+#> 3: gene_anchor_4_0010 term_0156  0.9343639 0.017084580 0.0011255221
+#> 4: gene_anchor_4_0005 term_0156  0.9317059 0.006853764 0.0015102091
+#> 5: gene_anchor_4_0002 term_0156  0.9297740 0.014733608 0.0016251556
+#> 6: gene_anchor_1_0004 term_0082  0.9269276 0.014415746 0.0017465073
 #>    pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
 #>            <num>         <num>          <num>               <num>
-#> 1:  0.0000264226   0.003042214      0.1996416            0.176275
-#> 2:  0.0001206405   0.001581355      0.1996416            0.176275
-#> 3:  0.0002112360   0.005997083      0.1996416            0.176275
-#> 4:  0.0008796587   0.002592746      0.1996416            0.176275
-#> 5:  0.0005268030   0.005013507      0.1996416            0.176275
-#> 6:  0.0005465031   0.005581465      0.1996416            0.176275
+#> 1:  0.0000265351   0.002997678      0.1996261           0.1762366
+#> 2:  0.0001206405   0.001581355      0.1996261           0.1762366
+#> 3:  0.0002112360   0.005997083      0.1996261           0.1762366
+#> 4:  0.0008796587   0.002592746      0.1996261           0.1762366
+#> 5:  0.0005268030   0.005013507      0.1996261           0.1762366
+#> 6:  0.0005465031   0.005581465      0.1996261           0.1762366
 #>    global_fdr_ci_upper avg_gene_fdr gene_fdr_ci_lower gene_fdr_ci_upper
 #>                  <num>        <num>             <num>             <num>
-#> 1:           0.2261056  0.005151888      0.0005704578        0.04652746
-#> 2:           0.2261056  0.006551678      0.0018096074        0.02372033
-#> 3:           0.2261056  0.012380743      0.0023235965        0.06596791
-#> 4:           0.2261056  0.022653137      0.0131948805        0.03889119
-#> 5:           0.2261056  0.021114187      0.0068523342        0.06505942
-#> 6:           0.2261056  0.009536346      0.0072132993        0.01260753
+#> 1:           0.2261198  0.005151888      0.0005704578        0.04652746
+#> 2:           0.2261198  0.006551678      0.0018096074        0.02372033
+#> 3:           0.2261198  0.012380743      0.0023235965        0.06596791
+#> 4:           0.2261198  0.022653137      0.0131948805        0.03889119
+#> 5:           0.2261198  0.021114187      0.0068523342        0.06505942
+#> 6:           0.2261198  0.009536346      0.0072132993        0.01260753
 ```
 
 The different metrics in the data Let’s explore the signal in the
@@ -230,7 +230,7 @@ table(
 #>        
 #>         FALSE TRUE
 #>   FALSE  3597  786
-#>   TRUE   1065  951
+#>   TRUE   1063  953
 ```
 
 We can appreciate that 50% of the signal genes have a significantly
@@ -279,7 +279,7 @@ gw_factory$add_pathways() # will add GO to the builder
 gw_factory$add_ppi(source = "combined") # will add the combined one
 gw_factory$build() # will load the data into the factory
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -287,7 +287,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -295,7 +295,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -303,7 +303,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -311,7 +311,7 @@ gw_factory$build() # will load the data into the factory
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -437,7 +437,7 @@ gene and the number of `gene <> pathway` connections.
 
 ``` r
 
-plot_gw_results(myc_gwn, fdr_treshold = 0.05)
+plot_gw_results(myc_gwn, fdr_threshold = 0.05)
 ```
 
 Other options are to plot for individual genes the significantly
@@ -456,7 +456,7 @@ gene_symbol_translation <- setNames(
 # get the go data
 go_info <- get_gene_ontology_info()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -477,40 +477,40 @@ myc_gwn_res_translated <- copy(myc_gwn_res)[, `:=`(
 head(myc_gwn_res_translated, 10L)
 #>       gene                                     pathway similarity      sem_sim
 #>     <char>                                      <char>      <num>        <num>
-#>  1: TXNL4A                    precatalytic spliceosome  0.9970149 0.0006540579
-#>  2:  RPS10                          cytosolic ribosome  0.9967450 0.0001772282
-#>  3: SNRPB2                    precatalytic spliceosome  0.9960024 0.0012732309
-#>  4:  RPL18           cytosolic large ribosomal subunit  0.9957134 0.0015945207
-#>  5:   MCM5                 3'-5' DNA helicase activity  0.9956955 0.0012088962
-#>  6:   MCM6 single-stranded 3'-5' DNA helicase activity  0.9956378 0.0007531514
-#>  7: SNRPB2      post-mRNA release spliceosomal complex  0.9955702 0.0017411232
-#>  8: TXNL4A            U2-type precatalytic spliceosome  0.9950254 0.0022140394
-#>  9:  SRSF3                               nuclear speck  0.9949848 0.0004358542
-#> 10: SNRPB2             U2-type prespliceosome assembly  0.9949528 0.0013939951
+#>  1: TXNL4A                    precatalytic spliceosome  0.9970144 0.0006540863
+#>  2:  RPS10                          cytosolic ribosome  0.9967441 0.0001775951
+#>  3: SNRPB2                    precatalytic spliceosome  0.9960049 0.0012714951
+#>  4:  RPL18           cytosolic large ribosomal subunit  0.9957143 0.0015938333
+#>  5:   MCM5                 3'-5' DNA helicase activity  0.9956960 0.0012080085
+#>  6:   MCM6 single-stranded 3'-5' DNA helicase activity  0.9956388 0.0007535776
+#>  7: SNRPB2      post-mRNA release spliceosomal complex  0.9955691 0.0017411827
+#>  8: TXNL4A            U2-type precatalytic spliceosome  0.9950256 0.0022139923
+#>  9:  SRSF3                               nuclear speck  0.9949848 0.0004354906
+#> 10: SNRPB2             U2-type prespliceosome assembly  0.9949545 0.0013921285
 #>         avg_pval pval_ci_lower pval_ci_upper avg_global_fdr global_fdr_ci_lower
 #>            <num>         <num>         <num>          <num>               <num>
 #>  1: 5.445034e-13  1.007632e-19  2.942383e-06   6.572533e-11        2.928259e-17
-#>  2: 1.482964e-09  2.744302e-16  8.013629e-03   1.094442e-07        4.117376e-14
-#>  3: 1.482964e-09  2.744302e-16  8.013629e-03   1.094442e-07        4.117376e-14
+#>  2: 1.482964e-09  2.744302e-16  8.013629e-03   1.090668e-07        4.117170e-14
+#>  3: 1.482964e-09  2.744302e-16  8.013629e-03   1.090668e-07        4.117170e-14
 #>  4: 5.445034e-13  1.007632e-19  2.942383e-06   6.442250e-11        2.985069e-17
 #>  5: 5.445034e-13  1.007632e-19  2.942383e-06   6.572533e-11        2.928259e-17
-#>  6: 4.038136e-06  4.038136e-06  4.038136e-06   2.003709e-04        1.839998e-04
+#>  6: 4.038136e-06  4.038136e-06  4.038136e-06   1.996800e-04        1.844988e-04
 #>  7: 1.868418e-09  2.743568e-16  1.272425e-02   1.203305e-07        6.313149e-14
-#>  8: 1.868418e-09  2.743568e-16  1.272425e-02   1.094442e-07        4.117376e-14
-#>  9: 4.038136e-06  4.038136e-06  4.038136e-06   2.003709e-04        1.839998e-04
-#> 10: 1.868418e-09  2.743568e-16  1.272425e-02   1.094442e-07        4.117376e-14
+#>  8: 1.868418e-09  2.743568e-16  1.272425e-02   1.090668e-07        4.117170e-14
+#>  9: 4.038136e-06  4.038136e-06  4.038136e-06   1.996800e-04        1.844988e-04
+#> 10: 1.868418e-09  2.743568e-16  1.272425e-02   1.090668e-07        4.117170e-14
 #>     global_fdr_ci_upper avg_gene_fdr gene_fdr_ci_lower gene_fdr_ci_upper
 #>                   <num>        <num>             <num>             <num>
 #>  1:        0.0001475218 2.803985e-12      4.449015e-19      1.767208e-05
-#>  2:        0.2909140094 1.053574e-08      1.176440e-15      9.435390e-02
-#>  3:        0.2909140094 6.261921e-09      6.462984e-16      6.067114e-02
+#>  2:        0.2889256432 1.053574e-08      1.176440e-15      9.435390e-02
+#>  3:        0.2889256432 6.261921e-09      6.462984e-16      6.067114e-02
 #>  4:        0.0001390339 6.401967e-12      7.803382e-19      5.252233e-05
 #>  5:        0.0001475218 4.535113e-12      6.984626e-19      2.944645e-05
-#>  6:        0.0002181987 7.055274e-05      5.413368e-05      9.195178e-05
+#>  6:        0.0002161103 7.055274e-05      5.413368e-05      9.195178e-05
 #>  7:        0.2293533249 8.193580e-09      3.053725e-15      2.198454e-02
-#>  8:        0.2909140094 5.900799e-09      9.582471e-16      3.633658e-02
-#>  9:        0.0002181987 2.422882e-05      1.105821e-05      5.308597e-05
-#> 10:        0.2909140094 6.485748e-09      6.473764e-16      6.497755e-02
+#>  8:        0.2889256432 5.900799e-09      9.582471e-16      3.633658e-02
+#>  9:        0.0002161103 2.422882e-05      1.105821e-05      5.308597e-05
+#> 10:        0.2889256432 6.485748e-09      6.473764e-16      6.497755e-02
 ```
 
 Why is so much significant here? Is this not just pathway enrichment?
@@ -527,7 +527,7 @@ enrichment. Nonetheless, let’s check what happens with noisy data…
 genes <- get_gene_info() %>%
   .[biotype == "protein_coding"]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -604,7 +604,7 @@ plot_similarities(random_gwn)
 # some genes still reach significance - this is likely driven by the
 # structure provided, by the gene ontology graph, but one can appreciate
 # that for random genes, the thresholds fall apart
-plot_gw_results(random_gwn, fdr_treshold = 0.05)
+plot_gw_results(random_gwn, fdr_threshold = 0.05)
 ```
 
 ### Using your own data
@@ -619,7 +619,7 @@ terms of the internally stored Reactome data.
 # package
 reactome_genes <- get_gene_to_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -628,7 +628,7 @@ reactome_genes <- get_gene_to_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_ppi <- get_interactions_reactome()
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -637,7 +637,7 @@ reactome_ppi <- get_interactions_reactome()
 #> ℹ See ?duckdb_storage for details and alternatives.
 reactome_hierarchy <- get_reactome_hierarchy(relationship = "parent_of")
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp4YQCeP/duckdb
+#> ℹ /tmp/Rtmp0DAlc2/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -683,12 +683,12 @@ str(gwr_data)
 #>   ..$ from: chr [1:4078] "ENSG00000141027" "ENSG00000198911" "ENSG00000204231" "ENSG00000066136" ...
 #>   ..$ to  : chr [1:4078] "ENSG00000186350" "ENSG00000198911" "ENSG00000132522" "ENSG00000198911" ...
 #>   ..$ type: chr [1:4078] "interaction" "interaction" "interaction" "interaction" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560d54392b80> 
 #>  $ genes_to_pathways   :Classes 'data.table' and 'data.frame':   917 obs. of  3 variables:
 #>   ..$ from: chr [1:917] "ENSG00000101255" "ENSG00000101255" "ENSG00000101255" "ENSG00000101255" ...
 #>   ..$ to  : chr [1:917] "R-HSA-1989781" "R-HSA-9633012" "R-HSA-9648895" "R-HSA-5218920" ...
 #>   ..$ type: chr [1:917] "part_of" "part_of" "part_of" "part_of" ...
-#>   ..- attr(*, ".internal.selfref")=<pointer: 0x555ac644eb80> 
+#>   ..- attr(*, ".internal.selfref")=<pointer: 0x560d54392b80> 
 #>  $ represented_genes   : chr [1:116] "ENSG00000141027" "ENSG00000198911" "ENSG00000204231" "ENSG00000066136" ...
 #>  $ represented_pathways: chr [1:2883] "R-HSA-1989781" "R-HSA-9633012" "R-HSA-9648895" "R-HSA-5218920" ...
 ```

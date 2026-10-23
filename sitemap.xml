@@ -45,8 +45,9 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/diffuse_scores.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/diffusion_test_lattice.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/dim.DataBuilder.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/dot-factor_cols_to_strings.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/dot-get_node_degree.html</loc></url>
-<url><loc>https://gregorlueg.github.io/genewalkR/reference/dot-string_cols_to_factors.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/dot-strip_frontmatter.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/download_data.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/download_database.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/download_pathway_commons.html</loc></url>
@@ -95,6 +96,7 @@
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/ingest_reactome_ontology.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/ingest_signor_interactions.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/ingest_string_interactions.html</loc></url>
+<url><loc>https://gregorlueg.github.io/genewalkR/reference/install_agent_skill.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/metapath2vec.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/myc_genes.html</loc></url>
 <url><loc>https://gregorlueg.github.io/genewalkR/reference/n_nodes.html</loc></url>

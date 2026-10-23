@@ -1,6 +1,6 @@
 # Calculate embedding drift between two graphs
 
-Aligns the embedding of graph 2 onto the reference embedding of graph 1
+Aligns the embedding of graph 1 onto the reference embedding of graph 2
 via orthogonal Procrustes, then computes per-node cosine similarities as
 a measure of context drift. Nodes shared between both graphs receive a
 cosine similarity in `[-1, 1]`. Nodes exclusive to graph 1 are assigned

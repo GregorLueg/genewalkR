@@ -114,6 +114,11 @@ website](https://gregorlueg.github.io/genewalkR/). Vignettes and
 function definitions are provided there. If you run into issues, please
 use GitHub issues.
 
+Working with an LLM coding agent?
+[`install_agent_skill()`](https://gregorlueg.github.io/genewalkR/reference/install_agent_skill.md)
+drops a genewalkR skill into your agent set up so it stops guessing at
+the API.
+
 ## Roadmap
 
 While more complex graph neural networks that leverage edge and node

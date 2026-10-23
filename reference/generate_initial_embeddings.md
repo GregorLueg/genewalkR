@@ -2,7 +2,7 @@
 
 Runs node2vec independently on both graphs using identical
 hyperparameters, storing the resulting embedding matrices in the object.
-Graph 1 serves as the reference for subsequent Procrustes alignment. For
+Graph 2 serves as the reference for subsequent Procrustes alignment. For
 details on the node2vec algorithm, see Grover & Leskovec. For the
 approach generally speaking, see Amir, et al.
 

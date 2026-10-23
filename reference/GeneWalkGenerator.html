@@ -9,7 +9,7 @@ Supports building a master network once and subsetting to multiple gene sets."><
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,14 +119,14 @@ Supports building a master network once and subsetting to multiple gene sets.</p
 <p>Add pathway sources to the network</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GeneWalkGenerator</span><span class="op">$</span><span class="fu">add_pathways</span><span class="op">(</span></span>
-<span>  source <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"go"</span>, <span class="st">"reactome"</span><span class="op">)</span>,</span>
+<span>  source <span class="op">=</span> <span class="st">"go"</span>,</span>
 <span>  go_namespace <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"biological_process"</span>, <span class="st">"molecular_function"</span>, <span class="st">"cellular_component"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>source</code></dt>
-<dd><p>Character vector of sources: <code>"go"</code>, <code>"reactome"</code>. Defaults
-to <code>"go"</code> only by default.</p></dd>
+<dd><p>Character vector. Any of <code>c("go", "reactome")</code>. Defaults
+to <code>"go"</code>.</p></dd>
 
       <dt><code>go_namespace</code></dt>
 <dd><p>Character vector. Specifically for GO. Choices
@@ -143,7 +143,7 @@ are <code>c("biological_process", "molecular_function", "cellular_component")</c
 <p>Add PPI sources to the network</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">GeneWalkGenerator</span><span class="op">$</span><span class="fu">add_ppi</span><span class="op">(</span></span>
-<span>  source <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"combined"</span>, <span class="st">"string"</span>, <span class="st">"signor"</span>, <span class="st">"reactome"</span>, <span class="st">"intact"</span><span class="op">)</span>,</span>
+<span>  source <span class="op">=</span> <span class="st">"combined"</span>,</span>
 <span>  string_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  intact_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  intact_physical_only <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -151,7 +151,9 @@ are <code>c("biological_process", "molecular_function", "cellular_component")</c
 </div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>source</code></dt>
-<dd><p>Character vector of sources</p></dd>
+<dd><p>Character vector. Any of
+<code>c("combined", "string", "signor", "reactome", "intact")</code>. Defaults to
+<code>"combined"</code>.</p></dd>
 
       <dt><code>string_threshold</code></dt>
 <dd><p>Numeric threshold for STRING scores</p></dd>

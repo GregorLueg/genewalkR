@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@
 <p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
 <div class="section level2">
 <h2 id="what-this-is">What this is<a class="anchor" aria-label="anchor" href="#what-this-is"></a></h2>
-<p>An R package over a Rust crate (extendr/rextendr). Graph methods for computational biology: heat diffusion kernels, node2vec embeddings, GeneWalk (Ietswaart et al.) and embedding-drift detection. All heavy numerics live in <code>src/rust</code>; the R layer validates, marshals and stores results.</p>
+<p>An R package over a Rust crate (extendr/rextendr). Graph methods for computational biology: heat diffusion kernels, diffusion profiles (Ruiz et al.), node2vec and metapath2vec embeddings, GeneWalk (Ietswaart et al.) and embedding-drift detection. All heavy numerics live in <code>src/rust</code>; the R layer validates, marshals and stores results.</p>
 </div>
 <div class="section level2">
 <h2 id="build-and-test">Build and test<a class="anchor" aria-label="anchor" href="#build-and-test"></a></h2>
@@ -78,41 +78,48 @@
 <li>
 <code>diffusion.rs</code>: Laplacians, spectral decomposition (full or truncated), kernel families, and the raw/z/Monte Carlo diffusion methods.</li>
 <li>
-<code>embedding.rs</code>: node2vec training via <code>node2vec-rs</code>.</li>
+<code>embedding.rs</code>: node2vec and metapath2vec training via <code>node2vec-rs</code>.</li>
 <li>
 <code>data.rs</code>: synthetic graph generators (barbell, caveman, SBM, GeneWalk, differential graphs).</li>
 <li>
 <code>utils.rs</code>: cosine similarity, cross-cosine matrices, p-values, FDR.</li>
-</ul><p><code>bixverse-rs</code> and <code>ann-search-rs</code> are shared crates of Gregor’s; <code>faer</code> does the dense linear algebra.</p>
+</ul><p><code>bixverse-rs</code> and <code>ann-search-rs</code> are shared crates of Gregor’s; <code>faer</code> does the dense linear algebra. The constrained PageRank behind the diffusion profiles comes from <code>bixverse_r::graph::page_rank</code>.</p>
 <p>The diffusion kernel is the one stateful object: <code><a href="reference/rs_diffusion_kernel.html">rs_diffusion_kernel()</a></code> returns an <code>ExternalPtr&lt;DiffusionKernel&gt;</code> (spectral decomposition plus transformed eigenvalues) that the R object holds and reuses across <code><a href="reference/diffuse_scores.html">diffuse_scores()</a></code> calls. It does not survive a session restart.</p>
 </div>
 <div class="section level3">
 <h3 id="r-layer">R layer<a class="anchor" aria-label="anchor" href="#r-layer"></a></h3>
-<p>Three S7 classes carry state through a staged pipeline, each generic returning a new object with more properties filled in:</p>
+<p>Four S7 classes carry state through a staged pipeline, each generic returning a new object with more properties filled in:</p>
 <ul><li>
 <code>GeneWalk</code> (<code>R/genewalk.R</code>): <code><a href="reference/GeneWalk.html">GeneWalk()</a></code> -&gt; <code><a href="reference/generate_initial_emb.html">generate_initial_emb()</a></code> -&gt; <code><a href="reference/generate_permuted_emb.html">generate_permuted_emb()</a></code> -&gt; <code><a href="reference/calculate_genewalk_stats.html">calculate_genewalk_stats()</a></code>.</li>
 <li>
 <code>EmbedDrift</code> (<code>R/embed_drift.R</code>): <code><a href="reference/EmbedDrift.html">EmbedDrift()</a></code> -&gt; <code><a href="reference/generate_initial_embeddings.html">generate_initial_embeddings()</a></code> -&gt; <code><a href="reference/calculate_drift.html">calculate_drift()</a></code> (Procrustes alignment in Rust).</li>
 <li>
 <code>DiffusionScores</code> (<code>R/diffusion.R</code>): <code><a href="reference/DiffusionScores.html">DiffusionScores()</a></code> -&gt; <code><a href="reference/build_kernel.html">build_kernel()</a></code> -&gt; <code><a href="reference/diffuse_scores.html">diffuse_scores()</a></code>.</li>
+<li>
+<code>DiffusionProfiles</code> (<code>R/diffusion_profiles.R</code>): <code><a href="reference/DiffusionProfiles.html">DiffusionProfiles()</a></code> -&gt; <code><a href="reference/generate_profiles.html">generate_profiles()</a></code> -&gt; <code><a href="reference/calculate_profile_distances.html">calculate_profile_distances()</a></code>.</li>
 </ul><p>Class definitions and their getters sit in <code>R/classes.R</code>. <code><a href="https://rconsortium.github.io/S7/reference/methods_register.html" class="external-link">S7::methods_register()</a></code> runs in <code>R/zzz.R</code>.</p>
 <p><code>GeneWalkGenerator</code> (R6, <code>R/classes.R</code>) is the network factory: add pathway and PPI sources, <code>$build()</code> pulls them from DuckDB into an S3 <code>DataBuilder</code>, then <code>$create_for_genes()</code> subsets to a gene bag and returns a <code>GeneWalk</code>. The point is iterating over many gene bags against one loaded network.</p>
-<p><code><a href="reference/node2vec.html">node2vec()</a></code> (<code>R/node2vec.R</code>) is the plain functional entry point: no class, edge table in, embedding matrix out.</p>
+<p><code><a href="reference/node2vec.html">node2vec()</a></code> (<code>R/node2vec.R</code>) and <code><a href="reference/metapath2vec.html">metapath2vec()</a></code> (<code>R/metapath2vec.R</code>) are the plain functional entry points: no class, edge table in, embedding matrix out.</p>
 </div>
 <div class="section level3">
 <h3 id="parameters-and-validation">Parameters and validation<a class="anchor" aria-label="anchor" href="#parameters-and-validation"></a></h3>
-<p>Every tunable set goes through a <code>params_*()</code> wrapper in <code>R/params.R</code> returning a named list, validated by a <code>check*</code>/<code>assert*</code> pair in <code>R/checkmate_ext.R</code> (<code>assert*</code> built with <code><a href="https://mllg.github.io/checkmate/reference/makeAssertion.html" class="external-link">checkmate::makeAssertionFunction()</a></code>). Rust receives these lists and parses them into its own config structs. Adding a parameter means touching the wrapper, the checker, and the Rust-side parser.</p>
+<p>Every tunable set goes through a <code>params_*()</code> wrapper returning a named list, validated by a <code>check*</code>/<code>assert*</code> pair. Both are generated by devforge: the specs live in <code>inst/params/params.R</code>, and <code>devforge::forge_params()</code> writes <code>R/params-generated.R</code>, <code>R/checkmate-params-generated.R</code> and <code>R/params-prelude-generated.R</code>. Never hand-edit the generated files. Hand-written data checks (edge tables and the like) sit in <code>R/checkmate_ext.R</code>. Rust receives the lists and parses them into its own config structs. Adding a parameter means touching the spec, regenerating, and the Rust-side parser.</p>
 </div>
 <div class="section level3">
 <h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h3>
-<p>Runtime data is a DuckDB file downloaded on first use from a GitHub release into <code>tools::R_user_dir("genewalkR", "cache")</code>. <code><a href="reference/get_db_connection.html">get_db_connection()</a></code> opens it read-only, <code><a href="reference/reload_db.html">reload_db()</a></code> wipes and re-fetches. The <code>get_*</code> accessors in <code>R/data.R</code> are raw SQL through <code><a href="https://dbi.r-dbi.org/reference/dbGetQuery.html" class="external-link">DBI::dbGetQuery()</a></code>, coerced to <code>data.table</code> with string columns turned into factors.</p>
+<p>Runtime data is a DuckDB file downloaded on first use from a GitHub release into <code>tools::R_user_dir("genewalkR", "cache")</code>. <code><a href="reference/get_db_connection.html">get_db_connection()</a></code> opens it read-only, <code><a href="reference/reload_db.html">reload_db()</a></code> wipes and re-fetches. The <code>get_*</code> accessors in <code>R/data.R</code> are raw SQL through <code><a href="https://dbi.r-dbi.org/reference/dbGetQuery.html" class="external-link">DBI::dbGetQuery()</a></code>, coerced to <code>data.table</code> with factor columns turned into character.</p>
 <p>The <code>ingest_*</code>, <code><a href="reference/obo_parser.html">obo_parser()</a></code> and <code>download_*</code> functions in <code>R/data_processing.R</code> are not exported and never run at analysis time. They build the DuckDB file, and <code>data-raw/pull_data_to_db.R</code> is the script that drives them.</p>
+</div>
+<div class="section level3">
+<h3 id="agent-skill">Agent skill<a class="anchor" aria-label="anchor" href="#agent-skill"></a></h3>
+<p><code>inst/skills/genewalkr/</code> is a skill that teaches coding agents to <em>use</em> the package: <code>SKILL.md</code> (entry point, YAML frontmatter for Claude Code) plus <code>references/*.md</code>. <code><a href="reference/install_agent_skill.html">install_agent_skill()</a></code> (<code>R/agent_skill.R</code>) copies it to <code>~/.claude/skills</code> or, for other agents, writes <code>AGENTS.md</code> without the frontmatter. The directory is lowercase because Claude skill names must be.</p>
+<p>It ships with the package, so it goes stale with the code. When an export, signature, default, output column or trap changes, update the matching reference file and <code>references/api-index.md</code> in the same change. Facts in it are checked against the code or the DB, not written from memory.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="conventions">Conventions<a class="anchor" aria-label="anchor" href="#conventions"></a></h2>
 <ul><li>R is formatted with air (<code>air.toml</code>, format-on-save via the Posit VS Code extension). Vignettes are quarto (<code>.qmd</code>).</li>
-<li>Version bumps touch three places: <code>DESCRIPTION</code>, <code>src/rust/Cargo.toml</code> and the badge in <code>README.md</code>. A green R-CMD-check on <code>main</code> triggers auto-tagging, so a bump is a release.</li>
+<li>Version bumps touch <code>DESCRIPTION</code>, <code>src/rust/Cargo.toml</code> and the package entry in <code>src/rust/Cargo.lock</code>. The README version badge reads <code>DESCRIPTION</code>. A green R-CMD-check on <code>main</code> triggers auto-tagging, so a bump is a release.</li>
 <li>The repo tracks a copier template (<code>.copier-answers.yml</code>); <code>configure</code>, <code>tools/</code>, <code>src/Makevars*.in</code> and the workflows come from it. Fix template bugs upstream where you can.</li>
 </ul></div>
 </div>

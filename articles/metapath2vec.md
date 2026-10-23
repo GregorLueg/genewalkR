@@ -52,7 +52,7 @@ gene_gene <- get_interactions_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmprfDjdv/duckdb
+#> ℹ /tmp/RtmpL01fEK/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -64,7 +64,7 @@ gene_pathway <- get_gene_to_reactome()[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmprfDjdv/duckdb
+#> ℹ /tmp/RtmpL01fEK/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -76,7 +76,7 @@ pathway_pathway <- get_reactome_hierarchy("child_of")[, .(
   to = as.character(to)
 )]
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmprfDjdv/duckdb
+#> ℹ /tmp/RtmpL01fEK/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -127,7 +127,7 @@ node_labels <- rbind(
   )]
 )
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmprfDjdv/duckdb
+#> ℹ /tmp/RtmpL01fEK/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -135,7 +135,7 @@ node_labels <- rbind(
 #> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
 #> ℹ See ?duckdb_storage for details and alternatives.
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmprfDjdv/duckdb
+#> ℹ /tmp/RtmpL01fEK/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -325,9 +325,9 @@ purity <- data.table(
 purity
 #>                                method knn_purity
 #>                                <char>      <num>
-#> 1:                           node2vec  0.7745000
-#> 2:   metapath2vec (gene-pathway-gene)  0.7421000
-#> 3: metapath2vec++ (gene-pathway-gene)  0.7432500
+#> 1:                           node2vec  0.7748500
+#> 2:   metapath2vec (gene-pathway-gene)  0.7423000
+#> 3: metapath2vec++ (gene-pathway-gene)  0.7436000
 #> 4:                             random  0.0850795
 ```
 
@@ -362,21 +362,21 @@ tp53 <- node_labels[label == "TP53", id][1]
 nearest(gpg, tp53, n = 15L)
 #>                  id cosine    type
 #>              <char>  <num>  <char>
-#>  1:   R-HSA-9723905  0.942 pathway
+#>  1:   R-HSA-9723905  0.941 pathway
 #>  2:   R-HSA-6804754  0.888 pathway
-#>  3:     R-HSA-69895  0.855 pathway
-#>  4:    R-HSA-111448  0.836 pathway
+#>  3:     R-HSA-69895  0.854 pathway
+#>  4:    R-HSA-111448  0.835 pathway
 #>  5:   R-HSA-9988426  0.811 pathway
-#>  6:    R-HSA-139915  0.785 pathway
-#>  7:   R-HSA-6804116  0.751 pathway
-#>  8:   R-HSA-6803207  0.735 pathway
-#>  9:   R-HSA-2559584  0.728 pathway
-#> 10: ENSG00000118900  0.727    gene
-#> 11: ENSG00000149948  0.722    gene
-#> 12: ENSG00000161642  0.722    gene
+#>  6:    R-HSA-139915  0.783 pathway
+#>  7:   R-HSA-6804116  0.750 pathway
+#>  8:   R-HSA-6803207  0.734 pathway
+#>  9:   R-HSA-2559584  0.729 pathway
+#> 10: ENSG00000118900  0.728    gene
+#> 11: ENSG00000149948  0.721    gene
+#> 12: ENSG00000161642  0.720    gene
 #> 13: ENSG00000111875  0.718    gene
-#> 14: ENSG00000169372  0.712    gene
-#> 15: ENSG00000149311  0.711    gene
+#> 14: ENSG00000149311  0.713    gene
+#> 15: ENSG00000169372  0.711    gene
 #>                                                                         label
 #>                                                                        <char>
 #>  1: Loss of function of TP53 in cancer due to loss of tetramerization ability
@@ -392,8 +392,8 @@ nearest(gpg, tp53, n = 15L)
 #> 11:                                                                     HMGA2
 #> 12:                                                                   ZNF385A
 #> 13:                                                                     ASF1A
-#> 14:                                                                     CRADD
-#> 15:                                                                       ATM
+#> 14:                                                                       ATM
+#> 15:                                                                     CRADD
 ```
 
 ### Pathway embeddings
@@ -466,14 +466,14 @@ nearest(pgp[pathway_ids, ], tnfr1)
 #>            <char>  <num>  <char>
 #>  1: R-HSA-5357905  0.919 pathway
 #>  2: R-HSA-5357956  0.909 pathway
-#>  3: R-HSA-9693928  0.907 pathway
-#>  4: R-HSA-9013957  0.850 pathway
-#>  5:  R-HSA-933543  0.849 pathway
-#>  6: R-HSA-5218900  0.843 pathway
-#>  7: R-HSA-9692913  0.843 pathway
-#>  8:   R-HSA-75157  0.842 pathway
-#>  9: R-HSA-3371378  0.841 pathway
-#> 10: R-HSA-9686347  0.830 pathway
+#>  3: R-HSA-9693928  0.906 pathway
+#>  4: R-HSA-9013957  0.849 pathway
+#>  5:  R-HSA-933543  0.848 pathway
+#>  6: R-HSA-9692913  0.842 pathway
+#>  7: R-HSA-5218900  0.842 pathway
+#>  8: R-HSA-3371378  0.840 pathway
+#>  9:   R-HSA-75157  0.840 pathway
+#> 10: R-HSA-9686347  0.829 pathway
 #>                                                                         label
 #>                                                                        <char>
 #>  1:                                             Regulation of TNFR1 signaling
@@ -481,10 +481,10 @@ nearest(pgp[pathway_ids, ], tnfr1)
 #>  3:                               Defective RIPK1-mediated regulated necrosis
 #>  4:                      TLR3-mediated TICAM1-dependent programmed cell death
 #>  5: NF-kB activation through FADD/RIP-1 pathway mediated by caspase-8 and -10
-#>  6:                                               CASP8 activity is inhibited
-#>  7:                      SARS-CoV-1-mediated effects on programmed cell death
-#>  8:                                                     FasL/ CD95L signaling
-#>  9:                                                      Regulation by c-FLIP
+#>  6:                      SARS-CoV-1-mediated effects on programmed cell death
+#>  7:                                               CASP8 activity is inhibited
+#>  8:                                                      Regulation by c-FLIP
+#>  9:                                                     FasL/ CD95L signaling
 #> 10:                 Microbial modulation of RIPK1-mediated regulated necrosis
 ```
 

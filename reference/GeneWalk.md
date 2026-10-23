@@ -17,7 +17,7 @@ GeneWalk(graph_dt, gene_to_pathway_dt, gene_ids, pathway_ids)
   A data.table with the graph information. Needs to have the columns
   `"from"`, `"to"` and `"type"`; type must include `"hierarchy"` for the
   pathways, `"interaction"` for interactions and `"part_of"` for
-  gene/pathway interactions, and optionally a weight.
+  gene/pathway interactions, and optionally a `"weight"` column.
 
 - gene_to_pathway_dt:
 

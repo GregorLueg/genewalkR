@@ -14,7 +14,9 @@ DiffusionScores(graph)
 
 - graph:
 
-  An igraph object.
+  An igraph object with vertex names. An optional `"weight"` edge
+  attribute (non-negative) is used as edge weights by
+  [`build_kernel()`](https://gregorlueg.github.io/genewalkR/reference/build_kernel.md).
 
 ## Value
 

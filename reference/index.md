@@ -166,6 +166,13 @@ Wrapper functions around core parameters
 - [`params_genewalk_data()`](https://gregorlueg.github.io/genewalkR/reference/params_genewalk_data.md)
   : GeneWalk synthetic data params
 
+## Agent skill
+
+Teach your coding agent how to use the package
+
+- [`install_agent_skill()`](https://gregorlueg.github.io/genewalkR/reference/install_agent_skill.md)
+  : Install the genewalkR agent skill
+
 ## Rust wrappers
 
 Everything rusty - only use this if you know what you are doing…

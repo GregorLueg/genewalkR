@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">genewalkR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,24 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.3" id="genewalkr-023">genewalkR 0.2.3<a class="anchor" aria-label="anchor" href="#genewalkr-023"></a></h2>
+<ul><li>Agent skill: <code><a href="../reference/install_agent_skill.html">install_agent_skill()</a></code> copies a skill into Claude Code, Codex or any other agent so it knows how to use the package. Lives in <code>inst/skills/genewalkr</code> and is versioned with the package.</li>
+<li>
+<code><a href="../reference/node2vec.html">node2vec()</a></code> now uses the <code>weight</code> column; before it checked for <code>weight</code> but read <code>weights</code>, so every run was unweighted.</li>
+<li>
+<code>GeneWalk</code> reads edge weights from <code>weight</code> instead of <code>weights</code>, in line with the rest of the package. A <code>weights</code> column is now ignored.</li>
+<li>
+<code><a href="../reference/GeneWalk.html">GeneWalk()</a></code> errors on a <code>graph_dt</code> missing any of the <code>interaction</code>, <code>part_of</code> or <code>hierarchy</code> edge types. It ran the check but never acted on it.</li>
+<li>
+<code>GeneWalkGenerator$add_pathways()</code> and <code>$add_ppi()</code> take several sources in one call. <code>add_pathways(c("go", "reactome"))</code> used to keep GO only. Defaults stay <code>"go"</code> and <code>"combined"</code>.</li>
+<li>
+<code><a href="../reference/plot_gw_results.html">plot_gw_results()</a></code>: <code>fdr_treshold</code> renamed to <code>fdr_threshold</code>.</li>
+<li>
+<code><a href="../reference/calculate_drift.html">calculate_drift()</a></code> docs: graph 1 is aligned onto graph 2, not the reverse.</li>
+<li>
+<code><a href="../reference/build_kernel.html">build_kernel()</a></code> uses the <code>weight</code> edge attribute of the igraph if present (non-negative, validated). Before, every edge counted as 1. Unweighted graphs give identical results.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.2" id="genewalkr-022">genewalkR 0.2.2<a class="anchor" aria-label="anchor" href="#genewalkr-022"></a></h2>
 <ul><li>Rust side moved onto the split bixverse-rs 0.8.0 crates, pulled in via <code>bixverse-r</code>. Along with it: faer 0.24, ann-search-rs 0.11 and node2vec-rs 0.4, so the build carries a single faer again.</li>
